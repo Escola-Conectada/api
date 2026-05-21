@@ -23,10 +23,11 @@ namespace form_API.Services
 
         public async Task<AuthResponseViewModel?> LoginAsync(LoginRequestViewModel viewModel)
         {
+            var email = viewModel.Email.Trim().ToLowerInvariant();
             var usuario = await _context.Usuarios
                 .Include(u => u.Perfil)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email == viewModel.Email);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
             if (usuario == null || !PasswordHasher.VerifyPassword(viewModel.Senha, usuario.Senha))
             {
@@ -38,7 +39,8 @@ namespace form_API.Services
             {
                 Token = GenerateToken(usuario, expires),
                 ExpiraEm = expires,
-                Usuario = usuario.ToSummary()!
+                Usuario = usuario.ToSummary()!,
+                DeveAlterarSenhaPadrao = DefaultPasswordPolicy.UsesDefaultPassword(usuario.Senha)
             };
         }
 
@@ -54,6 +56,39 @@ namespace form_API.Services
                 .Include(u => u.Perfil)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
+
+            return usuario.ToSummary();
+        }
+
+        public async Task<UsuarioSummaryViewModel?> AlterarSenhaAsync(ClaimsPrincipal principal, AlterarSenhaViewModel viewModel)
+        {
+            var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(idClaim, out var idUsuario))
+            {
+                return null;
+            }
+
+            var usuario = await _context.Usuarios
+                .Include(u => u.Perfil)
+                .FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
+
+            if (usuario == null)
+            {
+                return null;
+            }
+
+            if (!PasswordHasher.VerifyPassword(viewModel.SenhaAtual, usuario.Senha))
+            {
+                throw new InvalidOperationException("Senha atual invalida.");
+            }
+
+            if (PasswordHasher.VerifyPassword(viewModel.NovaSenha, usuario.Senha))
+            {
+                throw new InvalidOperationException("A nova senha deve ser diferente da senha atual.");
+            }
+
+            usuario.Senha = PasswordHasher.HashPassword(viewModel.NovaSenha);
+            await _context.SaveChangesAsync();
 
             return usuario.ToSummary();
         }

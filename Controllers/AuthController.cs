@@ -80,5 +80,31 @@ namespace form_API.Controllers
         {
             return Ok(new { autorizado = true, perfil = "Administrador" });
         }
+
+        /// <summary>
+        /// Altera a senha do usuario autenticado.
+        /// </summary>
+        [Authorize]
+        [HttpPost("alterar-senha")]
+        [ProducesResponseType(typeof(UsuarioSummaryViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> AlterarSenha(AlterarSenhaViewModel model)
+        {
+            try
+            {
+                var usuario = await _authService.AlterarSenhaAsync(User, model);
+                if (usuario == null)
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(usuario);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

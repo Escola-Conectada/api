@@ -25,7 +25,6 @@ namespace form_API.Tests.Services
                 Nome = "Usuario Novo",
                 Email = "novo@escola.com",
                 Telefone = "11999990000",
-                Senha = "Senha@123",
                 IdPerfil = 2
             };
 
@@ -35,8 +34,8 @@ namespace form_API.Tests.Services
             Assert.Equal("Usuario Novo", created.Nome);
             Assert.Equal("novo@escola.com", created.Email);
             Assert.Equal("Contribuinte", created.DescricaoPerfil);
-            Assert.NotEqual(model.Senha, entity.Senha);
-            Assert.True(PasswordHasher.VerifyPassword(model.Senha, entity.Senha));
+            Assert.NotEqual(DefaultPasswordPolicy.DefaultPassword, entity.Senha);
+            Assert.True(PasswordHasher.VerifyPassword(DefaultPasswordPolicy.DefaultPassword, entity.Senha));
         }
 
         [Fact]
@@ -53,7 +52,6 @@ namespace form_API.Tests.Services
                 Nome = "Outro Admin",
                 Email = "admin@escola.com",
                 Telefone = "11999990000",
-                Senha = "Senha@123",
                 IdPerfil = 1
             };
 

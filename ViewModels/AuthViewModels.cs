@@ -35,5 +35,31 @@ namespace form_API.ViewModels
         /// Dados do usuario autenticado.
         /// </summary>
         public UsuarioSummaryViewModel Usuario { get; set; } = new();
+
+        /// <summary>
+        /// Indica se o usuario ainda usa a senha padrao e deve troca-la.
+        /// </summary>
+        public bool DeveAlterarSenhaPadrao { get; set; }
+    }
+
+    /// <summary>
+    /// Dados para alteracao de senha do usuario autenticado.
+    /// </summary>
+    public class AlterarSenhaViewModel
+    {
+        /// <summary>
+        /// Senha atual do usuario.
+        /// </summary>
+        public string SenhaAtual { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Nova senha escolhida pelo usuario.
+        /// </summary>
+        public string NovaSenha { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Confirmacao da nova senha.
+        /// </summary>
+        public string ConfirmacaoSenha { get; set; } = string.Empty;
     }
 }

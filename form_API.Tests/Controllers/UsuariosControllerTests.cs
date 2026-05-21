@@ -18,7 +18,6 @@ namespace form_API.Tests.Controllers
                 Nome = "Usuario Novo",
                 Email = "novo@escola.com",
                 Telefone = "11999990000",
-                Senha = "Senha@123",
                 IdPerfil = 2
             };
 

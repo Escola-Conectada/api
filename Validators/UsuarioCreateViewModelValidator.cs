@@ -23,11 +23,6 @@ namespace form_API.Validators
                 .NotEmpty().WithMessage("O telefone e obrigatorio.")
                 .MaximumLength(20).WithMessage("O telefone deve ter no maximo 20 caracteres.");
 
-            RuleFor(usuario => usuario.Senha)
-                .Cascade(CascadeMode.Stop)
-                .NotEmpty().WithMessage("A senha e obrigatoria.")
-                .MinimumLength(8).WithMessage("A senha deve ter no minimo 8 caracteres.");
-
             RuleFor(usuario => usuario.IdPerfil)
                 .GreaterThan(0).WithMessage("Informe um perfil valido.");
         }

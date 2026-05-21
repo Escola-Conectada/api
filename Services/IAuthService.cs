@@ -7,5 +7,6 @@ namespace form_API.Services
     {
         Task<AuthResponseViewModel?> LoginAsync(LoginRequestViewModel viewModel);
         Task<UsuarioSummaryViewModel?> GetUsuarioAtualAsync(ClaimsPrincipal principal);
+        Task<UsuarioSummaryViewModel?> AlterarSenhaAsync(ClaimsPrincipal principal, AlterarSenhaViewModel viewModel);
     }
 }

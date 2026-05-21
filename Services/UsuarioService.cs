@@ -67,7 +67,7 @@ namespace form_API.Services
                 Nome = viewModel.Nome.Trim(),
                 Email = email,
                 Telefone = viewModel.Telefone.Trim(),
-                Senha = PasswordHasher.HashPassword(viewModel.Senha),
+                Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
                 IdPerfil = viewModel.IdPerfil
             };
 
@@ -112,7 +112,6 @@ namespace form_API.Services
             usuario.Nome = viewModel.Nome.Trim();
             usuario.Email = email;
             usuario.Telefone = viewModel.Telefone.Trim();
-            usuario.Senha = PasswordHasher.HashPassword(viewModel.Senha);
             usuario.IdPerfil = viewModel.IdPerfil;
 
             await _context.SaveChangesAsync();

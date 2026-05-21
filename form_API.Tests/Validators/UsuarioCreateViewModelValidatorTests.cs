@@ -16,7 +16,6 @@ namespace form_API.Tests.Validators
                 Nome = "Usuario Teste",
                 Email = "usuario@escola.com",
                 Telefone = "11999990000",
-                Senha = "Senha@123",
                 IdPerfil = 2
             };
 
@@ -35,7 +34,6 @@ namespace form_API.Tests.Validators
             result.ShouldHaveValidationErrorFor(usuario => usuario.Nome);
             result.ShouldHaveValidationErrorFor(usuario => usuario.Email);
             result.ShouldHaveValidationErrorFor(usuario => usuario.Telefone);
-            result.ShouldHaveValidationErrorFor(usuario => usuario.Senha);
             result.ShouldHaveValidationErrorFor(usuario => usuario.IdPerfil);
         }
 
@@ -47,7 +45,6 @@ namespace form_API.Tests.Validators
                 Nome = "Usuario Teste",
                 Email = "email-invalido",
                 Telefone = "11999990000",
-                Senha = "Senha@123",
                 IdPerfil = 2
             };
 

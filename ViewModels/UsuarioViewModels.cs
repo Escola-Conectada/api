@@ -21,11 +21,6 @@ namespace form_API.ViewModels
         public string Telefone { get; set; } = string.Empty;
 
         /// <summary>
-        /// Senha em texto puro, armazenada como hash pela API.
-        /// </summary>
-        public string Senha { get; set; } = string.Empty;
-
-        /// <summary>
         /// Perfil de autorizacao vinculado ao usuario.
         /// </summary>
         public int IdPerfil { get; set; }
