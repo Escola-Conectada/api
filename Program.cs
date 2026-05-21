@@ -4,6 +4,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using form_API.Data;
 using form_API.Services;
+using form_API.Swagger;
 using form_API.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ builder.Services.AddScoped<IAlunoService, AlunoService>();
 builder.Services.AddScoped<IProfessorService, ProfessorService>();
 builder.Services.AddScoped<IDiretoriaService, DiretoriaService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))
@@ -60,8 +62,20 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Form API",
         Version = "v1",
-        Description = "API para gerenciamento de alunos e professores."
+        Description = "API para gerenciamento escolar com alunos, professores, diretoria e autenticacao JWT."
     });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Description = "Informe o token JWT retornado em /api/Auth/login. Exemplo: Bearer {seu_token}"
+    });
+
+    options.OperationFilter<AuthorizeOperationFilter>();
 
     var xmlFileName = $"{typeof(Program).Assembly.GetName().Name}.xml";
     var xmlFilePath = Path.Combine(AppContext.BaseDirectory, xmlFileName);
@@ -71,9 +85,22 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlFilePath);
     }
 });
-builder.Services.AddDbContext<DataContext>(
-    x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection nao configurada.");
+}
+
+builder.Services.AddDbContext<DataContext>(options =>
+{
+    if (connectionString.Contains("Data Source=", StringComparison.OrdinalIgnoreCase))
+    {
+        options.UseSqlite(connectionString);
+        return;
+    }
+
+    options.UseSqlServer(connectionString);
+});
 
 var app = builder.Build();
 
@@ -81,7 +108,14 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-    db.Database.Migrate();
+    if (db.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+    {
+        db.Database.EnsureCreated();
+    }
+    else
+    {
+        db.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.
