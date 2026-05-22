@@ -20,15 +20,21 @@ dotnet restore form_API.csproj
 dotnet run
 ```
 
-Em desenvolvimento, `appsettings.Development.json` usa SQLite local em `form-dev.db`. Em container, a connection string aponta para SQL Server.
+Em desenvolvimento, `appsettings.Development.json` usa SQLite local em `form-dev.db`.
+Se `Jwt__Key` nao estiver definida em Development, a API cria uma chave local em `.local/jwt.key`, pasta ignorada pelo Git.
+Em container ou producao, defina `Jwt__Key` e a connection string por variaveis de ambiente ou secrets do provedor.
 
 ## Docker Compose
 
 Na raiz do repositorio:
 
 ```bash
+cp .env.example .env
 docker compose -f docker/docker-compose.yml up --build
 ```
+
+Preencha o `.env` local com `MSSQL_SA_PASSWORD` e `JWT_KEY` antes de subir os containers.
+Esse arquivo local e ignorado pelo Git; mantenha apenas `.env.example` versionado.
 
 Acessos padrao:
 
@@ -110,6 +116,8 @@ dotnet test form_API.Tests/form_API.Tests.csproj
 
 - Markdown tecnico: `../docs/backend-tecnico.md`
 - PDF tecnico: `../docs/backend-tecnico.pdf`
+- PDF tecnico completo do backend: `docs/documentacao-tecnica-backend.pdf`
+- HTML fonte do PDF completo: `docs/documentacao-tecnica-backend.html`
 - Swagger: `/swagger` em ambiente de desenvolvimento
 
 No Swagger, execute `POST /api/Auth/login`, copie o token e use `Authorize` com:

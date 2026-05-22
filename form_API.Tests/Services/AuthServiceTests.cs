@@ -90,7 +90,7 @@ namespace form_API.Tests.Services
             return new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["Jwt:Key"] = "TestJwtKeyForUnitTests-ChangeMe-2026-Secret",
+                    ["Jwt:Key"] = "TestJwtKeyForUnitTestsOnly_1234567890_Secret",
                     ["Jwt:Issuer"] = "form-api",
                     ["Jwt:Audience"] = "form-client",
                     ["Jwt:ExpirationMinutes"] = "120"

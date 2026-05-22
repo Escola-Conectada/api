@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
@@ -36,11 +37,8 @@ builder.Services.AddScoped<IDiretoriaService, DiretoriaService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
-var jwtKey = builder.Configuration["Jwt:Key"];
-if (string.IsNullOrWhiteSpace(jwtKey))
-{
-    throw new InvalidOperationException("Jwt:Key nao configurado.");
-}
+var jwtKey = ResolveJwtKey(builder.Environment, builder.Configuration);
+builder.Configuration["Jwt:Key"] = jwtKey;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -201,3 +199,41 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+static string ResolveJwtKey(IHostEnvironment environment, IConfiguration configuration)
+{
+    var jwtKey = configuration["Jwt:Key"];
+    if (!string.IsNullOrWhiteSpace(jwtKey))
+    {
+        return ValidateJwtKey(jwtKey);
+    }
+
+    if (!environment.IsDevelopment())
+    {
+        throw new InvalidOperationException(
+            "Jwt:Key nao configurado. Defina a variavel de ambiente Jwt__Key ou configure um secret no provedor de deploy.");
+    }
+
+    var localDirectory = Path.Combine(environment.ContentRootPath, ".local");
+    var localKeyPath = Path.Combine(localDirectory, "jwt.key");
+
+    if (File.Exists(localKeyPath))
+    {
+        return ValidateJwtKey(File.ReadAllText(localKeyPath).Trim());
+    }
+
+    Directory.CreateDirectory(localDirectory);
+    var generatedKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    File.WriteAllText(localKeyPath, generatedKey);
+    return generatedKey;
+}
+
+static string ValidateJwtKey(string jwtKey)
+{
+    if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+    {
+        throw new InvalidOperationException("Jwt:Key deve ter ao menos 32 bytes.");
+    }
+
+    return jwtKey;
+}
