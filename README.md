@@ -1,6 +1,6 @@
 # ESCOLA_API - Escola High Tech
 
-API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis e CRUD de alunos, professores, usuarios e diretoria.
+API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis e CRUD centralizado de usuarios.
 
 ## Tecnologias
 
@@ -111,16 +111,15 @@ O backend usa arquitetura em camadas:
 | Entidade | Rotas |
 | --- | --- |
 | Auth | `POST /api/Auth/login`, `GET /api/Auth/me`, `POST /api/Auth/alterar-senha` |
-| Aluno | `GET /api/Aluno`, `GET /api/Aluno/{id}`, `POST /api/Aluno`, `PUT /api/Aluno/{id}`, `DELETE /api/Aluno/{id}` |
-| Professor | `GET /api/Professor`, `GET /api/Professor/{id}`, `POST /api/Professor`, `PUT /api/Professor/{id}`, `DELETE /api/Professor/{id}` |
-| Diretoria | `GET /api/Diretoria`, `GET /api/Diretoria/{id}`, `POST /api/Diretoria`, `PUT /api/Diretoria/{id}`, `DELETE /api/Diretoria/{id}` |
 | Usuarios | `GET /api/usuarios`, `GET /api/usuarios/{id}`, `GET /api/usuarios/perfis`, `POST /api/usuarios`, `PUT /api/usuarios/{id}`, `DELETE /api/usuarios/{id}` |
 
 ## Autorizacao
 
-- `Administrador`: acesso completo.
-- `Contribuinte`: cria e atualiza alunos, professores e diretoria.
-- `Leitor`: consulta endpoints autenticados de leitura.
+- `Administrador`: acesso completo ao CRUD de usuarios e pode cadastrar `Aluno`, `Professor` ou `Administrador`.
+- `Professor`: pode cadastrar apenas usuarios do tipo `Aluno`.
+- `Aluno`: nao cadastra usuarios; pode atualizar apenas seus proprios dados basicos (`nome`, `email` e `telefone`).
+
+No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios.
 
 ## Testes
 

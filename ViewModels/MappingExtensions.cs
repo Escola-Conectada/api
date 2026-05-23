@@ -74,7 +74,8 @@ namespace ESCOLA_API.ViewModels
                 Email = entity.Email,
                 Telefone = entity.Telefone,
                 IdPerfil = entity.IdPerfil,
-                DescricaoPerfil = entity.Perfil?.DescricaoPerfil ?? string.Empty
+                DescricaoPerfil = entity.Perfil?.DescricaoPerfil ?? string.Empty,
+                TipoUsuario = PerfilSistema.ObterDescricaoPorId(entity.IdPerfil)
             };
         }
 

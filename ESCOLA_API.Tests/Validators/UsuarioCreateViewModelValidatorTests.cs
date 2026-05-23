@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using ESCOLA_API.Models;
 using ESCOLA_API.Validators;
 using ESCOLA_API.ViewModels;
 
@@ -16,7 +17,7 @@ namespace ESCOLA_API.Tests.Validators
                 Nome = "Usuario Teste",
                 Email = "usuario@escola.com",
                 Telefone = "11999990000",
-                IdPerfil = 2
+                TipoUsuario = PerfilSistema.Professor
             };
 
             var result = _validator.TestValidate(model);
@@ -34,7 +35,7 @@ namespace ESCOLA_API.Tests.Validators
             result.ShouldHaveValidationErrorFor(usuario => usuario.Nome);
             result.ShouldHaveValidationErrorFor(usuario => usuario.Email);
             result.ShouldHaveValidationErrorFor(usuario => usuario.Telefone);
-            result.ShouldHaveValidationErrorFor(usuario => usuario.IdPerfil);
+            result.ShouldHaveValidationErrorFor(usuario => usuario.TipoUsuario);
         }
 
         [Fact]
@@ -45,7 +46,7 @@ namespace ESCOLA_API.Tests.Validators
                 Nome = "Usuario Teste",
                 Email = "email-invalido",
                 Telefone = "11999990000",
-                IdPerfil = 2
+                TipoUsuario = PerfilSistema.Professor
             };
 
             var result = _validator.TestValidate(model);

@@ -6,6 +6,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using ESCOLA_API.Data;
 using ESCOLA_API.Logging;
+using ESCOLA_API.Models;
 using ESCOLA_API.Services;
 using ESCOLA_API.Swagger;
 using ESCOLA_API.Validators;
@@ -29,12 +30,8 @@ builder.Logging.AddDailyFileLogger(options =>
 builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<AlunoCreateEditViewModelValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UsuarioCreateViewModelValidator>();
 builder.Services.AddCors();
-builder.Services.AddScoped<IRepository, Repository>();
-builder.Services.AddScoped<IAlunoService, AlunoService>();
-builder.Services.AddScoped<IProfessorService, ProfessorService>();
-builder.Services.AddScoped<IDiretoriaService, DiretoriaService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
@@ -60,8 +57,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Administrador", policy => policy.RequireRole("Administrador"));
-    options.AddPolicy("Contribuinte", policy => policy.RequireRole("Administrador", "Contribuinte"));
-    options.AddPolicy("Leitor", policy => policy.RequireRole("Administrador", "Contribuinte", "Leitor"));
+    options.AddPolicy("Professor", policy => policy.RequireRole("Administrador", "Professor"));
+    options.AddPolicy("Aluno", policy => policy.RequireRole("Administrador", "Professor", "Aluno"));
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -71,7 +68,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Form API",
         Version = "v1",
-        Description = "API para gerenciamento escolar com alunos, professores, diretoria e autenticacao JWT."
+        Description = "API para gerenciamento escolar com CRUD centralizado de usuarios e autenticacao JWT."
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -139,6 +136,7 @@ using (var scope = app.Services.CreateScope())
             db.Database.Migrate();
         }
 
+        await EnsurePerfisSistemaAsync(db);
         migrationLogger.LogInformation("Banco de dados pronto.");
     }
     catch (Exception ex)
@@ -270,4 +268,26 @@ static string ValidateJwtKey(string jwtKey)
     }
 
     return jwtKey;
+}
+
+static async Task EnsurePerfisSistemaAsync(DataContext db)
+{
+    var perfis = new[]
+    {
+        (PerfilSistema.AdministradorId, PerfilSistema.Administrador),
+        (PerfilSistema.ProfessorId, PerfilSistema.Professor),
+        (PerfilSistema.AlunoId, PerfilSistema.Aluno)
+    };
+
+    foreach (var (idPerfil, descricaoPerfil) in perfis)
+    {
+        var perfil = await db.Perfis.FirstOrDefaultAsync(p => p.IdPerfil == idPerfil);
+
+        if (perfil != null && perfil.DescricaoPerfil != descricaoPerfil)
+        {
+            perfil.DescricaoPerfil = descricaoPerfil;
+        }
+    }
+
+    await db.SaveChangesAsync();
 }

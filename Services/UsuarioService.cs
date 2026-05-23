@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ESCOLA_API.Data;
 using ESCOLA_API.Models;
 using ESCOLA_API.Security;
@@ -15,11 +16,25 @@ namespace ESCOLA_API.Services
             _context = context;
         }
 
-        public async Task<UsuarioSummaryViewModel[]> GetAllAsync()
+        public async Task<UsuarioSummaryViewModel[]> GetAllAsync(ClaimsPrincipal principal)
         {
-            return await _context.Usuarios
+            var usuarioAtualId = GetUsuarioAtualId(principal);
+
+            var query = _context.Usuarios
                 .Include(usuario => usuario.Perfil)
-                .AsNoTracking()
+                .AsNoTracking();
+
+            if (IsProfessor(principal))
+            {
+                query = query.Where(usuario =>
+                    usuario.IdPerfil == PerfilSistema.AlunoId || usuario.IdUsuario == usuarioAtualId);
+            }
+            else if (!IsAdministrador(principal))
+            {
+                query = query.Where(usuario => usuario.IdUsuario == usuarioAtualId);
+            }
+
+            return await query
                 .OrderBy(usuario => usuario.Nome)
                 .Select(usuario => new UsuarioSummaryViewModel
                 {
@@ -28,22 +43,28 @@ namespace ESCOLA_API.Services
                     Email = usuario.Email,
                     Telefone = usuario.Telefone,
                     IdPerfil = usuario.IdPerfil,
-                    DescricaoPerfil = usuario.Perfil == null ? string.Empty : usuario.Perfil.DescricaoPerfil
+                    DescricaoPerfil = usuario.Perfil == null ? string.Empty : usuario.Perfil.DescricaoPerfil,
+                    TipoUsuario = PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)
                 })
                 .ToArrayAsync();
         }
 
-        public async Task<UsuarioSummaryViewModel?> GetByIdAsync(int usuarioId)
+        public async Task<UsuarioSummaryViewModel?> GetByIdAsync(int usuarioId, ClaimsPrincipal principal)
         {
             var usuario = await _context.Usuarios
                 .Include(u => u.Perfil)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.IdUsuario == usuarioId);
 
+            if (usuario != null && !PodeConsultar(principal, usuario))
+            {
+                throw new UnauthorizedAccessException("Usuario nao autorizado a consultar este cadastro.");
+            }
+
             return usuario.ToSummary();
         }
 
-        public async Task<UsuarioSummaryViewModel> AddAsync(UsuarioCreateViewModel viewModel)
+        public async Task<UsuarioSummaryViewModel> AddAsync(UsuarioCreateViewModel viewModel, ClaimsPrincipal principal)
         {
             var email = NormalizeEmail(viewModel.Email);
             var emailJaCadastrado = await _context.Usuarios
@@ -54,13 +75,12 @@ namespace ESCOLA_API.Services
                 throw new InvalidOperationException("Email ja cadastrado.");
             }
 
-            var perfilExiste = await _context.Perfis
-                .AnyAsync(perfil => perfil.IdPerfil == viewModel.IdPerfil);
-
-            if (!perfilExiste)
+            if (!PerfilSistema.TryObterPerfilId(viewModel.TipoUsuario, out var idPerfil))
             {
-                throw new InvalidOperationException("Perfil informado nao existe.");
+                throw new InvalidOperationException("Tipo de usuario informado nao existe.");
             }
+
+            ValidarPermissaoCadastro(principal, idPerfil);
 
             var usuario = new Usuario
             {
@@ -68,7 +88,7 @@ namespace ESCOLA_API.Services
                 Email = email,
                 Telefone = viewModel.Telefone.Trim(),
                 Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
-                IdPerfil = viewModel.IdPerfil
+                IdPerfil = idPerfil
             };
 
             _context.Usuarios.Add(usuario);
@@ -82,7 +102,7 @@ namespace ESCOLA_API.Services
             return created.ToSummary()!;
         }
 
-        public async Task<UsuarioSummaryViewModel?> UpdateAsync(int usuarioId, UsuarioCreateViewModel viewModel)
+        public async Task<UsuarioSummaryViewModel?> UpdateAsync(int usuarioId, UsuarioUpdateViewModel viewModel, ClaimsPrincipal principal)
         {
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.IdUsuario == usuarioId);
@@ -101,18 +121,24 @@ namespace ESCOLA_API.Services
                 throw new InvalidOperationException("Email ja cadastrado.");
             }
 
-            var perfilExiste = await _context.Perfis
-                .AnyAsync(perfil => perfil.IdPerfil == viewModel.IdPerfil);
+            var alterarTipoUsuario = !string.IsNullOrWhiteSpace(viewModel.TipoUsuario);
+            var idPerfil = usuario.IdPerfil;
 
-            if (!perfilExiste)
+            if (alterarTipoUsuario && !PerfilSistema.TryObterPerfilId(viewModel.TipoUsuario, out idPerfil))
             {
-                throw new InvalidOperationException("Perfil informado nao existe.");
+                throw new InvalidOperationException("Tipo de usuario informado nao existe.");
             }
+
+            ValidarPermissaoAtualizacao(principal, usuario, alterarTipoUsuario);
 
             usuario.Nome = viewModel.Nome.Trim();
             usuario.Email = email;
             usuario.Telefone = viewModel.Telefone.Trim();
-            usuario.IdPerfil = viewModel.IdPerfil;
+
+            if (alterarTipoUsuario)
+            {
+                usuario.IdPerfil = idPerfil;
+            }
 
             await _context.SaveChangesAsync();
 
@@ -139,9 +165,20 @@ namespace ESCOLA_API.Services
             return true;
         }
 
-        public async Task<PerfilViewModel[]> GetPerfisAsync()
+        public async Task<PerfilViewModel[]> GetPerfisAsync(ClaimsPrincipal principal)
         {
-            return await _context.Perfis
+            var query = _context.Perfis.AsNoTracking();
+
+            if (IsProfessor(principal))
+            {
+                query = query.Where(perfil => perfil.IdPerfil == PerfilSistema.AlunoId);
+            }
+            else if (!IsAdministrador(principal))
+            {
+                throw new UnauthorizedAccessException("Usuario nao autorizado a consultar perfis para cadastro.");
+            }
+
+            return await query
                 .AsNoTracking()
                 .OrderBy(perfil => perfil.IdPerfil)
                 .Select(perfil => new PerfilViewModel
@@ -155,6 +192,65 @@ namespace ESCOLA_API.Services
         private static string NormalizeEmail(string email)
         {
             return email.Trim().ToLowerInvariant();
+        }
+
+        private static void ValidarPermissaoCadastro(ClaimsPrincipal principal, int idPerfil)
+        {
+            if (IsAdministrador(principal))
+            {
+                return;
+            }
+
+            if (IsProfessor(principal) && idPerfil == PerfilSistema.AlunoId)
+            {
+                return;
+            }
+
+            throw new UnauthorizedAccessException("Usuario nao autorizado a cadastrar este tipo de usuario.");
+        }
+
+        private static void ValidarPermissaoAtualizacao(ClaimsPrincipal principal, Usuario usuario, bool alterarTipoUsuario)
+        {
+            if (IsAdministrador(principal))
+            {
+                return;
+            }
+
+            if (!alterarTipoUsuario && usuario.IdUsuario == GetUsuarioAtualId(principal))
+            {
+                return;
+            }
+
+            throw new UnauthorizedAccessException("Usuario nao autorizado a alterar este cadastro.");
+        }
+
+        private static bool PodeConsultar(ClaimsPrincipal principal, Usuario usuario)
+        {
+            if (IsAdministrador(principal))
+            {
+                return true;
+            }
+
+            var usuarioAtualId = GetUsuarioAtualId(principal);
+
+            return usuario.IdUsuario == usuarioAtualId
+                || (IsProfessor(principal) && usuario.IdPerfil == PerfilSistema.AlunoId);
+        }
+
+        private static bool IsAdministrador(ClaimsPrincipal principal)
+        {
+            return principal.IsInRole(PerfilSistema.Administrador);
+        }
+
+        private static bool IsProfessor(ClaimsPrincipal principal)
+        {
+            return principal.IsInRole(PerfilSistema.Professor);
+        }
+
+        private static int GetUsuarioAtualId(ClaimsPrincipal principal)
+        {
+            var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(idClaim, out var idUsuario) ? idUsuario : 0;
         }
     }
 }

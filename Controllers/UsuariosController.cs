@@ -26,16 +26,20 @@ namespace ESCOLA_API.Controllers
         /// <summary>
         /// Lista usuarios cadastrados para vinculos com outras tabelas.
         /// </summary>
-        [Authorize(Roles = "Administrador,Contribuinte")]
         [HttpGet]
         [ProducesResponseType(typeof(UsuarioSummaryViewModel[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Get()
         {
             try
             {
-                var usuarios = await _usuarioService.GetAllAsync();
+                var usuarios = await _usuarioService.GetAllAsync(User);
                 return Ok(usuarios);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (Exception ex)
             {
@@ -47,18 +51,22 @@ namespace ESCOLA_API.Controllers
         /// <summary>
         /// Busca um usuario pelo identificador.
         /// </summary>
-        [Authorize(Roles = "Administrador,Contribuinte")]
-        [HttpGet("{usuarioId}")]
+        [HttpGet("{usuarioId:int}")]
         [ProducesResponseType(typeof(UsuarioSummaryViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetByUsuarioId(int usuarioId)
         {
             try
             {
-                var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+                var usuario = await _usuarioService.GetByIdAsync(usuarioId, User);
                 if (usuario == null) return NotFound();
                 return Ok(usuario);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (Exception ex)
             {
@@ -70,16 +78,20 @@ namespace ESCOLA_API.Controllers
         /// <summary>
         /// Lista perfis disponiveis para cadastro de usuario.
         /// </summary>
-        [Authorize(Roles = "Administrador")]
         [HttpGet("perfis")]
         [ProducesResponseType(typeof(PerfilViewModel[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetPerfis()
         {
             try
             {
-                var perfis = await _usuarioService.GetPerfisAsync();
+                var perfis = await _usuarioService.GetPerfisAsync(User);
                 return Ok(perfis);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (Exception ex)
             {
@@ -91,17 +103,21 @@ namespace ESCOLA_API.Controllers
         /// <summary>
         /// Cadastra um novo usuario.
         /// </summary>
-        [Authorize(Roles = "Administrador")]
         [HttpPost]
         [ProducesResponseType(typeof(UsuarioSummaryViewModel), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Post(UsuarioCreateViewModel model)
         {
             try
             {
-                var created = await _usuarioService.AddAsync(model);
+                var created = await _usuarioService.AddAsync(model, User);
                 return CreatedAtAction(nameof(GetByUsuarioId), new { usuarioId = created.IdUsuario }, created);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (InvalidOperationException ex)
             {
@@ -117,19 +133,23 @@ namespace ESCOLA_API.Controllers
         /// <summary>
         /// Atualiza um usuario existente.
         /// </summary>
-        [Authorize(Roles = "Administrador")]
-        [HttpPut("{usuarioId}")]
-        [ProducesResponseType(typeof(UsuarioSummaryViewModel), StatusCodes.Status201Created)]
+        [HttpPut("{usuarioId:int}")]
+        [ProducesResponseType(typeof(UsuarioSummaryViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Put(int usuarioId, UsuarioCreateViewModel model)
+        public async Task<IActionResult> Put(int usuarioId, UsuarioUpdateViewModel model)
         {
             try
             {
-                var updated = await _usuarioService.UpdateAsync(usuarioId, model);
+                var updated = await _usuarioService.UpdateAsync(usuarioId, model, User);
                 if (updated == null) return NotFound();
-                return CreatedAtAction(nameof(GetByUsuarioId), new { usuarioId = updated.IdUsuario }, updated);
+                return Ok(updated);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (InvalidOperationException ex)
             {
@@ -146,7 +166,7 @@ namespace ESCOLA_API.Controllers
         /// Exclui um usuario.
         /// </summary>
         [Authorize(Roles = "Administrador")]
-        [HttpDelete("{usuarioId}")]
+        [HttpDelete("{usuarioId:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

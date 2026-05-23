@@ -21,9 +21,35 @@ namespace ESCOLA_API.ViewModels
         public string Telefone { get; set; } = string.Empty;
 
         /// <summary>
-        /// Perfil de autorizacao vinculado ao usuario.
+        /// Tipo do usuario: Aluno, Professor ou Administrador.
         /// </summary>
-        public int IdPerfil { get; set; }
+        public string TipoUsuario { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Dados para atualizacao de usuario.
+    /// </summary>
+    public class UsuarioUpdateViewModel
+    {
+        /// <summary>
+        /// Nome do usuario.
+        /// </summary>
+        public string Nome { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Email usado para login.
+        /// </summary>
+        public string Email { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Telefone de contato.
+        /// </summary>
+        public string Telefone { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Tipo do usuario: Aluno, Professor ou Administrador. Apenas administradores podem alterar.
+        /// </summary>
+        public string? TipoUsuario { get; set; }
     }
 
     /// <summary>
@@ -60,6 +86,11 @@ namespace ESCOLA_API.ViewModels
         /// Descricao do perfil de autorizacao.
         /// </summary>
         public string DescricaoPerfil { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Tipo do usuario.
+        /// </summary>
+        public string TipoUsuario { get; set; } = string.Empty;
     }
 
     /// <summary>

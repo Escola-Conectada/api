@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using ESCOLA_API.Controllers;
+using ESCOLA_API.Models;
 using ESCOLA_API.Services;
 using ESCOLA_API.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ namespace ESCOLA_API.Tests.Controllers
                 Nome = "Usuario Novo",
                 Email = "novo@escola.com",
                 Telefone = "11999990000",
-                IdPerfil = 2
+                TipoUsuario = PerfilSistema.Professor
             };
 
             var expected = new UsuarioSummaryViewModel
@@ -27,12 +28,14 @@ namespace ESCOLA_API.Tests.Controllers
                 Nome = model.Nome,
                 Email = model.Email,
                 Telefone = model.Telefone,
-                IdPerfil = model.IdPerfil,
-                DescricaoPerfil = "Contribuinte"
+                IdPerfil = PerfilSistema.ProfessorId,
+                DescricaoPerfil = PerfilSistema.Professor,
+                TipoUsuario = PerfilSistema.Professor
             };
 
             var service = new Mock<IUsuarioService>();
-            service.Setup(s => s.AddAsync(model)).ReturnsAsync(expected);
+            service.Setup(s => s.AddAsync(model, It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+                .ReturnsAsync(expected);
 
             var logger = new Mock<ILogger<UsuariosController>>();
             var controller = new UsuariosController(service.Object, logger.Object);
