@@ -73,6 +73,105 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task AddDisciplinaAsync_WhenNameDiffersOnlyByCase_ThrowsInvalidOperationException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+            var professor = CreatePrincipal(2, PerfilSistema.Professor);
+
+            await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+            {
+                Nome = "Matematica"
+            }, professor);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+                {
+                    Nome = "matematica"
+                }, professor));
+
+            Assert.Equal("Disciplina ja cadastrada.", exception.Message);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenAlunoHasDifferentDisciplinas_AllowsMultipleAssociations()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+            var professor = CreatePrincipal(2, PerfilSistema.Professor);
+            var matematica = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+            {
+                Nome = "Matematica"
+            }, professor);
+            var portugues = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+            {
+                Nome = "Portugues"
+            }, professor);
+
+            await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = 12,
+                IdDisciplina = matematica.IdDisciplina,
+                Notas = new[] { 8m },
+                Presencas = 10,
+                Faltas = 1
+            }, professor);
+            await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = 12,
+                IdDisciplina = portugues.IdDisciplina,
+                Notas = new[] { 9m },
+                Presencas = 12,
+                Faltas = 0
+            }, professor);
+
+            var cadernetasDoAluno = await service.GetAllAsync(CreatePrincipal(12, PerfilSistema.Aluno));
+
+            Assert.Equal(2, cadernetasDoAluno.Length);
+            Assert.Contains(cadernetasDoAluno, caderneta => caderneta.NomeDisciplina == "Matematica");
+            Assert.Contains(cadernetasDoAluno, caderneta => caderneta.NomeDisciplina == "Portugues");
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenAlunoIsAlreadyAssociatedToDisciplina_ThrowsInvalidOperationException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+            var professor = CreatePrincipal(2, PerfilSistema.Professor);
+            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+            {
+                Nome = "Ciencias"
+            }, professor);
+            var payload = new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = 12,
+                IdDisciplina = disciplina.IdDisciplina,
+                Notas = new[] { 8m },
+                Presencas = 10,
+                Faltas = 1
+            };
+
+            await service.AddAsync(payload, professor);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddAsync(payload, professor));
+
+            Assert.Equal("Este aluno ja esta associado a esta disciplina.", exception.Message);
+        }
+
+        [Fact]
         public async Task AddAsync_WhenAdminTriesToCreate_ThrowsUnauthorizedAccessException()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");

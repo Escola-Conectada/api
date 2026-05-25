@@ -4,6 +4,7 @@ using ESCOLA_API.Data;
 using ESCOLA_API.Models;
 using ESCOLA_API.Security;
 using ESCOLA_API.ViewModels;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace ESCOLA_API.Services
@@ -91,7 +92,7 @@ namespace ESCOLA_API.Services
             };
 
             _context.CadernetasDigitais.Add(caderneta);
-            await _context.SaveChangesAsync();
+            await SaveChangesAsync("Este aluno ja esta associado a esta disciplina.");
 
             return (await GetByIdAsync(caderneta.IdCadernetaDigital, principal))!;
         }
@@ -143,7 +144,7 @@ namespace ESCOLA_API.Services
             caderneta.Presencas = viewModel.Presencas;
             caderneta.Faltas = viewModel.Faltas;
 
-            await _context.SaveChangesAsync();
+            await SaveChangesAsync("Este aluno ja esta associado a esta disciplina.");
             return await GetByIdAsync(cadernetaId, principal);
         }
 
@@ -204,12 +205,11 @@ namespace ESCOLA_API.Services
             var usuarioId = GetUsuarioAtualId(principal);
             var nome = viewModel.Nome.Trim();
 
-            var jaExiste = await _context.Disciplinas
-                .AnyAsync(disciplina => disciplina.IdProfessorUsuario == usuarioId && disciplina.Nome.ToLower() == nome.ToLower());
+            var jaExiste = await DisciplinaJaExisteAsync(nome);
 
             if (jaExiste)
             {
-                throw new InvalidOperationException("Disciplina ja cadastrada para este professor.");
+                throw new InvalidOperationException("Disciplina ja cadastrada.");
             }
 
             var disciplina = new Disciplina
@@ -219,7 +219,7 @@ namespace ESCOLA_API.Services
             };
 
             _context.Disciplinas.Add(disciplina);
-            await _context.SaveChangesAsync();
+            await SaveChangesAsync("Disciplina ja cadastrada.");
 
             var created = await _context.Disciplinas
                 .Include(item => item.ProfessorUsuario)
@@ -247,16 +247,15 @@ namespace ESCOLA_API.Services
             }
 
             var nome = viewModel.Nome.Trim();
-            var jaExiste = await _context.Disciplinas
-                .AnyAsync(item => item.IdDisciplina != disciplinaId && item.IdProfessorUsuario == usuarioId && item.Nome.ToLower() == nome.ToLower());
+            var jaExiste = await DisciplinaJaExisteAsync(nome, disciplinaId);
 
             if (jaExiste)
             {
-                throw new InvalidOperationException("Disciplina ja cadastrada para este professor.");
+                throw new InvalidOperationException("Disciplina ja cadastrada.");
             }
 
             disciplina.Nome = nome;
-            await _context.SaveChangesAsync();
+            await SaveChangesAsync("Disciplina ja cadastrada.");
 
             var updated = await _context.Disciplinas
                 .Include(item => item.ProfessorUsuario)
@@ -302,6 +301,39 @@ namespace ESCOLA_API.Services
             var usuarioId = GetUsuarioAtualId(principal);
             return await _context.Disciplinas
                 .FirstOrDefaultAsync(disciplina => disciplina.IdDisciplina == disciplinaId && disciplina.IdProfessorUsuario == usuarioId);
+        }
+
+        private async Task<bool> DisciplinaJaExisteAsync(string nome, int? ignorarDisciplinaId = null)
+        {
+            var nomeNormalizado = NormalizarNomeParaComparacao(nome);
+
+            return await _context.Disciplinas
+                .AnyAsync(disciplina =>
+                    (!ignorarDisciplinaId.HasValue || disciplina.IdDisciplina != ignorarDisciplinaId.Value)
+                    && disciplina.Nome.Trim().ToUpper() == nomeNormalizado);
+        }
+
+        private async Task SaveChangesAsync(string duplicateMessage)
+        {
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+            {
+                throw new InvalidOperationException(duplicateMessage, ex);
+            }
+        }
+
+        private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+        {
+            return exception.InnerException is SqlException sqlException
+                && sqlException.Errors.Cast<SqlError>().Any(error => error.Number is 2601 or 2627);
+        }
+
+        private static string NormalizarNomeParaComparacao(string nome)
+        {
+            return nome.Trim().ToUpperInvariant();
         }
 
         private async Task<Usuario?> ObterAlunoAsync(int alunoUsuarioId)
