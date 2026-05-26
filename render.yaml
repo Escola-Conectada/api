@@ -4,6 +4,10 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     autoDeploy: true
+    disk:
+      name: uploads
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
@@ -17,6 +21,8 @@ services:
         generateValue: true
       - key: ConnectionStrings__DefaultConnection
         sync: false
+      - key: Uploads__RootPath
+        value: /var/data/uploads
       - key: ServiceBus__ConnectionString
         sync: false
       - key: ServiceBus__QueueName
