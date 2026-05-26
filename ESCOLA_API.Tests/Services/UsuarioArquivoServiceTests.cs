@@ -60,10 +60,12 @@ namespace ESCOLA_API.Tests.Services
 
                 var created = await service.UploadCertificadoAsync(2, certificado, CreatePrincipal(1, PerfilSistema.Administrador));
 
+                Assert.True(created.IdArquivo > 0);
                 Assert.Equal(2, created.IdUsuario);
                 Assert.Equal("Certificado", created.TipoArquivo);
                 Assert.Equal("certificado.pdf", created.NomeOriginal);
-                Assert.True(File.Exists(ToPhysicalPath(uploadRoot, created.Url)));
+                Assert.StartsWith("usuarios/2/certificados/", created.NomeBlob);
+                Assert.True(File.Exists(ToPhysicalPath(uploadRoot, created.Url!)));
             }
             finally
             {

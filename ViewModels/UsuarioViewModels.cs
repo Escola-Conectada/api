@@ -105,14 +105,15 @@ namespace ESCOLA_API.ViewModels
 
     public class UsuarioArquivoViewModel
     {
-        public int IdUsuarioArquivo { get; set; }
-        public int IdUsuario { get; set; }
-        public string TipoArquivo { get; set; } = string.Empty;
-        public string NomeOriginal { get; set; } = string.Empty;
-        public string Url { get; set; } = string.Empty;
-        public string ContentType { get; set; } = string.Empty;
-        public long TamanhoBytes { get; set; }
-        public DateTime CriadoEmUtc { get; set; }
+        public int IdArquivo { get; set; }
+        public int? IdUsuario { get; set; }
+        public string? NomeBlob { get; set; }
+        public string? TipoArquivo { get; set; }
+        public string? NomeOriginal { get; set; }
+        public string? Url { get; set; }
+        public string? ContentType { get; set; }
+        public long? TamanhoBytes { get; set; }
+        public DateTime? CriadoEmUtc { get; set; }
     }
 
     /// <summary>

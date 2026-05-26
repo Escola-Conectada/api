@@ -61,8 +61,9 @@ namespace ESCOLA_API.Services
                 .OrderByDescending(arquivo => arquivo.CriadoEmUtc)
                 .Select(arquivo => new UsuarioArquivoViewModel
                 {
-                    IdUsuarioArquivo = arquivo.IdUsuarioArquivo,
+                    IdArquivo = arquivo.IdArquivo,
                     IdUsuario = arquivo.IdUsuario,
+                    NomeBlob = arquivo.NomeBlob,
                     TipoArquivo = arquivo.TipoArquivo,
                     NomeOriginal = arquivo.NomeOriginal,
                     Url = arquivo.Url,
@@ -97,7 +98,7 @@ namespace ESCOLA_API.Services
                 IdUsuario = usuarioId,
                 TipoArquivo = "Certificado",
                 NomeOriginal = Path.GetFileName(arquivo.FileName),
-                CaminhoRelativo = ObterCaminhoRelativo(url),
+                NomeBlob = ObterCaminhoRelativo(url),
                 Url = url,
                 ContentType = arquivo.ContentType,
                 TamanhoBytes = arquivo.Length,
@@ -124,7 +125,7 @@ namespace ESCOLA_API.Services
             ValidarPermissaoArquivo(principal, usuario, permiteProfessorEditarAluno: false);
 
             var arquivo = await _context.UsuarioArquivos
-                .FirstOrDefaultAsync(item => item.IdUsuarioArquivo == arquivoId && item.IdUsuario == usuarioId);
+                .FirstOrDefaultAsync(item => item.IdArquivo == arquivoId && item.IdUsuario == usuarioId);
 
             if (arquivo == null)
             {

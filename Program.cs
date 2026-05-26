@@ -40,7 +40,6 @@ builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 builder.Services.AddScoped<IUsuarioArquivoService, UsuarioArquivoService>();
 builder.Services.AddSingleton<ICadernetaDigitalEventPublisher, ServiceBusCadernetaDigitalEventPublisher>();
 builder.Services.AddHostedService<ServiceBusNotificacaoWorker>();
-builder.Services.AddHostedService<ServiceBusNotificacaoWorker>();
 
 var jwtKey = ResolveJwtKey(builder.Environment, builder.Configuration);
 builder.Configuration["Jwt:Key"] = jwtKey;

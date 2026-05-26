@@ -84,8 +84,9 @@ namespace ESCOLA_API.ViewModels
         {
             return new UsuarioArquivoViewModel
             {
-                IdUsuarioArquivo = entity.IdUsuarioArquivo,
+                IdArquivo = entity.IdArquivo,
                 IdUsuario = entity.IdUsuario,
+                NomeBlob = entity.NomeBlob,
                 TipoArquivo = entity.TipoArquivo,
                 NomeOriginal = entity.NomeOriginal,
                 Url = entity.Url,

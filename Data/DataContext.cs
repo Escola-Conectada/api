@@ -126,27 +126,22 @@ namespace ESCOLA_API.Data
 
             builder.Entity<UsuarioArquivo>(entity =>
             {
-                entity.ToTable("UsuarioArquivo");
-                entity.HasKey(arquivo => arquivo.IdUsuarioArquivo);
+                entity.ToTable("Arquivo");
+                entity.HasKey(arquivo => arquivo.IdArquivo);
+                entity.Property(arquivo => arquivo.NomeBlob)
+                    .HasMaxLength(500);
                 entity.Property(arquivo => arquivo.TipoArquivo)
-                    .IsRequired()
                     .HasMaxLength(30);
                 entity.Property(arquivo => arquivo.NomeOriginal)
-                    .IsRequired()
                     .HasMaxLength(255);
-                entity.Property(arquivo => arquivo.CaminhoRelativo)
-                    .IsRequired()
-                    .HasMaxLength(500);
                 entity.Property(arquivo => arquivo.Url)
-                    .IsRequired()
                     .HasMaxLength(500);
                 entity.Property(arquivo => arquivo.ContentType)
-                    .IsRequired()
                     .HasMaxLength(120);
                 entity.HasOne(arquivo => arquivo.Usuario)
                     .WithMany(usuario => usuario.Arquivos)
                     .HasForeignKey(arquivo => arquivo.IdUsuario)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             builder.Entity<Notificacao>(entity =>
