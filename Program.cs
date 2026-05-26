@@ -38,6 +38,14 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 builder.Services.AddScoped<IUsuarioArquivoService, UsuarioArquivoService>();
+builder.Services.AddScoped<IUsuarioArquivoStorage>(serviceProvider =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+
+    return IsAzureBlobStorageProvider(configuration)
+        ? ActivatorUtilities.CreateInstance<AzureBlobUsuarioArquivoStorage>(serviceProvider)
+        : ActivatorUtilities.CreateInstance<LocalUsuarioArquivoStorage>(serviceProvider);
+});
 builder.Services.AddSingleton<ICadernetaDigitalEventPublisher, ServiceBusCadernetaDigitalEventPublisher>();
 builder.Services.AddHostedService<ServiceBusNotificacaoWorker>();
 
@@ -168,13 +176,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-var uploadRoot = ResolveUploadRoot(app.Environment, app.Configuration);
-Directory.CreateDirectory(uploadRoot);
-app.UseStaticFiles(new StaticFileOptions
+if (!IsAzureBlobStorageProvider(app.Configuration))
 {
-    FileProvider = new PhysicalFileProvider(uploadRoot),
-    RequestPath = "/uploads"
-});
+    var uploadRoot = ResolveUploadRoot(app.Environment, app.Configuration);
+    Directory.CreateDirectory(uploadRoot);
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(uploadRoot),
+        RequestPath = "/uploads"
+    });
+}
 
 app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.UseAuthentication();
@@ -280,6 +291,11 @@ static bool IsSqliteConnectionString(string connectionString)
 static string? GetConnectionStringValue(DbConnectionStringBuilder builder, string key)
 {
     return builder.TryGetValue(key, out var value) ? value?.ToString() : null;
+}
+
+static bool IsAzureBlobStorageProvider(IConfiguration configuration)
+{
+    return configuration["Uploads:Provider"]?.Equals("AzureBlob", StringComparison.OrdinalIgnoreCase) == true;
 }
 
 static string ResolveUploadRoot(IHostEnvironment environment, IConfiguration configuration)

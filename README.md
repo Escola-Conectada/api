@@ -35,15 +35,21 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `ServiceBus__ConnectionString` | Opcional. Cadeia de conexao primaria do Azure Service Bus para publicar eventos da caderneta digital. |
 | `ServiceBus__QueueName` | Opcional. Nome da fila de notificacoes. Padrao: `notificacoes`. |
 | `ServiceBus__ConsumerEnabled` | Opcional. Define se a API tambem consome a fila e grava notificacoes no banco. Padrao: `true`. |
+| `Uploads__Provider` | Use `AzureBlob` em producao para salvar fotos e PDFs no Azure Blob Storage. Use `Local` em desenvolvimento. |
+| `AzureBlob__ConnectionString` | Obrigatoria quando `Uploads__Provider=AzureBlob`. Use a connection string do Storage Account. |
+| `AzureBlob__ContainerName` | Container dos arquivos. Padrao usado no deploy: `escola-uploads`. |
+| `AzureBlob__PublicBaseUrl` | Opcional. URL publica/CDN do container. Se vazia, a API usa a URL padrao do blob. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
 
-O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `ServiceBus:ConnectionString` como `ServiceBus__ConnectionString`.
+O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`.
 
 Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStrings__DefaultConnection=Data Source=escola.db`, mas os dados podem ser perdidos em redeploy/restart do container. Para uso real, prefira SQL Server persistente.
 
 O arquivo `render.yaml` deste repositorio tambem declara essas variaveis para deploy via Blueprint. Nesse fluxo, o Render gera `Jwt__Key` automaticamente e pede `ConnectionStrings__DefaultConnection` no dashboard.
 
 Quando `ServiceBus__ConnectionString` estiver configurada, a API publica um evento `NotasPublicadas` na fila `ServiceBus__QueueName` sempre que um professor cria ou atualiza um lancamento da caderneta digital. A API tambem consome essa fila e grava uma linha na tabela `Notificacao` para o aluno visualizar no painel. Se a variavel nao estiver configurada, a API continua funcionando normalmente e apenas nao envia/consome o evento.
+
+Quando `Uploads__Provider=AzureBlob`, a API grava fotos e certificados no Azure Blob Storage e salva no banco apenas a URL e os metadados do arquivo. Para que o front consiga exibir fotos e abrir PDFs diretamente, o container precisa permitir leitura publica dos blobs ou `AzureBlob__PublicBaseUrl` deve apontar para uma URL publica/CDN configurada para esse container.
 
 ## Docker Compose
 

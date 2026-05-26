@@ -108,8 +108,9 @@ namespace ESCOLA_API.Tests.Services
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("Uploads:RootPath", uploadRoot) })
                 .Build();
+            var storage = new LocalUsuarioArquivoStorage(new TestHostEnvironment(), configuration);
 
-            return new UsuarioArquivoService(context, new TestHostEnvironment(), configuration);
+            return new UsuarioArquivoService(context, storage);
         }
 
         private static string CreateUploadRoot()
