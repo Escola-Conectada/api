@@ -45,18 +45,35 @@ namespace ESCOLA_API.Services
                 return;
             }
 
-            _client = new ServiceBusClient(connectionString);
-            _processor = _client.CreateProcessor(queueName, new ServiceBusProcessorOptions
+            try
             {
-                AutoCompleteMessages = false,
-                MaxConcurrentCalls = 1
-            });
+                _client = new ServiceBusClient(connectionString);
+                _processor = _client.CreateProcessor(queueName, new ServiceBusProcessorOptions
+                {
+                    AutoCompleteMessages = false,
+                    MaxConcurrentCalls = 1
+                });
 
-            _processor.ProcessMessageAsync += ProcessMessageAsync;
-            _processor.ProcessErrorAsync += ProcessErrorAsync;
+                _processor.ProcessMessageAsync += ProcessMessageAsync;
+                _processor.ProcessErrorAsync += ProcessErrorAsync;
 
-            await _processor.StartProcessingAsync(stoppingToken);
-            _logger.LogInformation("Consumidor de notificacoes iniciado na fila {QueueName}.", queueName);
+                await _processor.StartProcessingAsync(stoppingToken);
+                _logger.LogInformation("Consumidor de notificacoes iniciado na fila {QueueName}.", queueName);
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ServiceBus:ConnectionString invalida. Consumidor de notificacoes nao sera iniciado.");
+                return;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(
+                    ex,
+                    "Falha ao iniciar consumidor do Service Bus. Consumidor de notificacoes nao sera iniciado.");
+                return;
+            }
 
             try
             {
