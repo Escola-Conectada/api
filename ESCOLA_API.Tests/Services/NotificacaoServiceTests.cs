@@ -45,7 +45,7 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
-        public async Task AddAsync_WhenProfessorSendsToProfessor_ThrowsUnauthorizedAccessException()
+        public async Task AddAsync_WhenProfessorSendsNotification_ThrowsUnauthorizedAccessException()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
             await connection.OpenAsync();
@@ -55,7 +55,7 @@ namespace ESCOLA_API.Tests.Services
             var service = new NotificacaoService(context);
             var model = new NotificacaoCreateViewModel
             {
-                IdUsuario = 3,
+                IdUsuario = 12,
                 Titulo = "Aviso",
                 Mensagem = "Mensagem de teste"
             };

@@ -19,8 +19,7 @@ namespace ESCOLA_API.Tests.Services
             await using var context = CreateContext(connection);
             await context.Database.EnsureCreatedAsync();
 
-            var publisher = new CapturingCadernetaDigitalEventPublisher();
-            var service = new CadernetaDigitalService(context, publisher);
+            var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
             {
@@ -44,22 +43,25 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal("azul", created.CorSituacao);
             Assert.Equal(18, created.Presencas);
             Assert.Equal(2, created.Faltas);
-            Assert.Single(publisher.Published);
-            Assert.Equal("Criacao", publisher.Published[0].Operacao);
-            Assert.Equal(created.IdCadernetaDigital, publisher.Published[0].Caderneta.IdCadernetaDigital);
-            Assert.Equal(created.Situacao, publisher.Published[0].Caderneta.Situacao);
+            var notificacao = await context.Notificacoes.SingleAsync(item => item.IdUsuario == created.IdAlunoUsuario);
+            Assert.Equal("NotasPublicadas", notificacao.Tipo);
+            Assert.Equal("Notas publicadas", notificacao.Titulo);
+            Assert.Contains("Matematica", notificacao.Mensagem);
+            Assert.Contains("Media: 8,75", notificacao.Mensagem);
+            Assert.Contains("Presencas: 18", notificacao.Mensagem);
+            Assert.Contains("Faltas: 2", notificacao.Mensagem);
+            Assert.Equal(created.IdCadernetaDigital, notificacao.IdCadernetaDigital);
         }
 
         [Fact]
-        public async Task UpdateAsync_WhenProfessorUpdatesCaderneta_PublishesAtualizacaoEvent()
+        public async Task UpdateAsync_WhenProfessorUpdatesCaderneta_CreatesNotificationForAluno()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
             await connection.OpenAsync();
             await using var context = CreateContext(connection);
             await context.Database.EnsureCreatedAsync();
 
-            var publisher = new CapturingCadernetaDigitalEventPublisher();
-            var service = new CadernetaDigitalService(context, publisher);
+            var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
             {
@@ -85,9 +87,14 @@ namespace ESCOLA_API.Tests.Services
             }, professor);
 
             Assert.NotNull(updated);
-            Assert.Equal(2, publisher.Published.Count);
-            Assert.Equal("Atualizacao", publisher.Published[1].Operacao);
-            Assert.Equal("Em recuperacao", publisher.Published[1].Caderneta.Situacao);
+            var notificacoes = await context.Notificacoes
+                .Where(item => item.IdUsuario == 12)
+                .OrderBy(item => item.IdNotificacao)
+                .ToArrayAsync();
+            Assert.Equal(2, notificacoes.Length);
+            Assert.Equal("Notas atualizadas", notificacoes[1].Titulo);
+            Assert.Contains("Em recuperacao", notificacoes[1].Mensagem);
+            Assert.Equal(updated!.IdCadernetaDigital, notificacoes[1].IdCadernetaDigital);
         }
 
         [Fact]
@@ -340,18 +347,5 @@ namespace ESCOLA_API.Tests.Services
             }, professor);
         }
 
-        private sealed class CapturingCadernetaDigitalEventPublisher : ICadernetaDigitalEventPublisher
-        {
-            public List<(CadernetaDigitalViewModel Caderneta, string Operacao)> Published { get; } = [];
-
-            public Task PublishNotasPublicadasAsync(
-                CadernetaDigitalViewModel caderneta,
-                string operacao,
-                CancellationToken cancellationToken = default)
-            {
-                Published.Add((caderneta, operacao));
-                return Task.CompletedTask;
-            }
-        }
     }
 }

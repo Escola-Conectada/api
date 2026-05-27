@@ -55,7 +55,7 @@ namespace ESCOLA_API.Services
 
         public async Task<NotificacaoViewModel> AddAsync(NotificacaoCreateViewModel viewModel, ClaimsPrincipal principal)
         {
-            if (!IsAdministrador(principal) && !IsProfessor(principal))
+            if (!IsAdministrador(principal))
             {
                 throw new UnauthorizedAccessException("Usuario nao autorizado a enviar notificacoes.");
             }
@@ -67,11 +67,6 @@ namespace ESCOLA_API.Services
             if (destinatario == null)
             {
                 throw new InvalidOperationException("Usuario destinatario nao encontrado.");
-            }
-
-            if (IsProfessor(principal) && destinatario.IdPerfil != PerfilSistema.AlunoId)
-            {
-                throw new UnauthorizedAccessException("Professor pode enviar notificacoes apenas para alunos.");
             }
 
             var notificacao = new Notificacao
@@ -136,11 +131,6 @@ namespace ESCOLA_API.Services
         private static bool IsAdministrador(ClaimsPrincipal principal)
         {
             return principal.IsInRole(PerfilSistema.Administrador);
-        }
-
-        private static bool IsProfessor(ClaimsPrincipal principal)
-        {
-            return principal.IsInRole(PerfilSistema.Professor);
         }
 
         private static int GetUsuarioAtualId(ClaimsPrincipal principal)

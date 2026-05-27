@@ -18,8 +18,6 @@ namespace ESCOLA_API.Services
 
         public async Task<UsuarioSummaryViewModel[]> GetAllAsync(ClaimsPrincipal principal)
         {
-            var usuarioAtualId = GetUsuarioAtualId(principal);
-
             var query = _context.Usuarios
                 .Include(usuario => usuario.Perfil)
                 .AsNoTracking();
@@ -27,10 +25,11 @@ namespace ESCOLA_API.Services
             if (IsProfessor(principal))
             {
                 query = query.Where(usuario =>
-                    usuario.IdPerfil == PerfilSistema.AlunoId || usuario.IdUsuario == usuarioAtualId);
+                    usuario.IdPerfil == PerfilSistema.AlunoId || usuario.IdPerfil == PerfilSistema.ProfessorId);
             }
             else if (!IsAdministrador(principal))
             {
+                var usuarioAtualId = GetUsuarioAtualId(principal);
                 query = query.Where(usuario => usuario.IdUsuario == usuarioAtualId);
             }
 
@@ -83,16 +82,26 @@ namespace ESCOLA_API.Services
 
             ValidarPermissaoCadastro(principal, idPerfil);
 
+            var adminId = GetUsuarioAtualId(principal);
+            var admin = await _context.Usuarios
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.IdUsuario == adminId);
+
             var usuario = new Usuario
             {
                 Nome = viewModel.Nome.Trim(),
                 Email = email,
                 Telefone = viewModel.Telefone.Trim(),
                 Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
-                IdPerfil = idPerfil
+                IdPerfil = idPerfil,
+                IdUsuarioCriador = admin?.IdUsuario,
+                NomeUsuarioCriador = admin?.Nome
             };
 
             _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            CriarNotificacaoCadastro(usuario);
             await _context.SaveChangesAsync();
 
             var created = await _context.Usuarios
@@ -132,6 +141,12 @@ namespace ESCOLA_API.Services
 
             ValidarPermissaoAtualizacao(principal, usuario, alterarTipoUsuario);
 
+            var atualizacaoPropria = usuario.IdUsuario == GetUsuarioAtualId(principal) && !IsAdministrador(principal);
+            var dadosCadastraisAlterados =
+                usuario.Nome != viewModel.Nome.Trim()
+                || usuario.Email != email
+                || usuario.Telefone != viewModel.Telefone.Trim();
+
             usuario.Nome = viewModel.Nome.Trim();
             usuario.Email = email;
             usuario.Telefone = viewModel.Telefone.Trim();
@@ -139,6 +154,11 @@ namespace ESCOLA_API.Services
             if (alterarTipoUsuario)
             {
                 usuario.IdPerfil = idPerfil;
+            }
+
+            if (atualizacaoPropria && dadosCadastraisAlterados)
+            {
+                await CriarNotificacaoDadosAtualizadosAsync(usuario);
             }
 
             await _context.SaveChangesAsync();
@@ -168,18 +188,12 @@ namespace ESCOLA_API.Services
 
         public async Task<PerfilViewModel[]> GetPerfisAsync(ClaimsPrincipal principal)
         {
-            var query = _context.Perfis.AsNoTracking();
-
-            if (IsProfessor(principal))
-            {
-                query = query.Where(perfil => perfil.IdPerfil == PerfilSistema.AlunoId);
-            }
-            else if (!IsAdministrador(principal))
+            if (!IsAdministrador(principal))
             {
                 throw new UnauthorizedAccessException("Usuario nao autorizado a consultar perfis para cadastro.");
             }
 
-            return await query
+            return await _context.Perfis
                 .AsNoTracking()
                 .OrderBy(perfil => perfil.IdPerfil)
                 .Select(perfil => new PerfilViewModel
@@ -198,11 +212,6 @@ namespace ESCOLA_API.Services
         private static void ValidarPermissaoCadastro(ClaimsPrincipal principal, int idPerfil)
         {
             if (IsAdministrador(principal))
-            {
-                return;
-            }
-
-            if (IsProfessor(principal) && idPerfil == PerfilSistema.AlunoId)
             {
                 return;
             }
@@ -235,7 +244,51 @@ namespace ESCOLA_API.Services
             var usuarioAtualId = GetUsuarioAtualId(principal);
 
             return usuario.IdUsuario == usuarioAtualId
-                || (IsProfessor(principal) && usuario.IdPerfil == PerfilSistema.AlunoId);
+                || (IsProfessor(principal)
+                    && (usuario.IdPerfil == PerfilSistema.AlunoId || usuario.IdPerfil == PerfilSistema.ProfessorId));
+        }
+
+        private void CriarNotificacaoCadastro(Usuario usuario)
+        {
+            var nomeCriador = string.IsNullOrWhiteSpace(usuario.NomeUsuarioCriador)
+                ? "Administrador"
+                : usuario.NomeUsuarioCriador;
+
+            _context.Notificacoes.Add(new Notificacao
+            {
+                IdUsuario = usuario.IdUsuario,
+                Tipo = "CadastroUsuario",
+                Titulo = "Cadastro criado",
+                Mensagem = $"Seu cadastro foi criado por {nomeCriador}. Dados cadastrados: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}. Voce pode editar seus dados quando achar necessario.",
+                Link = $"/usuarios/{usuario.IdUsuario}",
+                CriadaEmUtc = DateTime.UtcNow
+            });
+        }
+
+        private async Task CriarNotificacaoDadosAtualizadosAsync(Usuario usuario)
+        {
+            if (!usuario.IdUsuarioCriador.HasValue)
+            {
+                return;
+            }
+
+            var criadorExiste = await _context.Usuarios
+                .AnyAsync(item => item.IdUsuario == usuario.IdUsuarioCriador.Value);
+
+            if (!criadorExiste)
+            {
+                return;
+            }
+
+            _context.Notificacoes.Add(new Notificacao
+            {
+                IdUsuario = usuario.IdUsuarioCriador.Value,
+                Tipo = "DadosUsuarioAtualizados",
+                Titulo = "Dados do usuario atualizados",
+                Mensagem = $"O usuario {usuario.Nome} corrigiu seus dados cadastrais. Dados atuais: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}.",
+                Link = $"/usuarios/{usuario.IdUsuario}",
+                CriadaEmUtc = DateTime.UtcNow
+            });
         }
 
         private static bool IsAdministrador(ClaimsPrincipal principal)

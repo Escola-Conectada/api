@@ -10,6 +10,8 @@ namespace ESCOLA_API.Models
         public string Telefone { get; set; } = string.Empty;
         public string Senha { get; set; } = string.Empty;
         public string? FotoPerfilUrl { get; set; }
+        public int? IdUsuarioCriador { get; set; }
+        public string? NomeUsuarioCriador { get; set; }
         public int IdPerfil { get; set; }
         public Perfil? Perfil { get; set; }
         public List<Aluno> Alunos { get; set; } = new();

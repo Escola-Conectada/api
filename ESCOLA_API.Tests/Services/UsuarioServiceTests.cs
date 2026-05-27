@@ -38,10 +38,12 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal("Professor", created.DescricaoPerfil);
             Assert.NotEqual(DefaultPasswordPolicy.DefaultPassword, entity.Senha);
             Assert.True(PasswordHasher.VerifyPassword(DefaultPasswordPolicy.DefaultPassword, entity.Senha));
+            Assert.Equal(1, entity.IdUsuarioCriador);
+            Assert.Equal("Administrador Sistema", entity.NomeUsuarioCriador);
         }
 
         [Fact]
-        public async Task AddAsync_WhenProfessorCreatesAluno_CreatesUsuarioAsAluno()
+        public async Task AddAsync_WhenProfessorCreatesAluno_ThrowsUnauthorizedAccessException()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
             await connection.OpenAsync();
@@ -57,10 +59,37 @@ namespace ESCOLA_API.Tests.Services
                 TipoUsuario = PerfilSistema.Aluno
             };
 
-            var created = await service.AddAsync(model, CreatePrincipal(2, PerfilSistema.Professor));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                service.AddAsync(model, CreatePrincipal(2, PerfilSistema.Professor)));
+        }
 
-            Assert.Equal(PerfilSistema.AlunoId, created.IdPerfil);
-            Assert.Equal("Aluno", created.TipoUsuario);
+        [Fact]
+        public async Task AddAsync_WhenAdminCreatesUsuario_CreatesNotificationForUsuario()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new UsuarioService(context);
+            var model = new UsuarioCreateViewModel
+            {
+                Nome = "Aluno Novo",
+                Email = "aluno.novo@escola.com",
+                Telefone = "11999990000",
+                TipoUsuario = PerfilSistema.Aluno
+            };
+
+            var created = await service.AddAsync(model, CreatePrincipal(1, PerfilSistema.Administrador));
+            var notificacao = await context.Notificacoes.SingleAsync(item => item.IdUsuario == created.IdUsuario);
+
+            Assert.Equal("CadastroUsuario", notificacao.Tipo);
+            Assert.Equal("Cadastro criado", notificacao.Titulo);
+            Assert.Contains("Administrador Sistema", notificacao.Mensagem);
+            Assert.Contains("Aluno Novo", notificacao.Mensagem);
+            Assert.Contains("aluno.novo@escola.com", notificacao.Mensagem);
+            Assert.Contains("Voce pode editar seus dados", notificacao.Mensagem);
+            Assert.Equal($"/usuarios/{created.IdUsuario}", notificacao.Link);
         }
 
         [Fact]
@@ -152,6 +181,54 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal("Aluno Atualizado", updated!.Nome);
             Assert.Equal("aluno.atualizado@escola.com", updated.Email);
             Assert.Equal(PerfilSistema.AlunoId, updated.IdPerfil);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WhenCreatedUserUpdatesOwnData_NotifiesCreator()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var usuario = await context.Usuarios.FirstAsync(item => item.IdUsuario == 12);
+            usuario.IdUsuarioCriador = 1;
+            usuario.NomeUsuarioCriador = "Administrador Sistema";
+            await context.SaveChangesAsync();
+
+            var service = new UsuarioService(context);
+            var model = new UsuarioUpdateViewModel
+            {
+                Nome = "Aluno Corrigido",
+                Email = "aluno.corrigido@escola.com",
+                Telefone = "11999992222"
+            };
+
+            await service.UpdateAsync(12, model, CreatePrincipal(12, PerfilSistema.Aluno));
+
+            var notificacao = await context.Notificacoes.SingleAsync(item => item.IdUsuario == 1);
+            Assert.Equal("DadosUsuarioAtualizados", notificacao.Tipo);
+            Assert.Equal("Dados do usuario atualizados", notificacao.Titulo);
+            Assert.Contains("Aluno Corrigido", notificacao.Mensagem);
+            Assert.Contains("aluno.corrigido@escola.com", notificacao.Mensagem);
+            Assert.Equal("/usuarios/12", notificacao.Link);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_WhenProfessorConsultsUsers_ReturnsAlunosAndProfessoresOnly()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new UsuarioService(context);
+
+            var usuarios = await service.GetAllAsync(CreatePrincipal(2, PerfilSistema.Professor));
+
+            Assert.Contains(usuarios, usuario => usuario.IdPerfil == PerfilSistema.AlunoId);
+            Assert.Contains(usuarios, usuario => usuario.IdPerfil == PerfilSistema.ProfessorId);
+            Assert.DoesNotContain(usuarios, usuario => usuario.IdPerfil == PerfilSistema.AdministradorId);
         }
 
         [Fact]

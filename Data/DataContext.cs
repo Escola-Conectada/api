@@ -52,6 +52,8 @@ namespace ESCOLA_API.Data
                     .HasMaxLength(255);
                 entity.Property(usuario => usuario.FotoPerfilUrl)
                     .HasMaxLength(500);
+                entity.Property(usuario => usuario.NomeUsuarioCriador)
+                    .HasMaxLength(100);
                 entity.HasIndex(usuario => usuario.Email)
                     .IsUnique();
                 entity.HasOne(usuario => usuario.Perfil)

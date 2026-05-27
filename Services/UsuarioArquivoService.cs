@@ -31,7 +31,7 @@ namespace ESCOLA_API.Services
                 return null;
             }
 
-            ValidarPermissaoArquivo(principal, usuario, permiteProfessorEditarAluno: true);
+            ValidarPermissaoArquivo(principal, usuario, permiteProfessorEditarAluno: false);
             ValidarArquivo(arquivo, FotoMaxBytes, new[] { ".jpg", ".jpeg", ".png", ".webp" }, new[] { "image/jpeg", "image/png", "image/webp" });
 
             await _storage.RemoverAsync(null, usuario.FotoPerfilUrl);
