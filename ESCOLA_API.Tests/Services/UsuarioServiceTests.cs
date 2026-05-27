@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using ESCOLA_API.Data;
@@ -184,16 +185,22 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateAsync_WhenCreatedUserUpdatesOwnData_NotifiesCreator()
+        public async Task UpdateAsync_WhenUserUpdatesOwnData_NotifiesAdministrators()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
             await connection.OpenAsync();
             await using var context = CreateContext(connection);
             await context.Database.EnsureCreatedAsync();
 
-            var usuario = await context.Usuarios.FirstAsync(item => item.IdUsuario == 12);
-            usuario.IdUsuarioCriador = 1;
-            usuario.NomeUsuarioCriador = "Administrador Sistema";
+            context.Usuarios.Add(new Usuario
+            {
+                IdUsuario = 999,
+                Nome = "Administrador Auxiliar",
+                Email = "admin.auxiliar@escola.com",
+                Telefone = "11999990099",
+                Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
+                IdPerfil = PerfilSistema.AdministradorId
+            });
             await context.SaveChangesAsync();
 
             var service = new UsuarioService(context);
@@ -206,9 +213,20 @@ namespace ESCOLA_API.Tests.Services
 
             await service.UpdateAsync(12, model, CreatePrincipal(12, PerfilSistema.Aluno));
 
-            var notificacao = await context.Notificacoes.SingleAsync(item => item.IdUsuario == 1);
+            var notificacoes = await context.Notificacoes
+                .Where(item => item.Tipo == "DadosUsuarioAtualizados")
+                .OrderBy(item => item.IdUsuario)
+                .ToArrayAsync();
+
+            Assert.Equal(2, notificacoes.Length);
+            Assert.Equal(new[] { 1, 999 }, notificacoes.Select(item => item.IdUsuario).ToArray());
+
+            var notificacao = notificacoes[0];
             Assert.Equal("DadosUsuarioAtualizados", notificacao.Tipo);
             Assert.Equal("Dados do usuario atualizados", notificacao.Titulo);
+            Assert.Contains("alterou seus dados de perfil", notificacao.Mensagem);
+            Assert.Contains("Dados anteriores", notificacao.Mensagem);
+            Assert.Contains("Aluno Maria", notificacao.Mensagem);
             Assert.Contains("Aluno Corrigido", notificacao.Mensagem);
             Assert.Contains("aluno.corrigido@escola.com", notificacao.Mensagem);
             Assert.Equal("/usuarios/12", notificacao.Link);

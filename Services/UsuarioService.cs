@@ -142,6 +142,7 @@ namespace ESCOLA_API.Services
             ValidarPermissaoAtualizacao(principal, usuario, alterarTipoUsuario);
 
             var atualizacaoPropria = usuario.IdUsuario == GetUsuarioAtualId(principal) && !IsAdministrador(principal);
+            var dadosAnteriores = new DadosPerfilUsuario(usuario.Nome, usuario.Email, usuario.Telefone, usuario.IdPerfil);
             var dadosCadastraisAlterados =
                 usuario.Nome != viewModel.Nome.Trim()
                 || usuario.Email != email
@@ -158,7 +159,7 @@ namespace ESCOLA_API.Services
 
             if (atualizacaoPropria && dadosCadastraisAlterados)
             {
-                await CriarNotificacaoDadosAtualizadosAsync(usuario);
+                await CriarNotificacaoDadosAtualizadosAsync(usuario, dadosAnteriores);
             }
 
             await _context.SaveChangesAsync();
@@ -265,30 +266,35 @@ namespace ESCOLA_API.Services
             });
         }
 
-        private async Task CriarNotificacaoDadosAtualizadosAsync(Usuario usuario)
+        private async Task CriarNotificacaoDadosAtualizadosAsync(Usuario usuario, DadosPerfilUsuario dadosAnteriores)
         {
-            if (!usuario.IdUsuarioCriador.HasValue)
+            var administradoresIds = await _context.Usuarios
+                .AsNoTracking()
+                .Where(item => item.IdPerfil == PerfilSistema.AdministradorId)
+                .Select(item => item.IdUsuario)
+                .ToArrayAsync();
+
+            if (administradoresIds.Length == 0)
             {
                 return;
             }
 
-            var criadorExiste = await _context.Usuarios
-                .AnyAsync(item => item.IdUsuario == usuario.IdUsuarioCriador.Value);
+            var mensagem = $"O usuario {usuario.Nome} alterou seus dados de perfil. "
+                + $"Dados anteriores: Nome: {dadosAnteriores.Nome}; E-mail: {dadosAnteriores.Email}; Telefone: {dadosAnteriores.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(dadosAnteriores.IdPerfil)}. "
+                + $"Dados atuais: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}.";
 
-            if (!criadorExiste)
+            foreach (var administradorId in administradoresIds)
             {
-                return;
+                _context.Notificacoes.Add(new Notificacao
+                {
+                    IdUsuario = administradorId,
+                    Tipo = "DadosUsuarioAtualizados",
+                    Titulo = "Dados do usuario atualizados",
+                    Mensagem = mensagem,
+                    Link = $"/usuarios/{usuario.IdUsuario}",
+                    CriadaEmUtc = DateTime.UtcNow
+                });
             }
-
-            _context.Notificacoes.Add(new Notificacao
-            {
-                IdUsuario = usuario.IdUsuarioCriador.Value,
-                Tipo = "DadosUsuarioAtualizados",
-                Titulo = "Dados do usuario atualizados",
-                Mensagem = $"O usuario {usuario.Nome} corrigiu seus dados cadastrais. Dados atuais: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}.",
-                Link = $"/usuarios/{usuario.IdUsuario}",
-                CriadaEmUtc = DateTime.UtcNow
-            });
         }
 
         private static bool IsAdministrador(ClaimsPrincipal principal)
@@ -306,5 +312,7 @@ namespace ESCOLA_API.Services
             var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(idClaim, out var idUsuario) ? idUsuario : 0;
         }
+
+        private sealed record DadosPerfilUsuario(string Nome, string Email, string Telefone, int IdPerfil);
     }
 }
