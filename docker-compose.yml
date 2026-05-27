@@ -41,7 +41,7 @@ services:
       AzureBlob__ContainerName: ${AZUREBLOB_CONTAINER_NAME:-escola-uploads}
       AzureBlob__PublicBaseUrl: ${AZUREBLOB_PUBLIC_BASE_URL:-}
     ports:
-      - "${API_HOST_PORT:-5001}:80"
+      - "${API_HOST_PORT:-5001}:10000"
     volumes:
       - ./logs:/app/logs
     restart: unless-stopped
