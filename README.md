@@ -1,6 +1,6 @@
 # ESCOLA_API - Escola High Tech
 
-API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis, CRUD centralizado de usuarios, caderneta digital, calendario escolar, agenda de avaliacoes/trabalhos e QR Code bancario ficticio para alunos.
+API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis, CRUD centralizado de usuarios, caderneta digital, calendario escolar, agenda de avaliacoes/trabalhos com notificacoes aos alunos, QR Code bancario ficticio para alunos e holerites de funcionarios.
 
 ## Tecnologias
 
@@ -11,7 +11,7 @@ API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, aut
 - FluentValidation
 - Swagger/OpenAPI e Scalar
 - QRCoder para geracao de QR Code PNG
-- Azure Blob Storage para fotos e certificados
+- Azure Blob Storage para fotos, certificados e holerites
 - Azure Service Bus para consumo opcional de notificacoes
 - xUnit, Moq e FluentValidation.TestHelper
 - Logging diario em arquivo
@@ -38,7 +38,7 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `ServiceBus__ConnectionString` | Opcional. Cadeia de conexao primaria do Azure Service Bus para publicar eventos da caderneta digital. |
 | `ServiceBus__QueueName` | Opcional. Nome da fila de notificacoes. Padrao: `notificacoes`. |
 | `ServiceBus__ConsumerEnabled` | Opcional. Define se a API tambem consome a fila e grava notificacoes no banco. Padrao: `true`. |
-| `Uploads__Provider` | Use `AzureBlob` em producao para salvar fotos e PDFs no Azure Blob Storage. Use `Local` em desenvolvimento. |
+| `Uploads__Provider` | Use `AzureBlob` em producao para salvar fotos, certificados e holerites no Azure Blob Storage. Use `Local` em desenvolvimento. |
 | `AzureBlob__ConnectionString` | Obrigatoria quando `Uploads__Provider=AzureBlob`. Use a connection string do Storage Account. |
 | `AzureBlob__ContainerName` | Container dos arquivos. Padrao usado no deploy: `arquivos`. |
 | `AzureBlob__PublicBaseUrl` | Opcional. URL publica/CDN do container. Se vazia, a API usa a URL padrao do blob. |
@@ -50,9 +50,9 @@ Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStr
 
 O arquivo `render.yaml` deste repositorio tambem declara essas variaveis para deploy via Blueprint. Nesse fluxo, o Render gera `Jwt__Key` automaticamente e pede `ConnectionStrings__DefaultConnection` no dashboard.
 
-As notificacoes principais da caderneta e do cadastro de usuarios sao gravadas na tabela `Notificacao`. Quando `ServiceBus__ConnectionString` estiver configurada, a API tambem pode consumir mensagens da fila `ServiceBus__QueueName` e transformar cada mensagem valida em notificacao no banco. Se a variavel nao estiver configurada, a API continua funcionando normalmente sem iniciar o consumidor.
+As notificacoes principais da caderneta, do cadastro de usuarios e da agenda de avaliacoes/trabalhos sao gravadas na tabela `Notificacao`. Quando `ServiceBus__ConnectionString` estiver configurada, a API tambem pode consumir mensagens da fila `ServiceBus__QueueName` e transformar cada mensagem valida em notificacao no banco. Se a variavel nao estiver configurada, a API continua funcionando normalmente sem iniciar o consumidor.
 
-Quando `Uploads__Provider=AzureBlob`, a API grava fotos e certificados no Azure Blob Storage e salva no banco apenas a URL e os metadados do arquivo. Para que o front consiga exibir fotos e abrir PDFs diretamente, o container precisa permitir leitura publica dos blobs ou `AzureBlob__PublicBaseUrl` deve apontar para uma URL publica/CDN configurada para esse container.
+Quando `Uploads__Provider=AzureBlob`, a API grava fotos, certificados e holerites no Azure Blob Storage e salva no banco apenas a URL e os metadados do arquivo. Para que o front consiga exibir fotos e abrir PDFs diretamente, o container precisa permitir leitura publica dos blobs ou `AzureBlob__PublicBaseUrl` deve apontar para uma URL publica/CDN configurada para esse container.
 
 ## Docker Compose
 
@@ -153,6 +153,7 @@ O backend usa arquitetura em camadas:
 | Usuarios | `GET /api/usuarios`, `GET /api/usuarios/{id}`, `GET /api/usuarios/perfis`, `POST /api/usuarios`, `PUT /api/usuarios/{id}`, `DELETE /api/usuarios/{id}` |
 | Arquivos de usuario | `GET /api/usuarios/{id}/foto`, `POST /api/usuarios/{id}/foto`, `GET /api/usuarios/{id}/arquivos`, `GET /api/usuarios/{id}/arquivos/{arquivoId}/download`, `POST /api/usuarios/{id}/certificados`, `DELETE /api/usuarios/{id}/arquivos/{arquivoId}` |
 | QR Code bancario ficticio | `GET /api/alunos/me/qr-code-bancario` |
+| Holerites | `GET /api/holerites/me`, `GET /api/holerites/me/{holeriteId}/download`, `GET /api/holerites/usuarios/{usuarioId}`, `POST /api/holerites/usuarios/{usuarioId}`, `GET /api/holerites/usuarios/{usuarioId}/{holeriteId}/download`, `DELETE /api/holerites/usuarios/{usuarioId}/{holeriteId}` |
 | Calendario Escolar | `GET /api/calendario-escolar?ano=2026&mesSelecionado=5` |
 | Caderneta Digital | `GET /api/caderneta-digital`, `GET /api/caderneta-digital/{id}`, `POST /api/caderneta-digital`, `PUT /api/caderneta-digital/{id}`, `DELETE /api/caderneta-digital/{id}` |
 | Disciplinas | `GET /api/caderneta-digital/disciplinas`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
@@ -161,9 +162,9 @@ O backend usa arquitetura em camadas:
 
 ## Autorizacao
 
-- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; visualiza caderneta, disciplinas, eventos e calendario escolar.
-- `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; cadastra disciplinas; faz lancamentos de notas, presencas e faltas; agenda avaliacoes e entregas de trabalhos nas suas disciplinas.
-- `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas e eventos das disciplinas associadas; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas e frequencia sao publicadas.
+- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; gerencia holerites de professores/administradores; visualiza caderneta, disciplinas, eventos e calendario escolar.
+- `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; consulta seus proprios holerites; cadastra disciplinas; faz lancamentos de notas, presencas e faltas; agenda avaliacoes e entregas de trabalhos nas suas disciplinas.
+- `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas e eventos das disciplinas associadas; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas, frequencia, avaliacoes e trabalhos sao publicados.
 
 No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios. O campo opcional `dataNascimento` usa formato ISO `yyyy-MM-dd`, adequado para Datepicker que permita digitar ou selecionar a data.
 
@@ -179,6 +180,10 @@ Exemplo de evento de disciplina:
 ```
 
 O endpoint de QR Code retorna dados bancarios ficticios, `qrCodeBase64`, `qrCodeDataUrl`, texto de compartilhamento e links prontos para `mailto:` e WhatsApp. Ele nao realiza pagamento real nem envia mensagens diretamente por provedores externos.
+
+O endpoint de QR Code e exclusivo para usuarios com perfil `Aluno`. Professores e administradores nao acessam esse recurso; para funcionarios, a API disponibiliza holerites em PDF com listagem e download autenticados. O envio e a exclusao de holerites sao operacoes exclusivas de administradores, e holerites nao podem ser vinculados a alunos.
+
+Quando o professor cria ou atualiza uma avaliacao/trabalho em uma disciplina, a API identifica os alunos matriculados pela caderneta digital e cria notificacoes individuais para eles em `/api/notificacoes`.
 
 ## Testes
 

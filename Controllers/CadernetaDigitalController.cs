@@ -310,7 +310,7 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
-        /// Cria uma data de avaliacao ou entrega de trabalho para uma disciplina do professor logado.
+        /// Cria uma data de avaliacao ou entrega de trabalho para uma disciplina do professor logado e notifica os alunos matriculados.
         /// </summary>
         /// <param name="disciplinaId">Identificador da disciplina do professor.</param>
         /// <param name="model">Dados do evento escolar.</param>
@@ -346,7 +346,7 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
-        /// Atualiza uma data de avaliacao ou entrega de trabalho de uma disciplina do professor logado.
+        /// Atualiza uma data de avaliacao ou entrega de trabalho de uma disciplina do professor logado e notifica os alunos matriculados.
         /// </summary>
         /// <param name="disciplinaId">Identificador da disciplina do professor.</param>
         /// <param name="eventoId">Identificador do evento da disciplina.</param>

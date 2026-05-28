@@ -7,6 +7,7 @@ namespace ESCOLA_API.Controllers
 {
     /// <summary>
     /// Operacoes para consulta e gerenciamento de holerites de funcionarios.
+    /// Administradores enviam e gerenciam PDFs; professores e administradores consultam apenas os proprios holerites.
     /// </summary>
     [Authorize]
     [Route("api/holerites")]
@@ -26,7 +27,7 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
-        /// Lista os holerites do funcionario logado.
+        /// Lista os holerites do funcionario logado. Disponivel para professores e administradores.
         /// </summary>
         [Authorize(Roles = "Administrador,Professor")]
         [HttpGet("me")]
@@ -51,7 +52,7 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
-        /// Baixa um holerite do funcionario logado.
+        /// Baixa um holerite do funcionario logado. Disponivel para professores e administradores.
         /// </summary>
         [Authorize(Roles = "Administrador,Professor")]
         [HttpGet("me/{holeriteId:int}/download")]
@@ -110,7 +111,7 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
-        /// Envia um holerite em PDF para um funcionario. Disponivel apenas para administradores.
+        /// Envia um holerite em PDF para um professor ou administrador. Disponivel apenas para administradores.
         /// </summary>
         [Authorize(Roles = "Administrador")]
         [HttpPost("usuarios/{usuarioId:int}")]
