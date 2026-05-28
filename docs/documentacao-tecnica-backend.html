@@ -278,7 +278,7 @@
     <h1>Documentacao Tecnica do Backend</h1>
     <p class="subtitle">
       Projeto Escola High Tech: API REST em ASP.NET Core para autenticacao JWT, autorizacao por perfis,
-      CRUD escolar, persistencia com Entity Framework Core, validacao, Swagger, logs e testes.
+      CRUD escolar, caderneta digital, notificacoes, uploads, persistencia com Entity Framework Core, Swagger, Scalar, logs e testes.
     </p>
     <div class="cover-box">
       <p><strong>Escopo:</strong> todo o backend localizado em <code>ESCOLA_API</code>, incluindo arquitetura, camadas, classes, regras de negocio, diagramas e tecnologias.</p>
@@ -287,7 +287,7 @@
     <div class="meta">
       <span>Projeto: <strong>ESCOLA_API</strong></span>
       <span>Repositorio: <strong>SPA-Vue / ESCOLA_API</strong></span>
-      <span>Data: <strong>22/05/2026</strong></span>
+      <span>Data: <strong>27/05/2026</strong></span>
       <span>Documento: <strong>ESCOLA_API/docs/documentacao-tecnica-backend.pdf</strong></span>
     </div>
   </section>
@@ -304,7 +304,7 @@
       <li>Funcao de cada classe por camada</li>
       <li>Regras de negocio</li>
       <li>Autenticacao, autorizacao e JWT</li>
-      <li>Migrations, FluentValidation, Swagger, logs e testes</li>
+      <li>Migrations, FluentValidation, Swagger, Scalar, logs e testes</li>
       <li>CRUDs e endpoints</li>
     </ol>
   </section>
@@ -312,15 +312,15 @@
   <h2>1. Visao Geral do Backend</h2>
   <p>
     O backend <code>ESCOLA_API</code> e uma API REST para uma aplicacao escolar. Ele centraliza o cadastro
-    de alunos, professores, usuarios e diretoria, alem de cuidar da autenticacao e da autorizacao por perfis.
+    de usuarios, caderneta digital, disciplinas, notificacoes e arquivos de perfil, alem de cuidar da autenticacao e da autorizacao por perfis.
   </p>
   <div class="grid-3">
-    <div class="card"><strong>Dominio</strong>Gestao escolar com alunos, professores, diretoria, usuarios e perfis.</div>
-    <div class="card"><strong>Interface externa</strong>Controllers HTTP documentados via Swagger/OpenAPI.</div>
-    <div class="card"><strong>Persistencia</strong>EF Core com SQL Server em container e SQLite para desenvolvimento/testes.</div>
+    <div class="card"><strong>Dominio</strong>Gestao escolar com usuarios, perfis, disciplinas, caderneta, notificacoes e arquivos.</div>
+    <div class="card"><strong>Interface externa</strong>Controllers HTTP documentados via Swagger/OpenAPI e Scalar.</div>
+    <div class="card"><strong>Persistencia</strong>EF Core com SQL Server/Azure SQL e SQLite para desenvolvimento/testes.</div>
     <div class="card"><strong>Seguranca</strong>JWT Bearer, roles, hash de senha e troca obrigatoria da senha padrao.</div>
     <div class="card"><strong>Qualidade</strong>FluentValidation, testes unitarios e teste contra SQL bruto.</div>
-    <div class="card"><strong>Observabilidade</strong>Logs diarios gravados em <code>ESCOLA_API/logs</code>.</div>
+    <div class="card"><strong>Observabilidade</strong>Logs diarios, notificacoes persistidas e consumidor opcional do Azure Service Bus.</div>
   </div>
 
   <h2>2. Tecnologias Usadas e Versoes</h2>
@@ -333,6 +333,9 @@
     <tr><td>EF Core SQLite</td><td><code>10.0.8</code></td><td>Provider usado no ambiente de desenvolvimento e em testes.</td></tr>
     <tr><td>FluentValidation.AspNetCore</td><td><code>11.3.1</code></td><td>Validacao automatica de ViewModels.</td></tr>
     <tr><td>Swashbuckle.AspNetCore</td><td><code>10.1.7</code></td><td>Swagger/OpenAPI e Swagger UI.</td></tr>
+    <tr><td>Scalar.AspNetCore</td><td><code>2.14.14</code></td><td>Documentacao interativa alternativa em <code>/scalar</code>.</td></tr>
+    <tr><td>Azure.Messaging.ServiceBus</td><td><code>7.20.1</code></td><td>Consumo opcional de eventos de notificacao.</td></tr>
+    <tr><td>Azure.Storage.Blobs</td><td><code>12.28.0</code></td><td>Storage de fotos de perfil e certificados PDF.</td></tr>
     <tr><td>SQL Server</td><td><code>2022-latest</code></td><td>Banco em Docker Compose.</td></tr>
     <tr><td>Docker .NET SDK/Runtime</td><td><code>10.0</code></td><td>Build e runtime da imagem da API.</td></tr>
     <tr><td>xUnit</td><td><code>2.9.3</code></td><td>Framework de testes unitarios.</td></tr>
@@ -348,7 +351,7 @@
     configura o modelo e os ViewModels isolam contratos HTTP das entidades persistidas.
   </p>
   <div class="grid-4">
-    <div class="layer"><h4>API</h4><p>Controllers, middlewares, JWT, autorizacao, Swagger e codigos HTTP.</p></div>
+    <div class="layer"><h4>API</h4><p>Controllers, middlewares, JWT, autorizacao, Swagger, Scalar e codigos HTTP.</p></div>
     <div class="layer"><h4>Aplicacao</h4><p>Services e interfaces que executam regras e orquestram dados.</p></div>
     <div class="layer"><h4>Infraestrutura</h4><p>DataContext, Repository, migrations, logging, hashing e acesso ao banco.</p></div>
     <div class="layer"><h4>Contratos/Dominio</h4><p>Models, ViewModels, validators e mapeamentos.</p></div>
@@ -357,7 +360,7 @@
   <h2>4. Funcao de Cada Camada</h2>
   <table>
     <tr><th>Camada</th><th>Pastas</th><th>Funcao</th></tr>
-    <tr><td>Inicializacao</td><td><code>Program.cs</code></td><td>Registra DI, controllers, validators, JWT, policies, EF Core, Swagger, logs, CORS e migrations no startup.</td></tr>
+    <tr><td>Inicializacao</td><td><code>Program.cs</code></td><td>Registra DI, controllers, validators, JWT, policies, EF Core, Swagger, Scalar, logs, CORS e migrations no startup.</td></tr>
     <tr><td>API</td><td><code>Controllers</code></td><td>Recebe HTTP, chama services, aplica atributos de autorizacao e retorna status codes.</td></tr>
     <tr><td>Aplicacao</td><td><code>Services</code></td><td>Executa regras de negocio, consulta dados, cria/atualiza/exclui entidades e retorna ViewModels.</td></tr>
     <tr><td>Dados</td><td><code>Data</code></td><td>Configura EF Core, relacionamentos, seeds, repository e consultas.</td></tr>
@@ -365,7 +368,7 @@
     <tr><td>Contratos</td><td><code>ViewModels</code></td><td>Define payloads de entrada e saida expostos pela API.</td></tr>
     <tr><td>Validacao</td><td><code>Validators</code></td><td>Valida ViewModels antes da execucao das regras de aplicacao.</td></tr>
     <tr><td>Seguranca</td><td><code>Security</code></td><td>Hash, verificacao de senha e regra de senha padrao.</td></tr>
-    <tr><td>Documentacao</td><td><code>Swagger</code></td><td>Personaliza OpenAPI para endpoints protegidos.</td></tr>
+    <tr><td>Documentacao</td><td><code>Swagger</code> e <code>Scalar</code></td><td>Expoe OpenAPI, Swagger UI e Scalar API Reference para endpoints protegidos.</td></tr>
     <tr><td>Logs</td><td><code>Logging</code></td><td>Provider de arquivo diario para o sistema de logging do ASP.NET Core.</td></tr>
   </table>
 
@@ -445,21 +448,30 @@
   <h2>8. Diagrama de Classes</h2>
   <div class="grid-3">
     <div class="class-box"><h4>Perfil</h4><ul><li>IdPerfil</li><li>DescricaoPerfil</li><li>Usuarios</li></ul></div>
-    <div class="class-box"><h4>Usuario</h4><ul><li>IdUsuario</li><li>Nome</li><li>Email</li><li>Telefone</li><li>Senha</li><li>IdPerfil</li><li>Alunos/Professores/Diretorias</li></ul></div>
+    <div class="class-box"><h4>Usuario</h4><ul><li>IdUsuario</li><li>Nome</li><li>Email</li><li>Telefone</li><li>Senha</li><li>FotoPerfilUrl</li><li>IdPerfil</li><li>Arquivos/Notificacoes/Cadernetas</li></ul></div>
+    <div class="class-box"><h4>Disciplina</h4><ul><li>IdDisciplina</li><li>Nome</li><li>IdProfessorUsuario</li><li>ProfessorUsuario</li><li>Cadernetas</li></ul></div>
+    <div class="class-box"><h4>CadernetaDigital</h4><ul><li>IdCadernetaDigital</li><li>IdAlunoUsuario</li><li>IdDisciplina</li><li>Notas</li><li>Presencas</li><li>Faltas</li></ul></div>
+    <div class="class-box"><h4>UsuarioArquivo</h4><ul><li>IdArquivo</li><li>IdUsuario?</li><li>NomeBlob</li><li>TipoArquivo</li><li>NomeOriginal</li><li>Url</li><li>ContentType</li><li>TamanhoBytes</li></ul></div>
+    <div class="class-box"><h4>Notificacao</h4><ul><li>IdNotificacao</li><li>IdUsuario</li><li>Tipo/Titulo/Mensagem</li><li>Link</li><li>MediaAritmetica</li><li>Situacao</li><li>Lida</li></ul></div>
     <div class="class-box"><h4>Professor</h4><ul><li>Id</li><li>Nome</li><li>IdUsuario?</li><li>Usuario</li><li>Alunos</li></ul></div>
     <div class="class-box"><h4>Aluno</h4><ul><li>Id</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId</li><li>IdUsuario?</li></ul></div>
     <div class="class-box"><h4>Diretoria</h4><ul><li>Id</li><li>Nome</li><li>IdUsuario?</li><li>Usuario</li></ul></div>
-    <div class="class-box"><h4>Services</h4><ul><li>AuthService</li><li>UsuarioService</li><li>AlunoService</li><li>ProfessorService</li><li>DiretoriaService</li></ul></div>
+    <div class="class-box"><h4>Services</h4><ul><li>AuthService</li><li>UsuarioService</li><li>CadernetaDigitalService</li><li>NotificacaoService</li><li>UsuarioArquivoService</li><li>ServiceBusNotificacaoWorker</li></ul></div>
   </div>
   <p>
-    Relacionamentos principais: <code>Perfil 1:N Usuario</code>, <code>Usuario 1:N Aluno</code>,
-    <code>Usuario 1:N Professor</code>, <code>Usuario 1:N Diretoria</code> e <code>Professor 1:N Aluno</code>.
+    Relacionamentos principais: <code>Perfil 1:N Usuario</code>, <code>Usuario 1:N Disciplina</code>,
+    <code>Usuario 1:N CadernetaDigital</code>, <code>Usuario 1:N UsuarioArquivo</code>,
+    <code>Usuario 1:N Notificacao</code> e <code>Disciplina 1:N CadernetaDigital</code>.
   </p>
 
   <h2>9. Modelo Entidade-Relacional</h2>
   <div class="grid-3">
     <div class="entity"><h4>PERFIL</h4><ul><li>IdPerfil PK</li><li>DescricaoPerfil</li></ul></div>
-    <div class="entity"><h4>USUARIO</h4><ul><li>IdUsuario PK</li><li>Nome</li><li>Email UK</li><li>Telefone</li><li>Senha</li><li>IdPerfil FK</li></ul></div>
+    <div class="entity"><h4>USUARIO</h4><ul><li>IdUsuario PK</li><li>Nome</li><li>Email UK</li><li>Telefone</li><li>Senha</li><li>FotoPerfilUrl</li><li>IdPerfil FK</li></ul></div>
+    <div class="entity"><h4>DISCIPLINA</h4><ul><li>IdDisciplina PK</li><li>Nome</li><li>IdProfessorUsuario FK</li></ul></div>
+    <div class="entity"><h4>CADERNETADIGITAL</h4><ul><li>IdCadernetaDigital PK</li><li>IdAlunoUsuario FK</li><li>IdDisciplina FK</li><li>Notas</li><li>Presencas</li><li>Faltas</li></ul></div>
+    <div class="entity"><h4>ARQUIVO</h4><ul><li>IdArquivo PK</li><li>IdUsuario FK opcional</li><li>NomeBlob</li><li>TipoArquivo</li><li>Url</li><li>ContentType</li></ul></div>
+    <div class="entity"><h4>NOTIFICACAO</h4><ul><li>IdNotificacao PK</li><li>IdUsuario FK</li><li>Titulo</li><li>Mensagem</li><li>Link</li><li>Lida</li></ul></div>
     <div class="entity"><h4>PROFESSOR</h4><ul><li>Id PK</li><li>Nome</li><li>IdUsuario FK opcional</li></ul></div>
     <div class="entity"><h4>ALUNO</h4><ul><li>Id PK</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId FK obrigatoria</li><li>IdUsuario FK opcional</li></ul></div>
     <div class="entity"><h4>DIRETORIA</h4><ul><li>Id PK</li><li>Nome</li><li>IdUsuario FK opcional</li></ul></div>
@@ -471,13 +483,18 @@
     <tr><td>Usuario -> Aluno</td><td>1:N opcional</td><td>SetNull</td></tr>
     <tr><td>Usuario -> Professor</td><td>1:N opcional</td><td>SetNull</td></tr>
     <tr><td>Usuario -> Diretoria</td><td>1:N opcional</td><td>SetNull</td></tr>
+    <tr><td>Usuario -> Disciplina</td><td>1:N obrigatoria</td><td>Restrict</td></tr>
+    <tr><td>Disciplina -> CadernetaDigital</td><td>1:N obrigatoria</td><td>Cascade</td></tr>
+    <tr><td>Usuario -> CadernetaDigital</td><td>1:N obrigatoria</td><td>Restrict</td></tr>
+    <tr><td>Usuario -> Arquivo</td><td>1:N opcional</td><td>SetNull</td></tr>
+    <tr><td>Usuario -> Notificacao</td><td>1:N obrigatoria</td><td>Cascade</td></tr>
   </table>
 
   <h2 class="page-break">10. Funcao de Cada Classe por Camada</h2>
   <h3>10.1 Inicializacao</h3>
   <table>
     <tr><th>Classe/arquivo</th><th>Camada</th><th>Funcao</th></tr>
-    <tr><td><code>Program.cs</code></td><td>Bootstrap/API</td><td>Configura DI, controllers, JSON, FluentValidation, CORS, JWT, policies, Swagger, EF Core, migrations automaticas, logs e middleware de requisicoes.</td></tr>
+    <tr><td><code>Program.cs</code></td><td>Bootstrap/API</td><td>Configura DI, controllers, JSON, FluentValidation, CORS, JWT, policies, Swagger, Scalar, EF Core, migrations automaticas, logs, uploads e middleware de requisicoes.</td></tr>
   </table>
 
   <h3>10.2 Controllers</h3>
@@ -486,7 +503,9 @@
     <tr><td><code>AlunoController</code></td><td>Endpoint HTTP de alunos.</td><td>Listar, buscar por id, buscar por professor, criar, atualizar e excluir aluno.</td></tr>
     <tr><td><code>ProfessorController</code></td><td>Endpoint HTTP de professores.</td><td>Listar, buscar por id, criar, atualizar e excluir professor.</td></tr>
     <tr><td><code>DiretoriaController</code></td><td>Endpoint HTTP da diretoria escolar.</td><td>Listar, buscar por id, criar, atualizar e excluir integrante da diretoria.</td></tr>
-    <tr><td><code>UsuariosController</code></td><td>Endpoint HTTP de usuarios e perfis.</td><td>Listar usuarios, buscar por id, listar perfis, criar, atualizar e excluir usuario.</td></tr>
+    <tr><td><code>UsuariosController</code></td><td>Endpoint HTTP de usuarios, perfis e arquivos.</td><td>Listar usuarios, buscar por id, listar perfis, criar, atualizar, excluir, enviar foto, listar/baixar certificados e excluir arquivos.</td></tr>
+    <tr><td><code>CadernetaDigitalController</code></td><td>Endpoint HTTP da caderneta digital.</td><td>Listar, buscar, criar, atualizar e excluir lancamentos; manter disciplinas do professor.</td></tr>
+    <tr><td><code>NotificacoesController</code></td><td>Endpoint HTTP de notificacoes.</td><td>Listar minhas notificacoes, contar nao lidas, criar notificacao manual e marcar como lida.</td></tr>
     <tr><td><code>AuthController</code></td><td>Endpoint HTTP de autenticacao.</td><td>Login, usuario atual, validacao simples de token, validacao admin e alteracao de senha.</td></tr>
   </table>
 
@@ -500,7 +519,14 @@
     <tr><td><code>IDiretoriaService</code></td><td>Contrato de diretoria.</td><td>Expõe CRUD da administracao escolar.</td></tr>
     <tr><td><code>DiretoriaService</code></td><td>Regra de aplicacao para diretoria.</td><td>Cria, atualiza e remove integrantes da diretoria.</td></tr>
     <tr><td><code>IUsuarioService</code></td><td>Contrato de usuario.</td><td>Define CRUD e listagem de perfis.</td></tr>
-    <tr><td><code>UsuarioService</code></td><td>Regra de aplicacao para usuarios.</td><td>Valida email unico, perfil existente, define senha padrao e usa DataContext direto.</td></tr>
+    <tr><td><code>UsuarioService</code></td><td>Regra de aplicacao para usuarios.</td><td>Valida email unico, perfil existente, define senha padrao, aplica permissoes por perfil e gera notificacoes de cadastro/atualizacao.</td></tr>
+    <tr><td><code>ICadernetaDigitalService</code></td><td>Contrato da caderneta digital.</td><td>Define operacoes de disciplinas e lancamentos com base no usuario logado.</td></tr>
+    <tr><td><code>CadernetaDigitalService</code></td><td>Regra da caderneta digital.</td><td>Aplica regras de professor/aluno, impede associacao duplicada, calcula media/situacao e gera notificacoes.</td></tr>
+    <tr><td><code>INotificacaoService</code></td><td>Contrato de notificacoes.</td><td>Lista, conta e marca notificacoes como lidas.</td></tr>
+    <tr><td><code>NotificacaoService</code></td><td>Regra de notificacoes.</td><td>Controla notificacoes por usuario e permite envio manual por administrador/professor.</td></tr>
+    <tr><td><code>IUsuarioArquivoService</code></td><td>Contrato de arquivos de usuario.</td><td>Define upload/download/listagem/remocao de foto e certificados.</td></tr>
+    <tr><td><code>UsuarioArquivoService</code></td><td>Regra de arquivos de usuario.</td><td>Valida permissao, tipo/tamanho de arquivo e persiste metadados no banco.</td></tr>
+    <tr><td><code>ServiceBusNotificacaoWorker</code></td><td>Worker opcional.</td><td>Consome mensagens do Azure Service Bus e grava notificacoes no banco quando configurado.</td></tr>
     <tr><td><code>IAuthService</code></td><td>Contrato de autenticacao.</td><td>Login, usuario atual e troca de senha.</td></tr>
     <tr><td><code>AuthService</code></td><td>Regra de autenticacao e JWT.</td><td>Verifica senha, gera token, monta claims e altera senha do usuario autenticado.</td></tr>
   </table>
@@ -511,6 +537,8 @@
     <tr><td><code>DataContext</code></td><td>DbContext do EF Core.</td><td>Declara DbSets, tabelas, chaves, indices, FKs, delete behavior e seeds.</td></tr>
     <tr><td><code>IRepository</code></td><td>Contrato de persistencia generica e consultas.</td><td>Abstrai Add, Update, Delete, SaveChanges e consultas de aluno/professor/diretoria.</td></tr>
     <tr><td><code>Repository</code></td><td>Implementacao de acesso a dados.</td><td>Usa LINQ, Include, AsNoTracking, ordenacao e filtros por id/professor.</td></tr>
+    <tr><td><code>LocalUsuarioArquivoStorage</code></td><td>Storage local.</td><td>Salva arquivos em disco durante desenvolvimento.</td></tr>
+    <tr><td><code>AzureBlobUsuarioArquivoStorage</code></td><td>Storage Azure.</td><td>Salva fotos e PDFs no Azure Blob Storage em producao.</td></tr>
   </table>
 
   <h3>10.5 Models</h3>
@@ -519,8 +547,12 @@
     <tr><td><code>Aluno</code></td><td>Entidade persistida de aluno.</td><td>Nome, Sobrenome, DataNasc, ProfessorId, IdUsuario.</td></tr>
     <tr><td><code>Professor</code></td><td>Entidade persistida de professor.</td><td>Nome, IdUsuario, lista de Alunos.</td></tr>
     <tr><td><code>Diretoria</code></td><td>Entidade persistida de pessoa da administracao escolar.</td><td>Nome e IdUsuario opcional.</td></tr>
-    <tr><td><code>Usuario</code></td><td>Entidade autenticavel.</td><td>Nome, Email, Telefone, Senha hash e IdPerfil.</td></tr>
-    <tr><td><code>Perfil</code></td><td>Entidade de autorizacao.</td><td>Administrador, Contribuinte e Leitor.</td></tr>
+    <tr><td><code>Usuario</code></td><td>Entidade autenticavel.</td><td>Nome, Email, Telefone, Senha hash, FotoPerfilUrl, IdPerfil e vinculos de arquivos/notificacoes/caderneta.</td></tr>
+    <tr><td><code>Perfil</code></td><td>Entidade de autorizacao.</td><td>Administrador, Professor e Aluno.</td></tr>
+    <tr><td><code>Disciplina</code></td><td>Entidade de disciplina da caderneta.</td><td>Nome e professor responsavel.</td></tr>
+    <tr><td><code>CadernetaDigital</code></td><td>Entidade de notas e frequencia.</td><td>Aluno, disciplina, notas serializadas, presencas e faltas.</td></tr>
+    <tr><td><code>UsuarioArquivo</code></td><td>Entidade de metadados de arquivo.</td><td>NomeBlob, TipoArquivo, NomeOriginal, Url, ContentType, tamanho e data.</td></tr>
+    <tr><td><code>Notificacao</code></td><td>Entidade de notificacao.</td><td>Titulo, mensagem, link, situacao, media, flags de leitura e origem.</td></tr>
   </table>
 
   <h3>10.6 ViewModels e Mapeamentos</h3>
@@ -536,6 +568,13 @@
     <tr><td><code>DiretoriaViewModel</code></td><td>Resposta da diretoria com usuario vinculado.</td></tr>
     <tr><td><code>UsuarioCreateViewModel</code></td><td>Payload de criacao/edicao de usuario sem expor senha.</td></tr>
     <tr><td><code>UsuarioSummaryViewModel</code></td><td>Dados publicos de usuario sem senha.</td></tr>
+    <tr><td><code>UsuarioArquivoViewModel</code></td><td>Resposta dos metadados de arquivos enviados pelo usuario.</td></tr>
+    <tr><td><code>CadernetaDigitalCreateUpdateViewModel</code></td><td>Payload de lancamento de notas, presencas e faltas.</td></tr>
+    <tr><td><code>CadernetaDigitalViewModel</code></td><td>Resposta da caderneta com aluno, email, disciplina, notas, media aritmetica, situacao e cor.</td></tr>
+    <tr><td><code>DisciplinaCreateUpdateViewModel</code></td><td>Payload de cadastro/edicao de disciplina.</td></tr>
+    <tr><td><code>DisciplinaViewModel</code></td><td>Resposta de disciplina com professor responsavel.</td></tr>
+    <tr><td><code>NotificacaoCreateViewModel</code></td><td>Payload de notificacao manual.</td></tr>
+    <tr><td><code>NotificacaoViewModel</code></td><td>Resposta de notificacao para o painel do usuario.</td></tr>
     <tr><td><code>PerfilViewModel</code></td><td>Contrato de saida para perfis.</td></tr>
     <tr><td><code>LoginRequestViewModel</code></td><td>Payload de login.</td></tr>
     <tr><td><code>AuthResponseViewModel</code></td><td>Resposta do login com token, expiracao, usuario e flag de senha padrao.</td></tr>
@@ -550,16 +589,20 @@
     <tr><td><code>ProfessorCreateEditViewModelValidator</code></td><td>Valida professor.</td><td>Nome obrigatorio e usuario positivo quando informado.</td></tr>
     <tr><td><code>DiretoriaCreateEditViewModelValidator</code></td><td>Valida diretoria.</td><td>Nome obrigatorio e usuario positivo quando informado.</td></tr>
     <tr><td><code>UsuarioCreateViewModelValidator</code></td><td>Valida usuario.</td><td>Nome, email valido, telefone e perfil positivo.</td></tr>
+    <tr><td><code>UsuarioUpdateViewModelValidator</code></td><td>Valida edicao de usuario.</td><td>Nome, email, telefone e perfil conforme permissao do usuario logado.</td></tr>
+    <tr><td><code>DisciplinaCreateUpdateViewModelValidator</code></td><td>Valida disciplina.</td><td>Nome obrigatorio com limite de tamanho.</td></tr>
+    <tr><td><code>CadernetaDigitalCreateUpdateViewModelValidator</code></td><td>Valida lancamento da caderneta.</td><td>Aluno, disciplina, notas, presencas e faltas com limites validos.</td></tr>
     <tr><td><code>LoginRequestViewModelValidator</code></td><td>Valida login.</td><td>Email valido e senha obrigatoria.</td></tr>
     <tr><td><code>AlterarSenhaViewModelValidator</code></td><td>Valida troca de senha.</td><td>Senha atual, nova senha forte, confirmacao e bloqueio da senha padrao.</td></tr>
   </table>
 
-  <h3>10.8 Security, Swagger e Logging</h3>
+  <h3>10.8 Security, Swagger, Scalar e Logging</h3>
   <table>
     <tr><th>Classe</th><th>Camada</th><th>Funcao</th></tr>
     <tr><td><code>PasswordHasher</code></td><td>Security</td><td>Gera hash PBKDF2-SHA256 com salt e verifica senha informada.</td></tr>
     <tr><td><code>DefaultPasswordPolicy</code></td><td>Security</td><td>Define a senha padrao e detecta se o hash ainda corresponde a ela.</td></tr>
     <tr><td><code>AuthorizeOperationFilter</code></td><td>Swagger</td><td>Marca endpoints protegidos no OpenAPI e adiciona respostas 401/403.</td></tr>
+    <tr><td><code>MapScalarApiReference</code></td><td>Scalar</td><td>Publica a documentacao interativa em <code>/scalar</code> usando o mesmo OpenAPI do Swagger.</td></tr>
     <tr><td><code>FileLoggerOptions</code></td><td>Logging</td><td>Configura diretorio, prefixo e nivel minimo de log.</td></tr>
     <tr><td><code>FileLoggerExtensions</code></td><td>Logging</td><td>Expõe <code>AddDailyFileLogger</code> para registrar o provider no builder.</td></tr>
     <tr><td><code>DailyFileLogger</code></td><td>Logging</td><td>Implementa <code>ILogger</code> e envia mensagens para o provider.</td></tr>
@@ -569,16 +612,23 @@
   <h2 class="page-break">11. Regras de Negocio</h2>
   <ul>
     <li>Todo endpoint de negocio exige token JWT valido.</li>
-    <li><span class="badge">Administrador</span> possui acesso completo: consulta, cadastro, edicao e exclusao.</li>
-    <li><span class="badge">Contribuinte</span> pode consultar, criar e atualizar alunos, professores e diretoria, mas nao pode excluir.</li>
-    <li><span class="badge">Leitor</span> pode consultar endpoints autenticados de leitura.</li>
-    <li>Somente administrador cria, atualiza e exclui usuarios.</li>
+    <li><span class="badge">Administrador</span> cadastra, edita e exclui usuarios; visualiza caderneta digital, mas nao altera lancamentos.</li>
+    <li><span class="badge">Professor</span> consulta alunos e professores, edita apenas o proprio perfil, cadastra disciplinas e lanca notas/frequencia na caderneta.</li>
+    <li><span class="badge">Aluno</span> consulta e edita apenas o proprio perfil e visualiza somente cadernetas associadas ao seu usuario.</li>
+    <li>Somente administrador cria e exclui usuarios.</li>
     <li>Somente administrador lista perfis para cadastro de usuario.</li>
+    <li>Quando um administrador cadastra usuario, o usuario criado recebe notificacao com os dados cadastrados.</li>
+    <li>Quando um usuario atualiza seus dados, o administrador criador recebe notificacao com os dados corrigidos.</li>
     <li>Usuarios criados pela API recebem a senha inicial <code>Senha@252525</code>.</li>
     <li>Quando o login detecta uso da senha padrao, a resposta retorna <code>deveAlterarSenhaPadrao = true</code>.</li>
     <li>Senha nunca trafega em respostas e nunca e persistida em texto puro.</li>
     <li>Email de usuario e unico; duplicidade gera erro de regra de negocio.</li>
     <li>Perfil informado no cadastro/edicao de usuario precisa existir.</li>
+    <li>Disciplina nao pode ser duplicada para o mesmo professor, mesmo com diferenca de maiusculas/minusculas.</li>
+    <li>Aluno pode ser associado a varias disciplinas, desde que a associacao aluno/disciplina seja unica.</li>
+    <li>A caderneta calcula media aritmetica das notas e retorna situacao/cor: reprovado, recuperacao, aprovado ou reprovado por faltas quando atingir 10 faltas.</li>
+    <li>Fotos e certificados sao salvos em storage local ou Azure Blob; no banco ficam apenas URL e metadados do arquivo.</li>
+    <li>Notificacoes ficam persistidas na tabela <code>Notificacao</code>; o Service Bus e opcional para consumo de mensagens externas.</li>
     <li>Aluno precisa apontar para professor valido.</li>
     <li><code>IdUsuario</code> em aluno, professor e diretoria e opcional; quando informado deve ser positivo.</li>
     <li>Data de nascimento de aluno deve usar <code>dd/MM/yyyy</code>.</li>
@@ -592,11 +642,15 @@
     <tr><td>Auth</td><td>POST <code>/api/Auth/login</code></td><td>Publico</td><td>Autentica e retorna JWT.</td></tr>
     <tr><td>Auth</td><td>GET <code>/api/Auth/me</code></td><td>Autenticado</td><td>Retorna usuario atual.</td></tr>
     <tr><td>Auth</td><td>POST <code>/api/Auth/alterar-senha</code></td><td>Autenticado</td><td>Altera senha.</td></tr>
-    <tr><td>Aluno</td><td>GET/POST/PUT/DELETE <code>/api/Aluno</code></td><td>Leitura autenticada; escrita Admin/Contribuinte; delete Admin.</td><td>CRUD de alunos.</td></tr>
-    <tr><td>Professor</td><td>GET/POST/PUT/DELETE <code>/api/Professor</code></td><td>Leitura autenticada; escrita Admin/Contribuinte; delete Admin.</td><td>CRUD de professores.</td></tr>
-    <tr><td>Diretoria</td><td>GET/POST/PUT/DELETE <code>/api/Diretoria</code></td><td>Leitura autenticada; escrita Admin/Contribuinte; delete Admin.</td><td>CRUD de diretoria.</td></tr>
-    <tr><td>Usuarios</td><td>GET/POST/PUT/DELETE <code>/api/usuarios</code></td><td>Consulta Admin/Contribuinte; escrita Admin.</td><td>CRUD de usuarios.</td></tr>
+    <tr><td>Auth</td><td>POST <code>/api/Auth/esqueci-senha</code></td><td>Publico</td><td>Fluxo de recuperacao de senha.</td></tr>
+    <tr><td>Usuarios</td><td>GET/POST/PUT/DELETE <code>/api/usuarios</code></td><td>Admin gerencia; professor consulta alunos/professores e edita proprio perfil; aluno edita proprio perfil.</td><td>CRUD centralizado de usuarios.</td></tr>
     <tr><td>Perfis</td><td>GET <code>/api/usuarios/perfis</code></td><td>Administrador</td><td>Lista perfis disponiveis.</td></tr>
+    <tr><td>Arquivos</td><td>GET/POST/DELETE <code>/api/usuarios/{id}/foto</code> e <code>/api/usuarios/{id}/arquivos</code></td><td>Proprio usuario, administrador e leituras permitidas por perfil.</td><td>Upload/download/listagem de foto e certificados.</td></tr>
+    <tr><td>Caderneta</td><td>GET <code>/api/caderneta-digital</code></td><td>Admin visualiza tudo; professor visualiza seus lancamentos; aluno apenas os seus.</td><td>Lista lancamentos conforme perfil.</td></tr>
+    <tr><td>Caderneta</td><td>POST/PUT/DELETE <code>/api/caderneta-digital</code></td><td>Professor</td><td>Cria, altera e remove lancamentos de notas/frequencia.</td></tr>
+    <tr><td>Disciplinas</td><td>GET/POST/PUT/DELETE <code>/api/caderneta-digital/disciplinas</code></td><td>Professor escreve; admin/aluno consultam conforme permissao.</td><td>Mantem disciplinas vinculadas aos professores.</td></tr>
+    <tr><td>Notificacoes</td><td>GET/PATCH <code>/api/notificacoes</code></td><td>Autenticado</td><td>Lista, conta e marca notificacoes do usuario logado.</td></tr>
+    <tr><td>Notificacoes</td><td>POST <code>/api/notificacoes</code></td><td>Administrador e Professor</td><td>Envia notificacao manual para um usuario.</td></tr>
   </table>
 
   <h2>13. Migrations e Banco</h2>
@@ -605,6 +659,10 @@
     <tr><td><code>20260521160031_InitialSqlServer</code></td><td>Cria estrutura inicial com Professores e Alunos.</td></tr>
     <tr><td><code>20260521194537_SeedFiftyRecords</code></td><td>Insere massa inicial maior de professores e alunos.</td></tr>
     <tr><td><code>20260521202457_AddJwtAuthUsuariosDiretoria</code></td><td>Adiciona JWT no modelo: Perfil, Usuario, Diretoria, FKs IdUsuario, indices, seeds de 3 perfis e 20 usuarios.</td></tr>
+    <tr><td><code>20260525125946_AddCadernetaDigital</code></td><td>Adiciona disciplinas, lancamentos de caderneta, notas e frequencia.</td></tr>
+    <tr><td><code>20260526204546_AddNotificacoesArquivosUsuario</code></td><td>Adiciona notificacoes, arquivos de usuario e foto de perfil.</td></tr>
+    <tr><td><code>20260526212447_AjustaTabelaArquivos</code></td><td>Ajusta a tabela <code>Arquivo</code> para metadados flexiveis.</td></tr>
+    <tr><td><code>20260527182246_AddUsuarioCriadorNotificacoes</code></td><td>Registra o administrador criador do usuario para notificacoes de atualizacao.</td></tr>
   </table>
   <p>
     No startup, a API aplica migrations automaticamente quando usa SQL Server. Para SQLite, a API usa <code>EnsureCreated</code>.
@@ -623,11 +681,17 @@
     <tr><td>Auth</td><td>Login recusado, login aceito e troca de senha.</td></tr>
   </table>
 
-  <h2>15. Swagger/OpenAPI</h2>
+  <h2>15. Swagger/OpenAPI e Scalar</h2>
   <p>
-    Swagger documenta rotas, payloads, status codes e seguranca Bearer. O filtro <code>AuthorizeOperationFilter</code>
-    identifica endpoints protegidos e anexa o esquema JWT.
+    Swagger e Scalar documentam rotas, payloads, status codes e seguranca Bearer usando o mesmo documento OpenAPI.
+    O filtro <code>AuthorizeOperationFilter</code> identifica endpoints protegidos e anexa o esquema JWT.
   </p>
+  <table>
+    <tr><th>Interface</th><th>Rota</th></tr>
+    <tr><td>Swagger UI</td><td><code>/swagger</code></td></tr>
+    <tr><td>OpenAPI JSON</td><td><code>/swagger/v1/swagger.json</code></td></tr>
+    <tr><td>Scalar API Reference</td><td><code>/scalar</code></td></tr>
+  </table>
   <ol>
     <li>Executar <code>POST /api/Auth/login</code>.</li>
     <li>Copiar o token.</li>
@@ -649,11 +713,12 @@
   <h2>17. Execucao e Deploy Local</h2>
   <table>
     <tr><th>Acao</th><th>Comando</th></tr>
-    <tr><td>Rodar API local</td><td><code>cd ESCOLA_API && dotnet run</code></td></tr>
+    <tr><td>Rodar API local</td><td><code>dotnet run</code></td></tr>
     <tr><td>Build</td><td><code>dotnet build ESCOLA_API.csproj</code></td></tr>
     <tr><td>Testes</td><td><code>dotnet test ESCOLA_API.Tests/ESCOLA_API.Tests.csproj</code></td></tr>
-    <tr><td>Docker Compose</td><td><code>docker compose -f docker/docker-compose.yml up --build</code></td></tr>
-    <tr><td>Swagger no Compose</td><td><code>http://localhost:5000/swagger</code></td></tr>
+    <tr><td>Docker Compose</td><td><code>docker compose up -d --build</code></td></tr>
+    <tr><td>Swagger no Compose</td><td><code>http://localhost:5001/swagger</code></td></tr>
+    <tr><td>Scalar no Compose</td><td><code>http://localhost:5001/scalar</code></td></tr>
   </table>
 
   <div class="note">

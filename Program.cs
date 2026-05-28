@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigureHttpPort(builder);
@@ -81,9 +82,9 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Form API",
+        Title = "ESCOLA_API - Escola High Tech",
         Version = "v1",
-        Description = "API para gerenciamento escolar com CRUD centralizado de usuarios e autenticacao JWT."
+        Description = "API para gerenciamento escolar com usuarios, caderneta digital, notificacoes, uploads de arquivos e autenticacao JWT."
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -166,11 +167,18 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    options.DocumentTitle = "ESCOLA_API - Swagger";
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "ESCOLA_API v1");
+});
+app.MapScalarApiReference(options =>
+{
+    options.WithTitle("ESCOLA_API - Escola High Tech");
+    options.WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json");
+    options.AddPreferredSecuritySchemes(new[] { "Bearer" });
+});
 
 if (!app.Environment.IsDevelopment())
 {

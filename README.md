@@ -9,7 +9,9 @@ API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, aut
 - SQL Server e SQLite em desenvolvimento/testes
 - JWT Bearer
 - FluentValidation
-- Swagger/OpenAPI
+- Swagger/OpenAPI e Scalar
+- Azure Blob Storage para fotos e certificados
+- Azure Service Bus para consumo opcional de notificacoes
 - xUnit, Moq e FluentValidation.TestHelper
 - Logging diario em arquivo
 
@@ -47,7 +49,7 @@ Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStr
 
 O arquivo `render.yaml` deste repositorio tambem declara essas variaveis para deploy via Blueprint. Nesse fluxo, o Render gera `Jwt__Key` automaticamente e pede `ConnectionStrings__DefaultConnection` no dashboard.
 
-Quando `ServiceBus__ConnectionString` estiver configurada, a API publica um evento `NotasPublicadas` na fila `ServiceBus__QueueName` sempre que um professor cria ou atualiza um lancamento da caderneta digital. A API tambem consome essa fila e grava uma linha na tabela `Notificacao` para o aluno visualizar no painel. Se a variavel nao estiver configurada, a API continua funcionando normalmente e apenas nao envia/consome o evento.
+As notificacoes principais da caderneta e do cadastro de usuarios sao gravadas na tabela `Notificacao`. Quando `ServiceBus__ConnectionString` estiver configurada, a API tambem pode consumir mensagens da fila `ServiceBus__QueueName` e transformar cada mensagem valida em notificacao no banco. Se a variavel nao estiver configurada, a API continua funcionando normalmente sem iniciar o consumidor.
 
 Quando `Uploads__Provider=AzureBlob`, a API grava fotos e certificados no Azure Blob Storage e salva no banco apenas a URL e os metadados do arquivo. Para que o front consiga exibir fotos e abrir PDFs diretamente, o container precisa permitir leitura publica dos blobs ou `AzureBlob__PublicBaseUrl` deve apontar para uma URL publica/CDN configurada para esse container.
 
@@ -74,6 +76,7 @@ Acessos padrao:
 
 - API: `http://localhost:5001`
 - Swagger: `http://localhost:5001/swagger`
+- Scalar: `http://localhost:5001/scalar`
 - SQL Server: `localhost,1433`
 
 O SQL Server usa o volume nomeado `escola-high-tech-mssql-data`, montado em `/var/opt/mssql` dentro do container. Esse volume preserva os dados entre rebuilds, restarts e recriacoes dos containers.
@@ -145,14 +148,18 @@ O backend usa arquitetura em camadas:
 
 | Entidade | Rotas |
 | --- | --- |
-| Auth | `POST /api/Auth/login`, `GET /api/Auth/me`, `POST /api/Auth/alterar-senha` |
+| Auth | `POST /api/Auth/login`, `GET /api/Auth/me`, `GET /api/Auth/autorizar`, `GET /api/Auth/autorizar/admin`, `POST /api/Auth/alterar-senha`, `POST /api/Auth/esqueci-senha` |
 | Usuarios | `GET /api/usuarios`, `GET /api/usuarios/{id}`, `GET /api/usuarios/perfis`, `POST /api/usuarios`, `PUT /api/usuarios/{id}`, `DELETE /api/usuarios/{id}` |
+| Arquivos de usuario | `GET /api/usuarios/{id}/foto`, `POST /api/usuarios/{id}/foto`, `GET /api/usuarios/{id}/arquivos`, `GET /api/usuarios/{id}/arquivos/{arquivoId}/download`, `POST /api/usuarios/{id}/certificados`, `DELETE /api/usuarios/{id}/arquivos/{arquivoId}` |
+| Caderneta Digital | `GET /api/caderneta-digital`, `GET /api/caderneta-digital/{id}`, `POST /api/caderneta-digital`, `PUT /api/caderneta-digital/{id}`, `DELETE /api/caderneta-digital/{id}` |
+| Disciplinas | `GET /api/caderneta-digital/disciplinas`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
+| Notificacoes | `GET /api/notificacoes`, `GET /api/notificacoes/nao-lidas/contador`, `POST /api/notificacoes`, `PATCH /api/notificacoes/{id}/lida`, `PATCH /api/notificacoes/lidas` |
 
 ## Autorizacao
 
-- `Administrador`: acesso completo ao CRUD de usuarios e pode cadastrar `Aluno`, `Professor` ou `Administrador`.
-- `Professor`: pode cadastrar apenas usuarios do tipo `Aluno`.
-- `Aluno`: nao cadastra usuarios; pode atualizar apenas seus proprios dados basicos (`nome`, `email` e `telefone`).
+- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; visualiza a caderneta digital sem alterar lancamentos.
+- `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; cadastra disciplinas e faz lancamentos de notas, presencas e faltas na caderneta.
+- `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas associadas a ele; recebe notificacoes quando notas e frequencia sao publicadas.
 
 No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios.
 
@@ -164,13 +171,13 @@ dotnet test ESCOLA_API.Tests/ESCOLA_API.Tests.csproj
 
 ## Documentacao
 
-- Markdown tecnico: `../docs/backend-tecnico.md`
-- PDF tecnico: `../docs/backend-tecnico.pdf`
 - PDF tecnico completo do backend: `docs/documentacao-tecnica-backend.pdf`
 - HTML fonte do PDF completo: `docs/documentacao-tecnica-backend.html`
-- Swagger: `/swagger` em ambiente de desenvolvimento
+- Swagger UI: `/swagger`
+- OpenAPI JSON: `/swagger/v1/swagger.json`
+- Scalar API Reference: `/scalar`
 
-No Swagger, execute `POST /api/Auth/login`, copie o token e use `Authorize` com:
+No Swagger ou Scalar, execute `POST /api/Auth/login`, copie o token e use a autenticacao Bearer com:
 
 ```text
 Bearer {token}
