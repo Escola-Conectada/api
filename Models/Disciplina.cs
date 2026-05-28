@@ -9,5 +9,6 @@ namespace ESCOLA_API.Models
         public int IdProfessorUsuario { get; set; }
         public Usuario? ProfessorUsuario { get; set; }
         public List<CadernetaDigital> Cadernetas { get; set; } = new();
+        public List<DisciplinaEvento> Eventos { get; set; } = new();
     }
 }

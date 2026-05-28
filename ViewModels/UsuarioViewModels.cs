@@ -21,6 +21,11 @@ namespace ESCOLA_API.ViewModels
         public string Telefone { get; set; } = string.Empty;
 
         /// <summary>
+        /// Data de nascimento do usuario.
+        /// </summary>
+        public DateOnly? DataNascimento { get; set; }
+
+        /// <summary>
         /// Tipo do usuario: Aluno, Professor ou Administrador.
         /// </summary>
         public string TipoUsuario { get; set; } = string.Empty;
@@ -45,6 +50,11 @@ namespace ESCOLA_API.ViewModels
         /// Telefone de contato.
         /// </summary>
         public string Telefone { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Data de nascimento do usuario.
+        /// </summary>
+        public DateOnly? DataNascimento { get; set; }
 
         /// <summary>
         /// URL publica da foto de perfil do usuario.
@@ -81,6 +91,11 @@ namespace ESCOLA_API.ViewModels
         /// Telefone de contato.
         /// </summary>
         public string Telefone { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Data de nascimento do usuario.
+        /// </summary>
+        public DateOnly? DataNascimento { get; set; }
 
         /// <summary>
         /// URL publica da foto de perfil do usuario.

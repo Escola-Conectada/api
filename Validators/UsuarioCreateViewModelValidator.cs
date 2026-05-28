@@ -24,6 +24,10 @@ namespace ESCOLA_API.Validators
                 .NotEmpty().WithMessage("O telefone e obrigatorio.")
                 .MaximumLength(20).WithMessage("O telefone deve ter no maximo 20 caracteres.");
 
+            RuleFor(usuario => usuario.DataNascimento)
+                .Must(UsuarioDataNascimentoRules.DataNascimentoValida)
+                .WithMessage("A data de nascimento nao pode ser futura.");
+
             RuleFor(usuario => usuario.TipoUsuario)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("O tipo do usuario e obrigatorio.")
@@ -52,10 +56,23 @@ namespace ESCOLA_API.Validators
                 .NotEmpty().WithMessage("O telefone e obrigatorio.")
                 .MaximumLength(20).WithMessage("O telefone deve ter no maximo 20 caracteres.");
 
+            RuleFor(usuario => usuario.DataNascimento)
+                .Must(UsuarioDataNascimentoRules.DataNascimentoValida)
+                .WithMessage("A data de nascimento nao pode ser futura.");
+
             RuleFor(usuario => usuario.TipoUsuario)
                 .Must(PerfilSistema.TipoUsuarioValido)
                 .When(usuario => !string.IsNullOrWhiteSpace(usuario.TipoUsuario))
                 .WithMessage("Informe um tipo de usuario valido: Aluno, Professor ou Administrador.");
+        }
+    }
+
+    internal static class UsuarioDataNascimentoRules
+    {
+        public static bool DataNascimentoValida(DateOnly? dataNascimento)
+        {
+            return !dataNascimento.HasValue
+                || dataNascimento.Value <= DateOnly.FromDateTime(DateTime.UtcNow.Date);
         }
     }
 }

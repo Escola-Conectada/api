@@ -19,6 +19,7 @@ namespace ESCOLA_API.Data
         public DbSet<Perfil> Perfis { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Disciplina> Disciplinas { get; set; }
+        public DbSet<DisciplinaEvento> DisciplinaEventos { get; set; }
         public DbSet<CadernetaDigital> CadernetasDigitais { get; set; }
         public DbSet<UsuarioArquivo> UsuarioArquivos { get; set; }
         public DbSet<Notificacao> Notificacoes { get; set; }
@@ -47,6 +48,8 @@ namespace ESCOLA_API.Data
                 entity.Property(usuario => usuario.Telefone)
                     .IsRequired()
                     .HasMaxLength(20);
+                entity.Property(usuario => usuario.DataNascimento)
+                    .HasColumnType("date");
                 entity.Property(usuario => usuario.Senha)
                     .IsRequired()
                     .HasMaxLength(255);
@@ -105,6 +108,27 @@ namespace ESCOLA_API.Data
                     .WithMany(usuario => usuario.DisciplinasMinistradas)
                     .HasForeignKey(disciplina => disciplina.IdProfessorUsuario)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<DisciplinaEvento>(entity =>
+            {
+                entity.ToTable("DisciplinaEvento");
+                entity.HasKey(evento => evento.IdEventoDisciplina);
+                entity.Property(evento => evento.Tipo)
+                    .IsRequired()
+                    .HasMaxLength(20);
+                entity.Property(evento => evento.Titulo)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.Property(evento => evento.Descricao)
+                    .HasMaxLength(500);
+                entity.Property(evento => evento.Data)
+                    .HasColumnType("date");
+                entity.HasIndex(evento => new { evento.IdDisciplina, evento.Data });
+                entity.HasOne(evento => evento.Disciplina)
+                    .WithMany(disciplina => disciplina.Eventos)
+                    .HasForeignKey(evento => evento.IdDisciplina)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<CadernetaDigital>(entity =>

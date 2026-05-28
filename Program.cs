@@ -38,6 +38,8 @@ builder.Services.AddCors();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
+builder.Services.AddScoped<IDisciplinaEventoService, DisciplinaEventoService>();
+builder.Services.AddScoped<ICalendarioEscolarService, CalendarioEscolarService>();
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 builder.Services.AddScoped<IUsuarioArquivoService, UsuarioArquivoService>();
 builder.Services.AddScoped<IAlunoQrCodeBancarioService, AlunoQrCodeBancarioService>();

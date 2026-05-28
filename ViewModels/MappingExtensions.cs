@@ -73,6 +73,7 @@ namespace ESCOLA_API.ViewModels
                 Nome = entity.Nome,
                 Email = entity.Email,
                 Telefone = entity.Telefone,
+                DataNascimento = entity.DataNascimento,
                 FotoPerfilUrl = entity.FotoPerfilUrl,
                 IdPerfil = entity.IdPerfil,
                 DescricaoPerfil = entity.Perfil?.DescricaoPerfil ?? string.Empty,

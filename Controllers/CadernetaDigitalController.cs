@@ -16,11 +16,16 @@ namespace ESCOLA_API.Controllers
     public class CadernetaDigitalController : ControllerBase
     {
         private readonly ICadernetaDigitalService _service;
+        private readonly IDisciplinaEventoService _eventoService;
         private readonly ILogger<CadernetaDigitalController> _logger;
 
-        public CadernetaDigitalController(ICadernetaDigitalService service, ILogger<CadernetaDigitalController> logger)
+        public CadernetaDigitalController(
+            ICadernetaDigitalService service,
+            IDisciplinaEventoService eventoService,
+            ILogger<CadernetaDigitalController> logger)
         {
             _service = service;
+            _eventoService = eventoService;
             _logger = logger;
         }
 
@@ -265,6 +270,128 @@ namespace ESCOLA_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao excluir disciplina {DisciplinaId}", disciplinaId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        [HttpGet("disciplinas/eventos")]
+        [ProducesResponseType(typeof(DisciplinaEventoViewModel[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetEventosDisciplina(
+            [FromQuery] int? idDisciplina,
+            [FromQuery] int? ano,
+            [FromQuery] int? mes)
+        {
+            try
+            {
+                return Ok(await _eventoService.GetEventosAsync(User, idDisciplina, ano, mes));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter eventos das disciplinas");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        [HttpPost("disciplinas/{disciplinaId:int}/eventos")]
+        [ProducesResponseType(typeof(DisciplinaEventoViewModel), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> PostEventoDisciplina(int disciplinaId, DisciplinaEventoCreateUpdateViewModel model)
+        {
+            try
+            {
+                var created = await _eventoService.AddAsync(disciplinaId, model, User);
+                return CreatedAtAction(nameof(GetEventosDisciplina), new { idDisciplina = disciplinaId }, created);
+            }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao criar evento da disciplina {DisciplinaId}", disciplinaId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        [HttpPut("disciplinas/{disciplinaId:int}/eventos/{eventoId:int}")]
+        [ProducesResponseType(typeof(DisciplinaEventoViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> PutEventoDisciplina(
+            int disciplinaId,
+            int eventoId,
+            DisciplinaEventoCreateUpdateViewModel model)
+        {
+            try
+            {
+                var updated = await _eventoService.UpdateAsync(disciplinaId, eventoId, model, User);
+                return updated == null ? NotFound() : Ok(updated);
+            }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar evento {EventoId} da disciplina {DisciplinaId}", eventoId, disciplinaId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        [HttpDelete("disciplinas/{disciplinaId:int}/eventos/{eventoId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteEventoDisciplina(int disciplinaId, int eventoId)
+        {
+            try
+            {
+                var deleted = await _eventoService.DeleteAsync(disciplinaId, eventoId, User);
+                return deleted ? Ok() : NotFound();
+            }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao excluir evento {EventoId} da disciplina {DisciplinaId}", eventoId, disciplinaId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }

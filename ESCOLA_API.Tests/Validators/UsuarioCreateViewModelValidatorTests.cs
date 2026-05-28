@@ -53,5 +53,22 @@ namespace ESCOLA_API.Tests.Validators
 
             result.ShouldHaveValidationErrorFor(usuario => usuario.Email);
         }
+
+        [Fact]
+        public void Validate_WhenDataNascimentoIsFuture_ShouldHaveValidationError()
+        {
+            var model = new UsuarioCreateViewModel
+            {
+                Nome = "Usuario Teste",
+                Email = "usuario@escola.com",
+                Telefone = "11999990000",
+                DataNascimento = DateOnly.FromDateTime(DateTime.UtcNow.Date).AddDays(1),
+                TipoUsuario = PerfilSistema.Professor
+            };
+
+            var result = _validator.TestValidate(model);
+
+            result.ShouldHaveValidationErrorFor(usuario => usuario.DataNascimento);
+        }
     }
 }

@@ -28,6 +28,7 @@ namespace ESCOLA_API.Tests.Services
                 Nome = "Usuario Novo",
                 Email = "novo@escola.com",
                 Telefone = "11999990000",
+                DataNascimento = new DateOnly(1990, 5, 12),
                 TipoUsuario = PerfilSistema.Professor
             };
 
@@ -36,6 +37,7 @@ namespace ESCOLA_API.Tests.Services
 
             Assert.Equal("Usuario Novo", created.Nome);
             Assert.Equal("novo@escola.com", created.Email);
+            Assert.Equal(new DateOnly(1990, 5, 12), created.DataNascimento);
             Assert.Equal("Professor", created.DescricaoPerfil);
             Assert.NotEqual(DefaultPasswordPolicy.DefaultPassword, entity.Senha);
             Assert.True(PasswordHasher.VerifyPassword(DefaultPasswordPolicy.DefaultPassword, entity.Senha));
@@ -173,7 +175,8 @@ namespace ESCOLA_API.Tests.Services
             {
                 Nome = "Aluno Atualizado",
                 Email = "aluno.atualizado@escola.com",
-                Telefone = "11999992222"
+                Telefone = "11999992222",
+                DataNascimento = new DateOnly(2001, 10, 9)
             };
 
             var updated = await service.UpdateAsync(12, model, CreatePrincipal(12, PerfilSistema.Aluno));
@@ -181,6 +184,7 @@ namespace ESCOLA_API.Tests.Services
             Assert.NotNull(updated);
             Assert.Equal("Aluno Atualizado", updated!.Nome);
             Assert.Equal("aluno.atualizado@escola.com", updated.Email);
+            Assert.Equal(new DateOnly(2001, 10, 9), updated.DataNascimento);
             Assert.Equal(PerfilSistema.AlunoId, updated.IdPerfil);
         }
 
@@ -229,6 +233,7 @@ namespace ESCOLA_API.Tests.Services
             Assert.Contains("Aluno Maria", notificacao.Mensagem);
             Assert.Contains("Aluno Corrigido", notificacao.Mensagem);
             Assert.Contains("aluno.corrigido@escola.com", notificacao.Mensagem);
+            Assert.Contains("Data de nascimento", notificacao.Mensagem);
             Assert.Equal("/usuarios/12", notificacao.Link);
         }
 

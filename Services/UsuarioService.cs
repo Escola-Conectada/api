@@ -41,6 +41,7 @@ namespace ESCOLA_API.Services
                     Nome = usuario.Nome,
                     Email = usuario.Email,
                     Telefone = usuario.Telefone,
+                    DataNascimento = usuario.DataNascimento,
                     FotoPerfilUrl = usuario.FotoPerfilUrl,
                     IdPerfil = usuario.IdPerfil,
                     DescricaoPerfil = usuario.Perfil == null ? string.Empty : usuario.Perfil.DescricaoPerfil,
@@ -92,6 +93,7 @@ namespace ESCOLA_API.Services
                 Nome = viewModel.Nome.Trim(),
                 Email = email,
                 Telefone = viewModel.Telefone.Trim(),
+                DataNascimento = viewModel.DataNascimento,
                 Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
                 IdPerfil = idPerfil,
                 IdUsuarioCriador = admin?.IdUsuario,
@@ -142,15 +144,17 @@ namespace ESCOLA_API.Services
             ValidarPermissaoAtualizacao(principal, usuario, alterarTipoUsuario);
 
             var atualizacaoPropria = usuario.IdUsuario == GetUsuarioAtualId(principal) && !IsAdministrador(principal);
-            var dadosAnteriores = new DadosPerfilUsuario(usuario.Nome, usuario.Email, usuario.Telefone, usuario.IdPerfil);
+            var dadosAnteriores = new DadosPerfilUsuario(usuario.Nome, usuario.Email, usuario.Telefone, usuario.DataNascimento, usuario.IdPerfil);
             var dadosCadastraisAlterados =
                 usuario.Nome != viewModel.Nome.Trim()
                 || usuario.Email != email
-                || usuario.Telefone != viewModel.Telefone.Trim();
+                || usuario.Telefone != viewModel.Telefone.Trim()
+                || usuario.DataNascimento != viewModel.DataNascimento;
 
             usuario.Nome = viewModel.Nome.Trim();
             usuario.Email = email;
             usuario.Telefone = viewModel.Telefone.Trim();
+            usuario.DataNascimento = viewModel.DataNascimento;
 
             if (alterarTipoUsuario)
             {
@@ -260,7 +264,7 @@ namespace ESCOLA_API.Services
                 IdUsuario = usuario.IdUsuario,
                 Tipo = "CadastroUsuario",
                 Titulo = "Cadastro criado",
-                Mensagem = $"Seu cadastro foi criado por {nomeCriador}. Dados cadastrados: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}. Voce pode editar seus dados quando achar necessario.",
+                Mensagem = $"Seu cadastro foi criado por {nomeCriador}. Dados cadastrados: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}. Voce pode editar seus dados quando achar necessario.",
                 Link = $"/usuarios/{usuario.IdUsuario}",
                 CriadaEmUtc = DateTime.UtcNow
             });
@@ -280,8 +284,8 @@ namespace ESCOLA_API.Services
             }
 
             var mensagem = $"O usuario {usuario.Nome} alterou seus dados de perfil. "
-                + $"Dados anteriores: Nome: {dadosAnteriores.Nome}; E-mail: {dadosAnteriores.Email}; Telefone: {dadosAnteriores.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(dadosAnteriores.IdPerfil)}. "
-                + $"Dados atuais: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}.";
+                + $"Dados anteriores: Nome: {dadosAnteriores.Nome}; E-mail: {dadosAnteriores.Email}; Telefone: {dadosAnteriores.Telefone}; Data de nascimento: {FormatarDataNascimento(dadosAnteriores.DataNascimento)}; Perfil: {PerfilSistema.ObterDescricaoPorId(dadosAnteriores.IdPerfil)}. "
+                + $"Dados atuais: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}.";
 
             foreach (var administradorId in administradoresIds)
             {
@@ -313,6 +317,11 @@ namespace ESCOLA_API.Services
             return int.TryParse(idClaim, out var idUsuario) ? idUsuario : 0;
         }
 
-        private sealed record DadosPerfilUsuario(string Nome, string Email, string Telefone, int IdPerfil);
+        private static string FormatarDataNascimento(DateOnly? dataNascimento)
+        {
+            return dataNascimento?.ToString("dd/MM/yyyy") ?? "nao informada";
+        }
+
+        private sealed record DadosPerfilUsuario(string Nome, string Email, string Telefone, DateOnly? DataNascimento, int IdPerfil);
     }
 }
