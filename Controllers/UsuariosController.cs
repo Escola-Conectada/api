@@ -191,6 +191,59 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
+        /// Solicita a exclusao da conta do usuario autenticado.
+        /// </summary>
+        [HttpPost("me/exclusao-conta")]
+        [ProducesResponseType(typeof(ExclusaoContaSolicitadaViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> SolicitarExclusaoConta(SolicitarExclusaoContaViewModel model)
+        {
+            try
+            {
+                var solicitacao = await _usuarioService.SolicitarExclusaoContaAsync(User, model);
+                if (solicitacao == null) return Unauthorized();
+                return Ok(solicitacao);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao solicitar exclusao de conta");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
+        /// Lista solicitacoes de exclusao de conta pendentes.
+        /// </summary>
+        [Authorize(Roles = "Administrador")]
+        [HttpGet("exclusoes-conta")]
+        [ProducesResponseType(typeof(ExclusaoContaSolicitadaViewModel[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetSolicitacoesExclusaoConta()
+        {
+            try
+            {
+                var solicitacoes = await _usuarioService.GetSolicitacoesExclusaoContaAsync(User);
+                return Ok(solicitacoes);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao listar solicitacoes de exclusao de conta");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
         /// Obtem a foto de perfil do usuario.
         /// </summary>
         [HttpGet("{usuarioId:int}/foto")]

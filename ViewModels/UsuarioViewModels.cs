@@ -161,6 +161,89 @@ namespace ESCOLA_API.ViewModels
         /// Tipo do usuario.
         /// </summary>
         public string TipoUsuario { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Indica se o usuario solicitou exclusao da conta.
+        /// </summary>
+        public bool ExclusaoContaSolicitada { get; set; }
+
+        /// <summary>
+        /// Data e hora UTC da solicitacao de exclusao da conta.
+        /// </summary>
+        public DateTime? ExclusaoContaSolicitadaEmUtc { get; set; }
+    }
+
+    /// <summary>
+    /// Dados enviados pelo usuario autenticado para solicitar exclusao da propria conta.
+    /// </summary>
+    public class SolicitarExclusaoContaViewModel
+    {
+        /// <summary>
+        /// Confirmacao explicita de que o usuario deseja solicitar a exclusao da conta.
+        /// </summary>
+        public bool Confirmacao { get; set; }
+
+        /// <summary>
+        /// Motivo opcional informado pelo usuario.
+        /// </summary>
+        public string? Motivo { get; set; }
+    }
+
+    /// <summary>
+    /// Dados enviados por formulario publico para solicitar exclusao da conta fora do app.
+    /// </summary>
+    public class SolicitarExclusaoContaPublicaViewModel
+    {
+        /// <summary>
+        /// Email cadastrado na conta.
+        /// </summary>
+        public string Email { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Motivo opcional informado pelo usuario.
+        /// </summary>
+        public string? Motivo { get; set; }
+    }
+
+    /// <summary>
+    /// Solicitacao de exclusao de conta pendente de analise administrativa.
+    /// </summary>
+    public class ExclusaoContaSolicitadaViewModel
+    {
+        /// <summary>
+        /// Identificador do usuario.
+        /// </summary>
+        public int IdUsuario { get; set; }
+
+        /// <summary>
+        /// Nome do usuario.
+        /// </summary>
+        public string Nome { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Email do usuario.
+        /// </summary>
+        public string Email { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Tipo do usuario: Aluno, Professor ou Administrador.
+        /// </summary>
+        public string TipoUsuario { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Data e hora UTC da solicitacao.
+        /// </summary>
+        public DateTime SolicitadaEmUtc { get; set; }
+
+        /// <summary>
+        /// Motivo opcional informado na solicitacao.
+        /// </summary>
+        public string? Motivo { get; set; }
+
+        /// <summary>
+        /// Status atual da solicitacao.
+        /// </summary>
+        public string Status { get; set; } = "Pendente";
     }
 
     public class UsuarioArquivoViewModel

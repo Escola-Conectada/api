@@ -33,6 +33,9 @@ services:
       Jwt__Issuer: ${JWT_ISSUER:-escola-api}
       Jwt__Audience: ${JWT_AUDIENCE:-escola-client}
       Jwt__ExpirationMinutes: ${JWT_EXPIRATION_MINUTES:-120}
+      PasswordReset__ExpirationMinutes: ${PASSWORD_RESET_EXPIRATION_MINUTES:-30}
+      Legal__AppName: ${LEGAL_APP_NAME:-Escola Conectada}
+      Legal__SupportEmail: ${LEGAL_SUPPORT_EMAIL:-suporte@escola.com}
       ServiceBus__ConnectionString: ${SERVICEBUS_CONNECTION_STRING:-}
       ServiceBus__QueueName: ${SERVICEBUS_QUEUE_NAME:-notificacoes}
       ServiceBus__ConsumerEnabled: ${SERVICEBUS_CONSUMER_ENABLED:-true}

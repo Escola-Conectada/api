@@ -80,7 +80,9 @@ namespace ESCOLA_API.ViewModels
                 FotoPerfilUrl = entity.FotoPerfilUrl,
                 IdPerfil = entity.IdPerfil,
                 DescricaoPerfil = entity.Perfil?.DescricaoPerfil ?? string.Empty,
-                TipoUsuario = PerfilSistema.ObterDescricaoPorId(entity.IdPerfil)
+                TipoUsuario = PerfilSistema.ObterDescricaoPorId(entity.IdPerfil),
+                ExclusaoContaSolicitada = entity.ExclusaoContaSolicitadaEmUtc.HasValue,
+                ExclusaoContaSolicitadaEmUtc = entity.ExclusaoContaSolicitadaEmUtc
             };
         }
 

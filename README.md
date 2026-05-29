@@ -13,6 +13,7 @@ API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, aut
 - QRCoder para geracao de QR Code PNG
 - Azure Blob Storage para fotos, certificados e holerites
 - Azure Service Bus para consumo opcional de notificacoes
+- Paginas publicas de privacidade, suporte e exclusao de conta
 - xUnit, Moq e FluentValidation.TestHelper
 - Logging diario em arquivo
 
@@ -42,6 +43,9 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `AzureBlob__ConnectionString` | Obrigatoria quando `Uploads__Provider=AzureBlob`. Use a connection string do Storage Account. |
 | `AzureBlob__ContainerName` | Container dos arquivos. Padrao usado no deploy: `arquivos`. |
 | `AzureBlob__PublicBaseUrl` | Opcional. URL publica/CDN do container. Se vazia, a API usa a URL padrao do blob. |
+| `PasswordReset__ExpirationMinutes` | Opcional. Tempo de validade do token de redefinicao de senha. Padrao: `30`. |
+| `Legal__AppName` | Opcional. Nome publico exibido nas paginas legais. Padrao: `Escola Conectada`. |
+| `Legal__SupportEmail` | Opcional. Email publico de suporte exibido nas paginas legais. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
 
 O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`. A API tambem aceita `AzureStorage__ConnectionString`, `AzureStorage__ContainerName` e `AzureStorage__PublicBaseUrl` como alias.
@@ -149,8 +153,8 @@ O backend usa arquitetura em camadas:
 
 | Entidade | Rotas |
 | --- | --- |
-| Auth | `POST /api/Auth/login`, `GET /api/Auth/me`, `GET /api/Auth/autorizar`, `GET /api/Auth/autorizar/admin`, `POST /api/Auth/alterar-senha`, `POST /api/Auth/esqueci-senha` |
-| Usuarios | `GET /api/usuarios`, `GET /api/usuarios/{id}`, `GET /api/usuarios/perfis`, `POST /api/usuarios`, `PUT /api/usuarios/{id}`, `DELETE /api/usuarios/{id}` |
+| Auth | `POST /api/Auth/login`, `GET /api/Auth/me`, `GET /api/Auth/autorizar`, `GET /api/Auth/autorizar/admin`, `POST /api/Auth/alterar-senha`, `POST /api/Auth/esqueci-senha`, `POST /api/Auth/redefinir-senha` |
+| Usuarios | `GET /api/usuarios`, `GET /api/usuarios/{id}`, `GET /api/usuarios/perfis`, `POST /api/usuarios`, `PUT /api/usuarios/{id}`, `DELETE /api/usuarios/{id}`, `POST /api/usuarios/me/exclusao-conta`, `GET /api/usuarios/exclusoes-conta` |
 | Arquivos de usuario | `GET /api/usuarios/{id}/foto`, `POST /api/usuarios/{id}/foto`, `GET /api/usuarios/{id}/arquivos`, `GET /api/usuarios/{id}/arquivos/{arquivoId}/download`, `POST /api/usuarios/{id}/certificados`, `DELETE /api/usuarios/{id}/arquivos/{arquivoId}` |
 | QR Code bancario ficticio | `GET /api/alunos/me/qr-code-bancario` |
 | Holerites | `GET /api/holerites/me`, `GET /api/holerites/me/{holeriteId}/download`, `GET /api/holerites/usuarios/{usuarioId}`, `POST /api/holerites/usuarios/{usuarioId}`, `GET /api/holerites/usuarios/{usuarioId}/{holeriteId}/download`, `DELETE /api/holerites/usuarios/{usuarioId}/{holeriteId}` |
@@ -159,6 +163,7 @@ O backend usa arquitetura em camadas:
 | Disciplinas | `GET /api/caderneta-digital/disciplinas`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
 | Eventos de disciplinas | `GET /api/caderneta-digital/disciplinas/eventos`, `POST /api/caderneta-digital/disciplinas/{disciplinaId}/eventos`, `PUT /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}`, `DELETE /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}` |
 | Notificacoes | `GET /api/notificacoes`, `GET /api/notificacoes/nao-lidas/contador`, `POST /api/notificacoes`, `POST /api/notificacoes/perfis`, `PATCH /api/notificacoes/{id}/lida`, `PATCH /api/notificacoes/lidas` |
+| Paginas legais | `GET /legal/privacidade`, `GET /legal/suporte`, `GET /legal/exclusao-conta`, `POST /conta/exclusao` |
 
 ## Autorizacao
 
@@ -184,6 +189,10 @@ O endpoint de QR Code retorna dados bancarios ficticios, `qrCodeBase64`, `qrCode
 O endpoint de QR Code e exclusivo para usuarios com perfil `Aluno`. Professores e administradores nao acessam esse recurso; para funcionarios, a API disponibiliza holerites em PDF com listagem e download autenticados. O envio e a exclusao de holerites sao operacoes exclusivas de administradores, e holerites nao podem ser vinculados a alunos.
 
 Quando o professor cria ou atualiza uma avaliacao/trabalho em uma disciplina, a API identifica os alunos matriculados pela caderneta digital e cria notificacoes individuais para eles em `/api/notificacoes`.
+
+O fluxo `POST /api/Auth/esqueci-senha` gera um token temporario de redefinicao em vez de trocar a senha para uma senha padrao. Em desenvolvimento, o token volta na resposta para facilitar testes locais. Em producao, integre esse token a um provedor de email/SMS antes de publicar o app.
+
+Usuarios autenticados podem solicitar exclusao de conta por `POST /api/usuarios/me/exclusao-conta`. Tambem existe a pagina publica `/legal/exclusao-conta`, que envia solicitacoes para `POST /conta/exclusao`; esse link pode ser usado na area de exclusao de dados do Google Play. Administradores consultam solicitacoes pendentes em `GET /api/usuarios/exclusoes-conta`.
 
 Para envio manual em lote, o administrador pode usar `POST /api/notificacoes/perfis` informando `idsPerfis`, `tiposUsuario` ou `todosOsPerfis`. Exemplo para alunos e professores:
 

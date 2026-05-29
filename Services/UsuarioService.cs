@@ -48,7 +48,9 @@ namespace ESCOLA_API.Services
                     FotoPerfilUrl = usuario.FotoPerfilUrl,
                     IdPerfil = usuario.IdPerfil,
                     DescricaoPerfil = usuario.Perfil == null ? string.Empty : usuario.Perfil.DescricaoPerfil,
-                    TipoUsuario = PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)
+                    TipoUsuario = PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil),
+                    ExclusaoContaSolicitada = usuario.ExclusaoContaSolicitadaEmUtc.HasValue,
+                    ExclusaoContaSolicitadaEmUtc = usuario.ExclusaoContaSolicitadaEmUtc
                 })
                 .ToArrayAsync();
         }
@@ -232,6 +234,74 @@ namespace ESCOLA_API.Services
                 .ToArrayAsync();
         }
 
+        public async Task<ExclusaoContaSolicitadaViewModel?> SolicitarExclusaoContaAsync(
+            ClaimsPrincipal principal,
+            SolicitarExclusaoContaViewModel viewModel)
+        {
+            if (!viewModel.Confirmacao)
+            {
+                throw new InvalidOperationException("Confirme que deseja solicitar a exclusao da conta.");
+            }
+
+            var usuarioAtualId = GetUsuarioAtualId(principal);
+            if (usuarioAtualId <= 0)
+            {
+                return null;
+            }
+
+            var usuario = await _context.Usuarios
+                .Include(u => u.Perfil)
+                .FirstOrDefaultAsync(u => u.IdUsuario == usuarioAtualId);
+
+            if (usuario == null)
+            {
+                return null;
+            }
+
+            return await RegistrarSolicitacaoExclusaoContaAsync(usuario, viewModel.Motivo, "app");
+        }
+
+        public async Task<ExclusaoContaSolicitadaViewModel?> SolicitarExclusaoContaPorEmailAsync(
+            SolicitarExclusaoContaPublicaViewModel viewModel)
+        {
+            var email = NormalizeEmail(viewModel.Email);
+            var usuario = await _context.Usuarios
+                .Include(u => u.Perfil)
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+
+            if (usuario == null)
+            {
+                return null;
+            }
+
+            return await RegistrarSolicitacaoExclusaoContaAsync(usuario, viewModel.Motivo, "formulario publico");
+        }
+
+        public async Task<ExclusaoContaSolicitadaViewModel[]> GetSolicitacoesExclusaoContaAsync(ClaimsPrincipal principal)
+        {
+            if (!IsAdministrador(principal))
+            {
+                throw new UnauthorizedAccessException("Usuario nao autorizado a consultar solicitacoes de exclusao.");
+            }
+
+            return await _context.Usuarios
+                .Include(usuario => usuario.Perfil)
+                .AsNoTracking()
+                .Where(usuario => usuario.ExclusaoContaSolicitadaEmUtc != null)
+                .OrderBy(usuario => usuario.ExclusaoContaSolicitadaEmUtc)
+                .Select(usuario => new ExclusaoContaSolicitadaViewModel
+                {
+                    IdUsuario = usuario.IdUsuario,
+                    Nome = usuario.Nome,
+                    Email = usuario.Email,
+                    TipoUsuario = PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil),
+                    SolicitadaEmUtc = usuario.ExclusaoContaSolicitadaEmUtc!.Value,
+                    Motivo = usuario.ExclusaoContaMotivo,
+                    Status = "Pendente"
+                })
+                .ToArrayAsync();
+        }
+
         private static string NormalizeEmail(string email)
         {
             return email.Trim().ToLowerInvariant();
@@ -327,6 +397,61 @@ namespace ESCOLA_API.Services
                     CriadaEmUtc = DateTime.UtcNow
                 });
             }
+        }
+
+        private async Task<ExclusaoContaSolicitadaViewModel> RegistrarSolicitacaoExclusaoContaAsync(
+            Usuario usuario,
+            string? motivo,
+            string origem)
+        {
+            usuario.ExclusaoContaSolicitadaEmUtc = DateTime.UtcNow;
+            usuario.ExclusaoContaMotivo = TruncarTexto(NormalizarTextoOpcional(motivo), 500);
+
+            await NotificarAdministradoresExclusaoContaAsync(usuario, origem);
+            await _context.SaveChangesAsync();
+
+            return new ExclusaoContaSolicitadaViewModel
+            {
+                IdUsuario = usuario.IdUsuario,
+                Nome = usuario.Nome,
+                Email = usuario.Email,
+                TipoUsuario = PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil),
+                SolicitadaEmUtc = usuario.ExclusaoContaSolicitadaEmUtc.Value,
+                Motivo = usuario.ExclusaoContaMotivo,
+                Status = "Pendente"
+            };
+        }
+
+        private async Task NotificarAdministradoresExclusaoContaAsync(Usuario usuario, string origem)
+        {
+            var administradoresIds = await _context.Usuarios
+                .AsNoTracking()
+                .Where(item => item.IdPerfil == PerfilSistema.AdministradorId)
+                .Select(item => item.IdUsuario)
+                .ToArrayAsync();
+
+            foreach (var administradorId in administradoresIds)
+            {
+                _context.Notificacoes.Add(new Notificacao
+                {
+                    IdUsuario = administradorId,
+                    Tipo = "ExclusaoContaSolicitada",
+                    Titulo = "Solicitacao de exclusao de conta",
+                    Mensagem = $"O usuario {usuario.Nome} ({usuario.Email}) solicitou exclusao da conta pelo {origem}. Motivo: {FormatarValorOpcional(usuario.ExclusaoContaMotivo)}.",
+                    Link = "/usuarios/exclusoes-conta",
+                    CriadaEmUtc = DateTime.UtcNow
+                });
+            }
+        }
+
+        private static string? TruncarTexto(string? value, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length <= maxLength)
+            {
+                return value;
+            }
+
+            return value[..maxLength];
         }
 
         private static bool IsAdministrador(ClaimsPrincipal principal)

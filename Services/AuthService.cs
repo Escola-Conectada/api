@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using ESCOLA_API.Data;
 using ESCOLA_API.Models;
@@ -93,7 +94,7 @@ namespace ESCOLA_API.Services
             return usuario.ToSummary();
         }
 
-        public async Task<bool> ResetarSenhaPadraoAsync(EsqueciSenhaViewModel viewModel)
+        public async Task<RedefinicaoSenhaSolicitadaViewModel> SolicitarRedefinicaoSenhaAsync(EsqueciSenhaViewModel viewModel)
         {
             var email = viewModel.Email.Trim().ToLowerInvariant();
             var usuario = await _context.Usuarios
@@ -101,10 +102,57 @@ namespace ESCOLA_API.Services
 
             if (usuario == null)
             {
+                return new RedefinicaoSenhaSolicitadaViewModel
+                {
+                    UsuarioEncontrado = false
+                };
+            }
+
+            var token = GeneratePasswordResetToken();
+            var expiraEm = DateTime.UtcNow.AddMinutes(GetPasswordResetExpirationMinutes());
+
+            usuario.ResetSenhaTokenHash = HashPasswordResetToken(token);
+            usuario.ResetSenhaTokenCriadoEmUtc = DateTime.UtcNow;
+            usuario.ResetSenhaTokenExpiraEmUtc = expiraEm;
+
+            await _context.SaveChangesAsync();
+
+            return new RedefinicaoSenhaSolicitadaViewModel
+            {
+                UsuarioEncontrado = true,
+                TokenRedefinicao = token,
+                ExpiraEmUtc = expiraEm
+            };
+        }
+
+        public async Task<bool> RedefinirSenhaAsync(RedefinirSenhaViewModel viewModel)
+        {
+            var email = viewModel.Email.Trim().ToLowerInvariant();
+            var tokenHash = HashPasswordResetToken(viewModel.Token.Trim());
+            var now = DateTime.UtcNow;
+
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+
+            if (usuario == null
+                || string.IsNullOrWhiteSpace(usuario.ResetSenhaTokenHash)
+                || usuario.ResetSenhaTokenHash != tokenHash
+                || usuario.ResetSenhaTokenExpiraEmUtc == null
+                || usuario.ResetSenhaTokenExpiraEmUtc <= now)
+            {
                 return false;
             }
 
-            usuario.Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword);
+            if (PasswordHasher.VerifyPassword(viewModel.NovaSenha, usuario.Senha))
+            {
+                throw new InvalidOperationException("A nova senha deve ser diferente da senha atual.");
+            }
+
+            usuario.Senha = PasswordHasher.HashPassword(viewModel.NovaSenha);
+            usuario.ResetSenhaTokenHash = null;
+            usuario.ResetSenhaTokenCriadoEmUtc = null;
+            usuario.ResetSenhaTokenExpiraEmUtc = null;
+
             await _context.SaveChangesAsync();
             return true;
         }
@@ -150,6 +198,24 @@ namespace ESCOLA_API.Services
             return int.TryParse(_configuration["Jwt:ExpirationMinutes"], out var minutes)
                 ? minutes
                 : 120;
+        }
+
+        private int GetPasswordResetExpirationMinutes()
+        {
+            return int.TryParse(_configuration["PasswordReset:ExpirationMinutes"], out var minutes) && minutes > 0
+                ? minutes
+                : 30;
+        }
+
+        private static string GeneratePasswordResetToken()
+        {
+            return Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(32));
+        }
+
+        private static string HashPasswordResetToken(string token)
+        {
+            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToHexString(hash);
         }
     }
 }

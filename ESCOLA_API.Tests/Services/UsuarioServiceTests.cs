@@ -267,6 +267,63 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task SolicitarExclusaoContaAsync_WhenUsuarioAuthenticated_StoresRequestAndNotifiesAdmins()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new UsuarioService(context);
+
+            var solicitacao = await service.SolicitarExclusaoContaAsync(
+                CreatePrincipal(12, PerfilSistema.Aluno),
+                new SolicitarExclusaoContaViewModel
+                {
+                    Confirmacao = true,
+                    Motivo = "Nao vou mais usar o app"
+                });
+
+            var usuario = await context.Usuarios.FirstAsync(item => item.IdUsuario == 12);
+            var notificacao = await context.Notificacoes
+                .SingleAsync(item => item.Tipo == "ExclusaoContaSolicitada");
+
+            Assert.NotNull(solicitacao);
+            Assert.Equal(12, solicitacao!.IdUsuario);
+            Assert.Equal("Nao vou mais usar o app", solicitacao.Motivo);
+            Assert.NotNull(usuario.ExclusaoContaSolicitadaEmUtc);
+            Assert.Equal("Nao vou mais usar o app", usuario.ExclusaoContaMotivo);
+            Assert.Equal(PerfilSistema.AdministradorId, notificacao.IdUsuario);
+            Assert.Contains("Aluno Maria", notificacao.Mensagem);
+            Assert.Equal("/usuarios/exclusoes-conta", notificacao.Link);
+        }
+
+        [Fact]
+        public async Task GetSolicitacoesExclusaoContaAsync_WhenAdmin_ReturnsPendingRequests()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new UsuarioService(context);
+            await service.SolicitarExclusaoContaPorEmailAsync(new SolicitarExclusaoContaPublicaViewModel
+            {
+                Email = "aluno01@escola.com",
+                Motivo = "Solicitacao pelo site"
+            });
+
+            var solicitacoes = await service.GetSolicitacoesExclusaoContaAsync(
+                CreatePrincipal(1, PerfilSistema.Administrador));
+
+            var solicitacao = Assert.Single(solicitacoes);
+            Assert.Equal(12, solicitacao.IdUsuario);
+            Assert.Equal("Aluno", solicitacao.TipoUsuario);
+            Assert.Equal("Solicitacao pelo site", solicitacao.Motivo);
+            Assert.Equal("Pendente", solicitacao.Status);
+        }
+
+        [Fact]
         public async Task UpdateAsync_WhenAlunoChangesTipoUsuario_ThrowsUnauthorizedAccessException()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");

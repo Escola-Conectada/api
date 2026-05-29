@@ -17,6 +17,12 @@ services:
         value: "120"
       - key: Jwt__Key
         generateValue: true
+      - key: PasswordReset__ExpirationMinutes
+        value: "30"
+      - key: Legal__AppName
+        value: Escola Conectada
+      - key: Legal__SupportEmail
+        sync: false
       - key: ConnectionStrings__DefaultConnection
         sync: false
       - key: Uploads__Provider

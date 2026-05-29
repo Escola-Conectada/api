@@ -60,7 +60,7 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
-        public async Task ResetarSenhaPadraoAsync_WhenEmailExists_SetsDefaultPassword()
+        public async Task SolicitarRedefinicaoSenhaAsync_WhenEmailExists_StoresHashedToken()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
             await connection.OpenAsync();
@@ -70,19 +70,23 @@ namespace ESCOLA_API.Tests.Services
             var usuario = await CreateCustomPasswordUserAsync(context);
             var service = new AuthService(context, CreateConfiguration());
 
-            var result = await service.ResetarSenhaPadraoAsync(new EsqueciSenhaViewModel
+            var result = await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
             {
                 Email = " RESET@ESCOLA.COM "
             });
 
             var stored = await context.Usuarios.FirstAsync(u => u.IdUsuario == usuario.IdUsuario);
 
-            Assert.True(result);
-            Assert.True(DefaultPasswordPolicy.UsesDefaultPassword(stored.Senha));
+            Assert.True(result.UsuarioEncontrado);
+            Assert.False(string.IsNullOrWhiteSpace(result.TokenRedefinicao));
+            Assert.NotNull(result.ExpiraEmUtc);
+            Assert.False(string.IsNullOrWhiteSpace(stored.ResetSenhaTokenHash));
+            Assert.NotEqual(result.TokenRedefinicao, stored.ResetSenhaTokenHash);
+            Assert.True(stored.ResetSenhaTokenExpiraEmUtc > DateTime.UtcNow);
         }
 
         [Fact]
-        public async Task ResetarSenhaPadraoAsync_WhenEmailDoesNotExist_ReturnsFalse()
+        public async Task SolicitarRedefinicaoSenhaAsync_WhenEmailDoesNotExist_DoesNotReturnToken()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
             await connection.OpenAsync();
@@ -91,9 +95,69 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new AuthService(context, CreateConfiguration());
 
-            var result = await service.ResetarSenhaPadraoAsync(new EsqueciSenhaViewModel
+            var result = await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
             {
                 Email = "inexistente@escola.com"
+            });
+
+            Assert.False(result.UsuarioEncontrado);
+            Assert.Null(result.TokenRedefinicao);
+            Assert.Null(result.ExpiraEmUtc);
+        }
+
+        [Fact]
+        public async Task RedefinirSenhaAsync_WhenTokenIsValid_UpdatesPasswordAndClearsToken()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var usuario = await CreateCustomPasswordUserAsync(context);
+            var service = new AuthService(context, CreateConfiguration());
+            var tokenResult = await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
+            {
+                Email = usuario.Email
+            });
+
+            var result = await service.RedefinirSenhaAsync(new RedefinirSenhaViewModel
+            {
+                Email = usuario.Email,
+                Token = tokenResult.TokenRedefinicao!,
+                NovaSenha = "Senha@252527",
+                ConfirmacaoSenha = "Senha@252527"
+            });
+
+            var stored = await context.Usuarios.FirstAsync(u => u.IdUsuario == usuario.IdUsuario);
+
+            Assert.True(result);
+            Assert.True(PasswordHasher.VerifyPassword("Senha@252527", stored.Senha));
+            Assert.Null(stored.ResetSenhaTokenHash);
+            Assert.Null(stored.ResetSenhaTokenCriadoEmUtc);
+            Assert.Null(stored.ResetSenhaTokenExpiraEmUtc);
+        }
+
+        [Fact]
+        public async Task RedefinirSenhaAsync_WhenTokenIsInvalid_ReturnsFalse()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var usuario = await CreateCustomPasswordUserAsync(context);
+            var service = new AuthService(context, CreateConfiguration());
+            await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
+            {
+                Email = usuario.Email
+            });
+
+            var result = await service.RedefinirSenhaAsync(new RedefinirSenhaViewModel
+            {
+                Email = usuario.Email,
+                Token = "token-invalido",
+                NovaSenha = "Senha@252527",
+                ConfirmacaoSenha = "Senha@252527"
             });
 
             Assert.False(result);

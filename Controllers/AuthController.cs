@@ -14,11 +14,13 @@ namespace ESCOLA_API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IHostEnvironment _environment;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, IHostEnvironment environment, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _environment = environment;
             _logger = logger;
         }
 
@@ -119,29 +121,58 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
-        /// Redefine a senha do usuario para a senha padrao do sistema.
+        /// Solicita um token temporario para redefinicao de senha.
         /// </summary>
         [AllowAnonymous]
         [HttpPost("esqueci-senha")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(EsqueciSenhaResponseViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EsqueciSenha(EsqueciSenhaViewModel model)
         {
-            var senhaRedefinida = await _authService.ResetarSenhaPadraoAsync(model);
+            var result = await _authService.SolicitarRedefinicaoSenhaAsync(model);
 
-            if (senhaRedefinida)
+            if (result.UsuarioEncontrado)
             {
-                _logger.LogInformation("Senha redefinida para a senha padrao no fluxo de esqueci senha.");
+                _logger.LogInformation("Token de redefinicao de senha gerado no fluxo de esqueci senha.");
             }
             else
             {
                 _logger.LogWarning("Solicitacao de esqueci senha recebida para email nao cadastrado.");
             }
 
-            return Ok(new
+            return Ok(new EsqueciSenhaResponseViewModel
             {
-                mensagem = "Se o email informado estiver cadastrado, a senha foi redefinida para a senha padrao."
+                Mensagem = "Se o email informado estiver cadastrado, enviaremos as instrucoes de redefinicao de senha.",
+                TokenRedefinicao = _environment.IsDevelopment() ? result.TokenRedefinicao : null,
+                ExpiraEmUtc = _environment.IsDevelopment() ? result.ExpiraEmUtc : null
             });
+        }
+
+        /// <summary>
+        /// Redefine a senha usando o token temporario recebido.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("redefinir-senha")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RedefinirSenha(RedefinirSenhaViewModel model)
+        {
+            try
+            {
+                var redefinida = await _authService.RedefinirSenhaAsync(model);
+                if (!redefinida)
+                {
+                    return BadRequest("Token invalido ou expirado.");
+                }
+
+                _logger.LogInformation("Senha redefinida com token temporario.");
+                return Ok(new { mensagem = "Senha redefinida com sucesso." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Redefinicao de senha recusada por regra de negocio.");
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

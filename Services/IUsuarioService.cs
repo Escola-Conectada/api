@@ -11,5 +11,8 @@ namespace ESCOLA_API.Services
         Task<UsuarioSummaryViewModel?> UpdateAsync(int usuarioId, UsuarioUpdateViewModel viewModel, ClaimsPrincipal principal);
         Task<bool> DeleteAsync(int usuarioId);
         Task<PerfilViewModel[]> GetPerfisAsync(ClaimsPrincipal principal);
+        Task<ExclusaoContaSolicitadaViewModel?> SolicitarExclusaoContaAsync(ClaimsPrincipal principal, SolicitarExclusaoContaViewModel viewModel);
+        Task<ExclusaoContaSolicitadaViewModel?> SolicitarExclusaoContaPorEmailAsync(SolicitarExclusaoContaPublicaViewModel viewModel);
+        Task<ExclusaoContaSolicitadaViewModel[]> GetSolicitacoesExclusaoContaAsync(ClaimsPrincipal principal);
     }
 }

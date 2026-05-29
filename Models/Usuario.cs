@@ -16,6 +16,11 @@ namespace ESCOLA_API.Models
         public string? FotoPerfilUrl { get; set; }
         public int? IdUsuarioCriador { get; set; }
         public string? NomeUsuarioCriador { get; set; }
+        public DateTime? ExclusaoContaSolicitadaEmUtc { get; set; }
+        public string? ExclusaoContaMotivo { get; set; }
+        public string? ResetSenhaTokenHash { get; set; }
+        public DateTime? ResetSenhaTokenCriadoEmUtc { get; set; }
+        public DateTime? ResetSenhaTokenExpiraEmUtc { get; set; }
         public int IdPerfil { get; set; }
         public Perfil? Perfil { get; set; }
         public List<Aluno> Alunos { get; set; } = new();

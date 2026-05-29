@@ -8,6 +8,7 @@ namespace ESCOLA_API.Services
         Task<AuthResponseViewModel?> LoginAsync(LoginRequestViewModel viewModel);
         Task<UsuarioSummaryViewModel?> GetUsuarioAtualAsync(ClaimsPrincipal principal);
         Task<UsuarioSummaryViewModel?> AlterarSenhaAsync(ClaimsPrincipal principal, AlterarSenhaViewModel viewModel);
-        Task<bool> ResetarSenhaPadraoAsync(EsqueciSenhaViewModel viewModel);
+        Task<RedefinicaoSenhaSolicitadaViewModel> SolicitarRedefinicaoSenhaAsync(EsqueciSenhaViewModel viewModel);
+        Task<bool> RedefinirSenhaAsync(RedefinirSenhaViewModel viewModel);
     }
 }
