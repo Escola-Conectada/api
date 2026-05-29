@@ -45,6 +45,10 @@ namespace ESCOLA_API.Services
                     IdAlunoUsuario = caderneta.IdAlunoUsuario,
                     NomeAluno = caderneta.NomeAluno,
                     EmailAluno = caderneta.EmailAluno,
+                    IdTipoEnsino = caderneta.IdTipoEnsino,
+                    NomeTipoEnsino = caderneta.NomeTipoEnsino,
+                    IdTurmaEnsino = caderneta.IdTurmaEnsino,
+                    NomeTurmaEnsino = caderneta.NomeTurmaEnsino,
                     IdDisciplina = caderneta.IdDisciplina,
                     NomeDisciplina = caderneta.NomeDisciplina,
                     IdProfessorUsuario = caderneta.IdProfessorUsuario ?? 0,
@@ -68,6 +72,16 @@ namespace ESCOLA_API.Services
                 message.ApplicationProperties["tipo"] = payload.Tipo;
                 message.ApplicationProperties["operacao"] = payload.Operacao;
                 message.ApplicationProperties["idAlunoUsuario"] = payload.IdAlunoUsuario;
+                if (payload.IdTipoEnsino.HasValue)
+                {
+                    message.ApplicationProperties["idTipoEnsino"] = payload.IdTipoEnsino.Value;
+                }
+
+                if (payload.IdTurmaEnsino.HasValue)
+                {
+                    message.ApplicationProperties["idTurmaEnsino"] = payload.IdTurmaEnsino.Value;
+                }
+
                 message.ApplicationProperties["idDisciplina"] = payload.IdDisciplina;
 
                 await GetSender().SendMessageAsync(message, cancellationToken);

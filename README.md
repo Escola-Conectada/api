@@ -192,6 +192,22 @@ Quando o professor cria ou atualiza uma avaliacao/trabalho em uma disciplina, a 
 
 A estrutura curricular fica disponivel em `GET /api/caderneta-digital/estrutura-ensino`, organizada como tipo de ensino, turma/ano-serie, area de conhecimento e disciplinas. A carga inicial inclui Ensino Fundamental do 1º ao 9º ano e Ensino Medio da 1ª a 3ª serie, com Lingua Inglesa no Fundamental a partir do 6º ano e Ensino Religioso marcado como oferta obrigatoria e matricula facultativa. As disciplinas de catalogo sao gravadas sem professor; as disciplinas criadas por professores continuam vinculadas ao usuario professor para caderneta e eventos.
 
+No lancamento de notas da caderneta, informe `idTipoEnsino`, `idTurmaEnsino` e `idDisciplina`. A API valida se a disciplina pertence ao tipo de ensino e turma informados, grava o professor autenticado como responsavel pelo lancamento e retorna esses dados no resumo da caderneta. Exemplo:
+
+```json
+{
+  "idAlunoUsuario": 12,
+  "idTipoEnsino": 1,
+  "idTurmaEnsino": 106,
+  "idDisciplina": 1045,
+  "notas": [8.5, 9],
+  "presencas": 18,
+  "faltas": 2
+}
+```
+
+Apos criar ou atualizar um lancamento de notas, o aluno recebe uma notificacao `NotasPublicadas` com disciplina, tipo de ensino, turma, notas, media aritmetica, situacao, presencas e faltas. Esses dados tambem ficam estruturados na resposta de `GET /api/notificacoes`, evitando que o app precise extrair informacoes do texto da mensagem.
+
 O fluxo `POST /api/Auth/esqueci-senha` gera um token temporario de redefinicao em vez de trocar a senha para uma senha padrao. Em desenvolvimento, o token volta na resposta para facilitar testes locais. Em producao, integre esse token a um provedor de email/SMS antes de publicar o app.
 
 Usuarios autenticados podem solicitar exclusao de conta por `POST /api/usuarios/me/exclusao-conta`. Tambem existe a pagina publica `/legal/exclusao-conta`, que envia solicitacoes para `POST /conta/exclusao`; esse link pode ser usado na area de exclusao de dados do Google Play. Administradores consultam solicitacoes pendentes em `GET /api/usuarios/exclusoes-conta`.

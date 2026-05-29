@@ -4,6 +4,7 @@ using ESCOLA_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ESCOLA_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260529162300_AddCadernetaEnsinoTurmaLancamento")]
+    partial class AddCadernetaEnsinoTurmaLancamento
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2017,12 +2020,6 @@ namespace ESCOLA_API.Migrations
                     b.Property<int?>("IdDisciplina")
                         .HasColumnType("int");
 
-                    b.Property<int?>("IdTipoEnsino")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IdTurmaEnsino")
-                        .HasColumnType("int");
-
                     b.Property<int>("IdUsuario")
                         .HasColumnType("int");
 
@@ -2048,18 +2045,6 @@ namespace ESCOLA_API.Migrations
                     b.Property<string>("NomeDisciplina")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("NomeTipoEnsino")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<string>("NomeTurmaEnsino")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<string>("Notas")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
 
                     b.Property<string>("OrigemMensagemId")
                         .HasMaxLength(160)

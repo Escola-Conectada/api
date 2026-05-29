@@ -179,16 +179,30 @@ namespace ESCOLA_API.Services
 
         private static Notificacao CriarNotificacao(CadernetaDigitalNotificacaoMessage payload, string messageId)
         {
+            var notas = payload.Notas.Length == 0
+                ? "-"
+                : string.Join(" / ", payload.Notas.Select(FormatarDecimalPtBr));
             var media = payload.MediaAritmetica.ToString("0.##", CultureInfo.GetCultureInfo("pt-BR"));
+            var contexto = FormatarContextoDisciplina(payload);
+            var atualizacao = payload.Operacao.Equals("Atualizacao", StringComparison.OrdinalIgnoreCase);
+            var acao = atualizacao ? "atualizadas" : "publicadas";
+            var titulo = atualizacao
+                ? $"Notas atualizadas em {payload.NomeDisciplina}"
+                : $"Notas publicadas em {payload.NomeDisciplina}";
 
             return new Notificacao
             {
                 IdUsuario = payload.IdAlunoUsuario,
                 Tipo = payload.Tipo,
-                Titulo = "Notas publicadas",
-                Mensagem = $"Suas notas de {payload.NomeDisciplina} foram publicadas. Media: {media}. Situacao: {payload.Situacao}.",
+                Titulo = titulo,
+                Mensagem = $"Suas notas de {payload.NomeDisciplina}{contexto} foram {acao} pelo professor {payload.NomeProfessor}. Notas: {notas}. Media: {media}. Situacao: {payload.Situacao}. Presencas: {payload.Presencas}. Faltas: {payload.Faltas}.",
                 Link = $"/caderneta-digital?cadernetaId={payload.IdCadernetaDigital}",
                 IdCadernetaDigital = payload.IdCadernetaDigital,
+                Notas = SerializeNotas(payload.Notas),
+                IdTipoEnsino = payload.IdTipoEnsino,
+                NomeTipoEnsino = payload.NomeTipoEnsino,
+                IdTurmaEnsino = payload.IdTurmaEnsino,
+                NomeTurmaEnsino = payload.NomeTurmaEnsino,
                 IdDisciplina = payload.IdDisciplina,
                 NomeDisciplina = payload.NomeDisciplina,
                 MediaAritmetica = payload.MediaAritmetica,
@@ -199,6 +213,28 @@ namespace ESCOLA_API.Services
                     ? DateTime.UtcNow
                     : payload.PublicadoEmUtc.UtcDateTime
             };
+        }
+
+        private static string SerializeNotas(decimal[] notas)
+        {
+            return string.Join(";", notas.Select(nota => nota.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        private static string FormatarDecimalPtBr(decimal valor)
+        {
+            return valor.ToString("0.##", CultureInfo.GetCultureInfo("pt-BR"));
+        }
+
+        private static string FormatarContextoDisciplina(CadernetaDigitalNotificacaoMessage payload)
+        {
+            var partes = new[]
+            {
+                payload.NomeTipoEnsino,
+                payload.NomeTurmaEnsino
+            }.Where(parte => !string.IsNullOrWhiteSpace(parte));
+
+            var contexto = string.Join(" - ", partes);
+            return string.IsNullOrWhiteSpace(contexto) ? string.Empty : $" ({contexto})";
         }
 
         private static bool IsDuplicateMessage(DbUpdateException exception)

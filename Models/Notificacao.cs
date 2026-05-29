@@ -10,6 +10,11 @@ namespace ESCOLA_API.Models
         public string Mensagem { get; set; } = string.Empty;
         public string? Link { get; set; }
         public int? IdCadernetaDigital { get; set; }
+        public string? Notas { get; set; }
+        public int? IdTipoEnsino { get; set; }
+        public string? NomeTipoEnsino { get; set; }
+        public int? IdTurmaEnsino { get; set; }
+        public string? NomeTurmaEnsino { get; set; }
         public int? IdDisciplina { get; set; }
         public string? NomeDisciplina { get; set; }
         public decimal? MediaAritmetica { get; set; }

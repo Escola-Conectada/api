@@ -19,29 +19,15 @@ namespace ESCOLA_API.Services
         {
             var usuarioId = GetUsuarioAtualId(principal);
 
-            return await _context.Notificacoes
+            var notificacoes = await _context.Notificacoes
                 .AsNoTracking()
                 .Where(notificacao => notificacao.IdUsuario == usuarioId)
                 .OrderByDescending(notificacao => notificacao.CriadaEmUtc)
-                .Select(notificacao => new NotificacaoViewModel
-                {
-                    IdNotificacao = notificacao.IdNotificacao,
-                    IdUsuario = notificacao.IdUsuario,
-                    Tipo = notificacao.Tipo,
-                    Titulo = notificacao.Titulo,
-                    Mensagem = notificacao.Mensagem,
-                    Link = notificacao.Link,
-                    IdCadernetaDigital = notificacao.IdCadernetaDigital,
-                    IdDisciplina = notificacao.IdDisciplina,
-                    NomeDisciplina = notificacao.NomeDisciplina,
-                    MediaAritmetica = notificacao.MediaAritmetica,
-                    Situacao = notificacao.Situacao,
-                    CorSituacao = notificacao.CorSituacao,
-                    Lida = notificacao.Lida,
-                    CriadaEmUtc = notificacao.CriadaEmUtc,
-                    LidaEmUtc = notificacao.LidaEmUtc
-                })
                 .ToArrayAsync();
+
+            return notificacoes
+                .Select(notificacao => notificacao.ToViewModel())
+                .ToArray();
         }
 
         public async Task<int> CountNaoLidasAsync(ClaimsPrincipal principal)

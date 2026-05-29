@@ -30,7 +30,9 @@ namespace ESCOLA_API.Services
             else if (IsProfessor(principal))
             {
                 var usuarioId = GetUsuarioAtualId(principal);
-                query = query.Where(caderneta => caderneta.Disciplina!.IdProfessorUsuario == usuarioId);
+                query = query.Where(caderneta =>
+                    caderneta.IdProfessorUsuario == usuarioId
+                    || caderneta.Disciplina!.IdProfessorUsuario == usuarioId);
             }
             else if (!IsProfessor(principal) && !IsAdministrador(principal))
             {
@@ -39,8 +41,8 @@ namespace ESCOLA_API.Services
 
             var cadernetas = await query
                 .OrderBy(caderneta => caderneta.AlunoUsuario!.Nome)
-                .ThenBy(caderneta => caderneta.Disciplina!.TurmaEnsino!.TipoEnsino!.Ordem)
-                .ThenBy(caderneta => caderneta.Disciplina!.TurmaEnsino!.Ordem)
+                .ThenBy(caderneta => caderneta.IdTipoEnsino ?? caderneta.Disciplina!.TurmaEnsino!.IdTipoEnsino)
+                .ThenBy(caderneta => caderneta.IdTurmaEnsino ?? caderneta.Disciplina!.IdTurmaEnsino)
                 .ThenBy(caderneta => caderneta.Disciplina!.AreaConhecimento!.Ordem)
                 .ThenBy(caderneta => caderneta.Disciplina!.Nome)
                 .ToArrayAsync();
@@ -64,12 +66,16 @@ namespace ESCOLA_API.Services
         public async Task<CadernetaDigitalViewModel> AddAsync(CadernetaDigitalCreateUpdateViewModel viewModel, ClaimsPrincipal principal)
         {
             var usuarioId = await ValidarProfessorAsync(principal);
-            var disciplina = await ObterDisciplinaDoProfessorAsync(viewModel.IdDisciplina, usuarioId);
+            var disciplina = await ObterDisciplinaParaLancamentoAsync(
+                viewModel.IdDisciplina,
+                viewModel.IdTipoEnsino,
+                viewModel.IdTurmaEnsino,
+                usuarioId);
             var aluno = await ObterAlunoAsync(viewModel.IdAlunoUsuario);
 
             if (disciplina == null)
             {
-                throw new InvalidOperationException("Disciplina nao encontrada para este professor.");
+                throw new InvalidOperationException("Disciplina nao encontrada para o tipo de ensino e turma informados.");
             }
 
             if (aluno == null)
@@ -88,6 +94,9 @@ namespace ESCOLA_API.Services
             var caderneta = new CadernetaDigital
             {
                 IdAlunoUsuario = aluno.IdUsuario,
+                IdProfessorUsuario = usuarioId,
+                IdTipoEnsino = viewModel.IdTipoEnsino,
+                IdTurmaEnsino = viewModel.IdTurmaEnsino,
                 IdDisciplina = disciplina.IdDisciplina,
                 Notas = SerializeNotas(viewModel.Notas),
                 Presencas = viewModel.Presencas,
@@ -114,17 +123,21 @@ namespace ESCOLA_API.Services
                 return null;
             }
 
-            if (caderneta.Disciplina?.IdProfessorUsuario != usuarioId)
+            if (!PodeAdministrarLancamento(caderneta, usuarioId))
             {
                 throw new UnauthorizedAccessException("Usuario nao autorizado a alterar este lancamento.");
             }
 
-            var disciplina = await ObterDisciplinaDoProfessorAsync(viewModel.IdDisciplina, usuarioId);
+            var disciplina = await ObterDisciplinaParaLancamentoAsync(
+                viewModel.IdDisciplina,
+                viewModel.IdTipoEnsino,
+                viewModel.IdTurmaEnsino,
+                usuarioId);
             var aluno = await ObterAlunoAsync(viewModel.IdAlunoUsuario);
 
             if (disciplina == null)
             {
-                throw new InvalidOperationException("Disciplina nao encontrada para este professor.");
+                throw new InvalidOperationException("Disciplina nao encontrada para o tipo de ensino e turma informados.");
             }
 
             if (aluno == null)
@@ -144,6 +157,9 @@ namespace ESCOLA_API.Services
             }
 
             caderneta.IdAlunoUsuario = aluno.IdUsuario;
+            caderneta.IdProfessorUsuario = usuarioId;
+            caderneta.IdTipoEnsino = viewModel.IdTipoEnsino;
+            caderneta.IdTurmaEnsino = viewModel.IdTurmaEnsino;
             caderneta.IdDisciplina = disciplina.IdDisciplina;
             caderneta.Notas = SerializeNotas(viewModel.Notas);
             caderneta.Presencas = viewModel.Presencas;
@@ -171,7 +187,7 @@ namespace ESCOLA_API.Services
                 return false;
             }
 
-            if (caderneta.Disciplina?.IdProfessorUsuario != usuarioId)
+            if (!PodeAdministrarLancamento(caderneta, usuarioId))
             {
                 throw new UnauthorizedAccessException("Usuario nao autorizado a excluir este lancamento.");
             }
@@ -408,6 +424,10 @@ namespace ESCOLA_API.Services
         {
             return _context.CadernetasDigitais
                 .Include(caderneta => caderneta.AlunoUsuario)
+                .Include(caderneta => caderneta.ProfessorUsuario)
+                .Include(caderneta => caderneta.TipoEnsino)
+                .Include(caderneta => caderneta.TurmaEnsino)
+                    .ThenInclude(turma => turma!.TipoEnsino)
                 .Include(caderneta => caderneta.Disciplina)
                     .ThenInclude(disciplina => disciplina!.ProfessorUsuario)
                 .Include(caderneta => caderneta.Disciplina)
@@ -418,10 +438,19 @@ namespace ESCOLA_API.Services
                 .AsNoTracking();
         }
 
-        private async Task<Disciplina?> ObterDisciplinaDoProfessorAsync(int disciplinaId, int usuarioId)
+        private async Task<Disciplina?> ObterDisciplinaParaLancamentoAsync(
+            int disciplinaId,
+            int tipoEnsinoId,
+            int turmaEnsinoId,
+            int professorUsuarioId)
         {
             return await _context.Disciplinas
-                .FirstOrDefaultAsync(disciplina => disciplina.IdDisciplina == disciplinaId && disciplina.IdProfessorUsuario == usuarioId);
+                .Include(disciplina => disciplina.TurmaEnsino)
+                .FirstOrDefaultAsync(disciplina =>
+                    disciplina.IdDisciplina == disciplinaId
+                    && disciplina.IdTurmaEnsino == turmaEnsinoId
+                    && disciplina.TurmaEnsino!.IdTipoEnsino == tipoEnsinoId
+                    && (disciplina.IdProfessorUsuario == null || disciplina.IdProfessorUsuario == professorUsuarioId));
         }
 
         private async Task<bool> DisciplinaJaExisteAsync(
@@ -486,20 +515,27 @@ namespace ESCOLA_API.Services
                 ? "-"
                 : string.Join(" / ", caderneta.Notas.Select(FormatarDecimalPtBr));
             var media = FormatarDecimalPtBr(caderneta.MediaAritmetica);
+            var contextoDisciplina = FormatarContextoDisciplina(caderneta);
             var acao = operacao.Equals("Atualizacao", StringComparison.OrdinalIgnoreCase)
                 ? "atualizadas"
                 : "publicadas";
+            var titulo = operacao.Equals("Atualizacao", StringComparison.OrdinalIgnoreCase)
+                ? $"Notas atualizadas em {caderneta.NomeDisciplina}"
+                : $"Notas publicadas em {caderneta.NomeDisciplina}";
 
             _context.Notificacoes.Add(new Notificacao
             {
                 IdUsuario = caderneta.IdAlunoUsuario,
                 Tipo = "NotasPublicadas",
-                Titulo = operacao.Equals("Atualizacao", StringComparison.OrdinalIgnoreCase)
-                    ? "Notas atualizadas"
-                    : "Notas publicadas",
-                Mensagem = $"Suas notas e frequencia de {caderneta.NomeDisciplina} foram {acao} pelo professor {caderneta.NomeProfessor}. Notas: {notas}. Media: {media}. Situacao: {caderneta.Situacao}. Presencas: {caderneta.Presencas}. Faltas: {caderneta.Faltas}.",
+                Titulo = titulo,
+                Mensagem = $"Suas notas de {caderneta.NomeDisciplina}{contextoDisciplina} foram {acao} pelo professor {caderneta.NomeProfessor}. Notas: {notas}. Media: {media}. Situacao: {caderneta.Situacao}. Presencas: {caderneta.Presencas}. Faltas: {caderneta.Faltas}.",
                 Link = $"/caderneta-digital?cadernetaId={caderneta.IdCadernetaDigital}",
                 IdCadernetaDigital = caderneta.IdCadernetaDigital,
+                Notas = SerializeNotas(caderneta.Notas),
+                IdTipoEnsino = caderneta.IdTipoEnsino,
+                NomeTipoEnsino = caderneta.NomeTipoEnsino,
+                IdTurmaEnsino = caderneta.IdTurmaEnsino,
+                NomeTurmaEnsino = caderneta.NomeTurmaEnsino,
                 IdDisciplina = caderneta.IdDisciplina,
                 NomeDisciplina = caderneta.NomeDisciplina,
                 MediaAritmetica = caderneta.MediaAritmetica,
@@ -509,6 +545,18 @@ namespace ESCOLA_API.Services
             });
 
             await _context.SaveChangesAsync();
+        }
+
+        private static string FormatarContextoDisciplina(CadernetaDigitalViewModel caderneta)
+        {
+            var partes = new[]
+            {
+                caderneta.NomeTipoEnsino,
+                caderneta.NomeTurmaEnsino
+            }.Where(parte => !string.IsNullOrWhiteSpace(parte));
+
+            var contexto = string.Join(" - ", partes);
+            return string.IsNullOrWhiteSpace(contexto) ? string.Empty : $" ({contexto})";
         }
 
         private async Task SaveChangesAsync(string duplicateMessage)
@@ -553,8 +601,14 @@ namespace ESCOLA_API.Services
         private static bool PodeConsultar(ClaimsPrincipal principal, CadernetaDigital caderneta)
         {
             return IsAdministrador(principal)
-                || (IsProfessor(principal) && caderneta.Disciplina?.IdProfessorUsuario == GetUsuarioAtualId(principal))
+                || (IsProfessor(principal) && PodeAdministrarLancamento(caderneta, GetUsuarioAtualId(principal)))
                 || (IsAluno(principal) && caderneta.IdAlunoUsuario == GetUsuarioAtualId(principal));
+        }
+
+        private static bool PodeAdministrarLancamento(CadernetaDigital caderneta, int usuarioId)
+        {
+            return caderneta.IdProfessorUsuario == usuarioId
+                || caderneta.Disciplina?.IdProfessorUsuario == usuarioId;
         }
 
         private async Task<int> ValidarProfessorAsync(ClaimsPrincipal principal)
@@ -595,12 +649,12 @@ namespace ESCOLA_API.Services
                 EmailAluno = caderneta.AlunoUsuario?.Email ?? string.Empty,
                 IdDisciplina = caderneta.IdDisciplina,
                 NomeDisciplina = caderneta.Disciplina?.Nome ?? string.Empty,
-                IdProfessorUsuario = caderneta.Disciplina?.IdProfessorUsuario,
-                NomeProfessor = caderneta.Disciplina?.ProfessorUsuario?.Nome ?? string.Empty,
-                IdTipoEnsino = caderneta.Disciplina?.TurmaEnsino?.IdTipoEnsino,
-                NomeTipoEnsino = caderneta.Disciplina?.TurmaEnsino?.TipoEnsino?.Nome,
-                IdTurmaEnsino = caderneta.Disciplina?.IdTurmaEnsino,
-                NomeTurmaEnsino = caderneta.Disciplina?.TurmaEnsino?.Nome,
+                IdProfessorUsuario = caderneta.IdProfessorUsuario ?? caderneta.Disciplina?.IdProfessorUsuario,
+                NomeProfessor = caderneta.ProfessorUsuario?.Nome ?? caderneta.Disciplina?.ProfessorUsuario?.Nome ?? string.Empty,
+                IdTipoEnsino = caderneta.IdTipoEnsino ?? caderneta.Disciplina?.TurmaEnsino?.IdTipoEnsino,
+                NomeTipoEnsino = caderneta.TipoEnsino?.Nome ?? caderneta.Disciplina?.TurmaEnsino?.TipoEnsino?.Nome,
+                IdTurmaEnsino = caderneta.IdTurmaEnsino ?? caderneta.Disciplina?.IdTurmaEnsino,
+                NomeTurmaEnsino = caderneta.TurmaEnsino?.Nome ?? caderneta.Disciplina?.TurmaEnsino?.Nome,
                 IdAreaConhecimento = caderneta.Disciplina?.IdAreaConhecimento,
                 NomeAreaConhecimento = caderneta.Disciplina?.AreaConhecimento?.Nome,
                 Notas = notas,

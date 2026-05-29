@@ -8,6 +8,10 @@ namespace ESCOLA_API.Services
         public int IdAlunoUsuario { get; init; }
         public string NomeAluno { get; init; } = string.Empty;
         public string EmailAluno { get; init; } = string.Empty;
+        public int? IdTipoEnsino { get; init; }
+        public string? NomeTipoEnsino { get; init; }
+        public int? IdTurmaEnsino { get; init; }
+        public string? NomeTurmaEnsino { get; init; }
         public int IdDisciplina { get; init; }
         public string NomeDisciplina { get; init; } = string.Empty;
         public int IdProfessorUsuario { get; init; }

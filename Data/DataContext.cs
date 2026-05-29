@@ -236,11 +236,24 @@ namespace ESCOLA_API.Data
                 entity.Property(caderneta => caderneta.Notas)
                     .IsRequired()
                     .HasMaxLength(120);
+                entity.HasIndex(caderneta => caderneta.IdProfessorUsuario);
                 entity.HasIndex(caderneta => new { caderneta.IdAlunoUsuario, caderneta.IdDisciplina })
                     .IsUnique();
                 entity.HasOne(caderneta => caderneta.AlunoUsuario)
                     .WithMany(usuario => usuario.CadernetasComoAluno)
                     .HasForeignKey(caderneta => caderneta.IdAlunoUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(caderneta => caderneta.ProfessorUsuario)
+                    .WithMany()
+                    .HasForeignKey(caderneta => caderneta.IdProfessorUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(caderneta => caderneta.TipoEnsino)
+                    .WithMany()
+                    .HasForeignKey(caderneta => caderneta.IdTipoEnsino)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(caderneta => caderneta.TurmaEnsino)
+                    .WithMany()
+                    .HasForeignKey(caderneta => caderneta.IdTurmaEnsino)
                     .OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(caderneta => caderneta.Disciplina)
                     .WithMany(disciplina => disciplina.Cadernetas)
@@ -306,6 +319,12 @@ namespace ESCOLA_API.Data
                     .HasMaxLength(2000);
                 entity.Property(notificacao => notificacao.Link)
                     .HasMaxLength(500);
+                entity.Property(notificacao => notificacao.Notas)
+                    .HasMaxLength(120);
+                entity.Property(notificacao => notificacao.NomeTipoEnsino)
+                    .HasMaxLength(80);
+                entity.Property(notificacao => notificacao.NomeTurmaEnsino)
+                    .HasMaxLength(80);
                 entity.Property(notificacao => notificacao.NomeDisciplina)
                     .HasMaxLength(100);
                 entity.Property(notificacao => notificacao.MediaAritmetica)

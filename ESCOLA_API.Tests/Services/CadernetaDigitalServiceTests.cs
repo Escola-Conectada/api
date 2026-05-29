@@ -21,22 +21,20 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
-            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
-            {
-                Nome = "Matematica"
-            }, professor);
+            var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Matematica"), professor);
 
-            var created = await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = disciplina.IdDisciplina,
-                Notas = new[] { 8.5m, 9m },
-                Presencas = 18,
-                Faltas = 2
-            }, professor);
+            var created = await service.AddAsync(
+                CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 8.5m, 9m }, 18, 2),
+                professor);
 
             Assert.Equal("Aluno Maria", created.NomeAluno);
             Assert.Equal("Matematica", created.NomeDisciplina);
+            Assert.Equal(1, created.IdTipoEnsino);
+            Assert.Equal(106, created.IdTurmaEnsino);
+            Assert.Equal(2, created.IdProfessorUsuario);
+            Assert.Equal("Ensino Fundamental", created.NomeTipoEnsino);
+            Assert.Equal("6º ano", created.NomeTurmaEnsino);
+            Assert.Equal("Professor Vinicius", created.NomeProfessor);
             Assert.Equal(new[] { 8.5m, 9m }, created.Notas);
             Assert.Equal(8.75m, created.MediaAritmetica);
             Assert.Equal("Aprovado", created.Situacao);
@@ -45,11 +43,24 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal(2, created.Faltas);
             var notificacao = await context.Notificacoes.SingleAsync(item => item.IdUsuario == created.IdAlunoUsuario);
             Assert.Equal("NotasPublicadas", notificacao.Tipo);
-            Assert.Equal("Notas publicadas", notificacao.Titulo);
+            Assert.Equal("Notas publicadas em Matematica", notificacao.Titulo);
             Assert.Contains("Matematica", notificacao.Mensagem);
+            Assert.Contains("Ensino Fundamental", notificacao.Mensagem);
+            Assert.Contains("6", notificacao.Mensagem);
+            Assert.Contains("Notas: 8,5 / 9", notificacao.Mensagem);
             Assert.Contains("Media: 8,75", notificacao.Mensagem);
+            Assert.Contains("Situacao: Aprovado", notificacao.Mensagem);
             Assert.Contains("Presencas: 18", notificacao.Mensagem);
             Assert.Contains("Faltas: 2", notificacao.Mensagem);
+            Assert.Equal("8.5;9", notificacao.Notas);
+            Assert.Equal(1, notificacao.IdTipoEnsino);
+            Assert.Equal("Ensino Fundamental", notificacao.NomeTipoEnsino);
+            Assert.Equal(106, notificacao.IdTurmaEnsino);
+            Assert.Equal("6º ano", notificacao.NomeTurmaEnsino);
+            Assert.Equal(disciplina.IdDisciplina, notificacao.IdDisciplina);
+            Assert.Equal("Matematica", notificacao.NomeDisciplina);
+            Assert.Equal(8.75m, notificacao.MediaAritmetica);
+            Assert.Equal("Aprovado", notificacao.Situacao);
             Assert.Equal(created.IdCadernetaDigital, notificacao.IdCadernetaDigital);
         }
 
@@ -63,28 +74,16 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
-            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
-            {
-                Nome = "Matematica"
-            }, professor);
+            var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Matematica"), professor);
 
-            var created = await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = disciplina.IdDisciplina,
-                Notas = new[] { 8m, 9m },
-                Presencas = 20,
-                Faltas = 1
-            }, professor);
+            var created = await service.AddAsync(
+                CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 8m, 9m }, 20, 1),
+                professor);
 
-            var updated = await service.UpdateAsync(created.IdCadernetaDigital, new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = disciplina.IdDisciplina,
-                Notas = new[] { 6m, 7m },
-                Presencas = 21,
-                Faltas = 2
-            }, professor);
+            var updated = await service.UpdateAsync(
+                created.IdCadernetaDigital,
+                CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 6m, 7m }, 21, 2),
+                professor);
 
             Assert.NotNull(updated);
             var notificacoes = await context.Notificacoes
@@ -92,7 +91,8 @@ namespace ESCOLA_API.Tests.Services
                 .OrderBy(item => item.IdNotificacao)
                 .ToArrayAsync();
             Assert.Equal(2, notificacoes.Length);
-            Assert.Equal("Notas atualizadas", notificacoes[1].Titulo);
+            Assert.Equal("Notas atualizadas em Matematica", notificacoes[1].Titulo);
+            Assert.Equal("6;7", notificacoes[1].Notas);
             Assert.Contains("Em recuperacao", notificacoes[1].Mensagem);
             Assert.Equal(updated!.IdCadernetaDigital, notificacoes[1].IdCadernetaDigital);
         }
@@ -147,25 +147,74 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
-            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
-            {
-                Nome = "Portugues"
-            }, professor);
+            var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Portugues"), professor);
 
-            await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = disciplina.IdDisciplina,
-                Notas = new[] { 7m },
-                Presencas = 10,
-                Faltas = 1
-            }, professor);
+            await service.AddAsync(
+                CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 7m }, 10, 1),
+                professor);
 
             var cadernetasDoAluno = await service.GetAllAsync(CreatePrincipal(12, PerfilSistema.Aluno));
             var cadernetasDeOutroAluno = await service.GetAllAsync(CreatePrincipal(13, PerfilSistema.Aluno));
 
             Assert.Single(cadernetasDoAluno);
             Assert.Empty(cadernetasDeOutroAluno);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenUsingCatalogDisciplina_CreatesCadernetaWithProfessorLancamento()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+            var professor = CreatePrincipal(2, PerfilSistema.Professor);
+
+            var created = await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = 12,
+                IdTipoEnsino = 1,
+                IdTurmaEnsino = 106,
+                IdDisciplina = 1045,
+                Notas = new[] { 8m, 9m },
+                Presencas = 18,
+                Faltas = 1
+            }, professor);
+
+            Assert.Equal("Matemática", created.NomeDisciplina);
+            Assert.Equal(1, created.IdTipoEnsino);
+            Assert.Equal("Ensino Fundamental", created.NomeTipoEnsino);
+            Assert.Equal(106, created.IdTurmaEnsino);
+            Assert.Equal("6º ano", created.NomeTurmaEnsino);
+            Assert.Equal("Matemática", created.NomeAreaConhecimento);
+            Assert.Equal(2, created.IdProfessorUsuario);
+            Assert.Equal("Professor Vinicius", created.NomeProfessor);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenDisciplinaDoesNotBelongToTipoTurma_ThrowsInvalidOperationException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
+                {
+                    IdAlunoUsuario = 12,
+                    IdTipoEnsino = 2,
+                    IdTurmaEnsino = 201,
+                    IdDisciplina = 1045,
+                    Notas = new[] { 8m },
+                    Presencas = 10,
+                    Faltas = 1
+                }, CreatePrincipal(2, PerfilSistema.Professor)));
+
+            Assert.Equal("Disciplina nao encontrada para o tipo de ensino e turma informados.", exception.Message);
         }
 
         [Fact]
@@ -286,31 +335,15 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
-            var matematica = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
-            {
-                Nome = "Matematica"
-            }, professor);
-            var portugues = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
-            {
-                Nome = "Portugues"
-            }, professor);
+            var matematica = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Matematica"), professor);
+            var portugues = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Portugues"), professor);
 
-            await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = matematica.IdDisciplina,
-                Notas = new[] { 8m },
-                Presencas = 10,
-                Faltas = 1
-            }, professor);
-            await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = portugues.IdDisciplina,
-                Notas = new[] { 9m },
-                Presencas = 12,
-                Faltas = 0
-            }, professor);
+            await service.AddAsync(
+                CriarLancamentoPayload(12, matematica.IdDisciplina, new[] { 8m }, 10, 1),
+                professor);
+            await service.AddAsync(
+                CriarLancamentoPayload(12, portugues.IdDisciplina, new[] { 9m }, 12, 0),
+                professor);
 
             var cadernetasDoAluno = await service.GetAllAsync(CreatePrincipal(12, PerfilSistema.Aluno));
 
@@ -329,18 +362,8 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
-            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
-            {
-                Nome = "Ciencias"
-            }, professor);
-            var payload = new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = disciplina.IdDisciplina,
-                Notas = new[] { 8m },
-                Presencas = 10,
-                Faltas = 1
-            };
+            var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Ciencias"), professor);
+            var payload = CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 8m }, 10, 1);
 
             await service.AddAsync(payload, professor);
 
@@ -378,6 +401,35 @@ namespace ESCOLA_API.Tests.Services
             return new ClaimsPrincipal(identity);
         }
 
+        private static DisciplinaCreateUpdateViewModel CriarDisciplinaPayload(string nome)
+        {
+            return new DisciplinaCreateUpdateViewModel
+            {
+                Nome = nome,
+                IdTurmaEnsino = 106,
+                IdAreaConhecimento = 102
+            };
+        }
+
+        private static CadernetaDigitalCreateUpdateViewModel CriarLancamentoPayload(
+            int idAlunoUsuario,
+            int idDisciplina,
+            decimal[] notas,
+            int presencas,
+            int faltas)
+        {
+            return new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = idAlunoUsuario,
+                IdTipoEnsino = 1,
+                IdTurmaEnsino = 106,
+                IdDisciplina = idDisciplina,
+                Notas = notas,
+                Presencas = presencas,
+                Faltas = faltas
+            };
+        }
+
         private static DataContext CreateContext(SqliteConnection connection)
         {
             var options = new DbContextOptionsBuilder<DataContext>()
@@ -396,19 +448,13 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
-            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
-            {
-                Nome = $"Disciplina {Guid.NewGuid():N}"
-            }, professor);
+            var disciplina = await service.AddDisciplinaAsync(
+                CriarDisciplinaPayload($"Disciplina {Guid.NewGuid():N}"),
+                professor);
 
-            return await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdDisciplina = disciplina.IdDisciplina,
-                Notas = notas,
-                Presencas = 20,
-                Faltas = faltas
-            }, professor);
+            return await service.AddAsync(
+                CriarLancamentoPayload(12, disciplina.IdDisciplina, notas, 20, faltas),
+                professor);
         }
 
     }

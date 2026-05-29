@@ -90,6 +90,8 @@ namespace ESCOLA_API.ViewModels
     public class CadernetaDigitalCreateUpdateViewModel
     {
         public int IdAlunoUsuario { get; set; }
+        public int IdTipoEnsino { get; set; }
+        public int IdTurmaEnsino { get; set; }
         public int IdDisciplina { get; set; }
         public decimal[] Notas { get; set; } = [];
         public int Presencas { get; set; }

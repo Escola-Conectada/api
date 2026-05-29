@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using ESCOLA_API.Models;
 
@@ -113,6 +114,11 @@ namespace ESCOLA_API.ViewModels
                 Mensagem = entity.Mensagem,
                 Link = entity.Link,
                 IdCadernetaDigital = entity.IdCadernetaDigital,
+                Notas = DeserializeNotas(entity.Notas),
+                IdTipoEnsino = entity.IdTipoEnsino,
+                NomeTipoEnsino = entity.NomeTipoEnsino,
+                IdTurmaEnsino = entity.IdTurmaEnsino,
+                NomeTurmaEnsino = entity.NomeTurmaEnsino,
                 IdDisciplina = entity.IdDisciplina,
                 NomeDisciplina = entity.NomeDisciplina,
                 MediaAritmetica = entity.MediaAritmetica,
@@ -122,6 +128,21 @@ namespace ESCOLA_API.ViewModels
                 CriadaEmUtc = entity.CriadaEmUtc,
                 LidaEmUtc = entity.LidaEmUtc
             };
+        }
+
+        private static decimal[] DeserializeNotas(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return [];
+            }
+
+            return value
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(item => decimal.TryParse(item, NumberStyles.Number, CultureInfo.InvariantCulture, out var nota) ? nota : (decimal?)null)
+                .Where(nota => nota.HasValue)
+                .Select(nota => nota!.Value)
+                .ToArray();
         }
 
         public static Aluno ToModel(this AlunoCreateEditViewModel viewModel)

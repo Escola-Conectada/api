@@ -34,6 +34,12 @@ namespace ESCOLA_API.Validators
             RuleFor(model => model.IdAlunoUsuario)
                 .GreaterThan(0).WithMessage("Informe um aluno valido.");
 
+            RuleFor(model => model.IdTipoEnsino)
+                .GreaterThan(0).WithMessage("Informe um tipo de ensino valido.");
+
+            RuleFor(model => model.IdTurmaEnsino)
+                .GreaterThan(0).WithMessage("Informe uma turma de ensino valida.");
+
             RuleFor(model => model.IdDisciplina)
                 .GreaterThan(0).WithMessage("Informe uma disciplina valida.");
 
