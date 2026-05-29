@@ -28,6 +28,18 @@ namespace ESCOLA_API.Validators
                 .Must(UsuarioDataNascimentoRules.DataNascimentoValida)
                 .WithMessage("A data de nascimento nao pode ser futura.");
 
+            RuleFor(usuario => usuario.NomeMae)
+                .MaximumLength(100)
+                .WithMessage("O nome da mae deve ter no maximo 100 caracteres.");
+
+            RuleFor(usuario => usuario.NomePai)
+                .MaximumLength(100)
+                .WithMessage("O nome do pai deve ter no maximo 100 caracteres.");
+
+            RuleFor(usuario => usuario.Endereco)
+                .MaximumLength(200)
+                .WithMessage("O endereco deve ter no maximo 200 caracteres.");
+
             RuleFor(usuario => usuario.TipoUsuario)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("O tipo do usuario e obrigatorio.")
@@ -59,6 +71,18 @@ namespace ESCOLA_API.Validators
             RuleFor(usuario => usuario.DataNascimento)
                 .Must(UsuarioDataNascimentoRules.DataNascimentoValida)
                 .WithMessage("A data de nascimento nao pode ser futura.");
+
+            RuleFor(usuario => usuario.NomeMae)
+                .MaximumLength(100)
+                .WithMessage("O nome da mae deve ter no maximo 100 caracteres.");
+
+            RuleFor(usuario => usuario.NomePai)
+                .MaximumLength(100)
+                .WithMessage("O nome do pai deve ter no maximo 100 caracteres.");
+
+            RuleFor(usuario => usuario.Endereco)
+                .MaximumLength(200)
+                .WithMessage("O endereco deve ter no maximo 200 caracteres.");
 
             RuleFor(usuario => usuario.TipoUsuario)
                 .Must(PerfilSistema.TipoUsuarioValido)

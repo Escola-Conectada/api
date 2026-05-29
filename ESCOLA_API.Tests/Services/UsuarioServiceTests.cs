@@ -29,6 +29,9 @@ namespace ESCOLA_API.Tests.Services
                 Email = "novo@escola.com",
                 Telefone = "11999990000",
                 DataNascimento = new DateOnly(1990, 5, 12),
+                NomeMae = "Mae Teste",
+                NomePai = "Pai Teste",
+                Endereco = "Rua Teste, 123",
                 TipoUsuario = PerfilSistema.Professor
             };
 
@@ -38,6 +41,9 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal("Usuario Novo", created.Nome);
             Assert.Equal("novo@escola.com", created.Email);
             Assert.Equal(new DateOnly(1990, 5, 12), created.DataNascimento);
+            Assert.Equal("Mae Teste", created.NomeMae);
+            Assert.Equal("Pai Teste", created.NomePai);
+            Assert.Equal("Rua Teste, 123", created.Endereco);
             Assert.Equal("Professor", created.DescricaoPerfil);
             Assert.NotEqual(DefaultPasswordPolicy.DefaultPassword, entity.Senha);
             Assert.True(PasswordHasher.VerifyPassword(DefaultPasswordPolicy.DefaultPassword, entity.Senha));
@@ -176,7 +182,10 @@ namespace ESCOLA_API.Tests.Services
                 Nome = "Aluno Atualizado",
                 Email = "aluno.atualizado@escola.com",
                 Telefone = "11999992222",
-                DataNascimento = new DateOnly(2001, 10, 9)
+                DataNascimento = new DateOnly(2001, 10, 9),
+                NomeMae = "Mae Atualizada",
+                NomePai = "Pai Atualizado",
+                Endereco = "Avenida Escola, 456"
             };
 
             var updated = await service.UpdateAsync(12, model, CreatePrincipal(12, PerfilSistema.Aluno));
@@ -185,6 +194,9 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal("Aluno Atualizado", updated!.Nome);
             Assert.Equal("aluno.atualizado@escola.com", updated.Email);
             Assert.Equal(new DateOnly(2001, 10, 9), updated.DataNascimento);
+            Assert.Equal("Mae Atualizada", updated.NomeMae);
+            Assert.Equal("Pai Atualizado", updated.NomePai);
+            Assert.Equal("Avenida Escola, 456", updated.Endereco);
             Assert.Equal(PerfilSistema.AlunoId, updated.IdPerfil);
         }
 

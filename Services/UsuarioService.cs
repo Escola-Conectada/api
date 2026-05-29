@@ -42,6 +42,9 @@ namespace ESCOLA_API.Services
                     Email = usuario.Email,
                     Telefone = usuario.Telefone,
                     DataNascimento = usuario.DataNascimento,
+                    NomeMae = usuario.NomeMae,
+                    NomePai = usuario.NomePai,
+                    Endereco = usuario.Endereco,
                     FotoPerfilUrl = usuario.FotoPerfilUrl,
                     IdPerfil = usuario.IdPerfil,
                     DescricaoPerfil = usuario.Perfil == null ? string.Empty : usuario.Perfil.DescricaoPerfil,
@@ -94,6 +97,9 @@ namespace ESCOLA_API.Services
                 Email = email,
                 Telefone = viewModel.Telefone.Trim(),
                 DataNascimento = viewModel.DataNascimento,
+                NomeMae = NormalizarTextoOpcional(viewModel.NomeMae),
+                NomePai = NormalizarTextoOpcional(viewModel.NomePai),
+                Endereco = NormalizarTextoOpcional(viewModel.Endereco),
                 Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
                 IdPerfil = idPerfil,
                 IdUsuarioCriador = admin?.IdUsuario,
@@ -144,17 +150,34 @@ namespace ESCOLA_API.Services
             ValidarPermissaoAtualizacao(principal, usuario, alterarTipoUsuario);
 
             var atualizacaoPropria = usuario.IdUsuario == GetUsuarioAtualId(principal) && !IsAdministrador(principal);
-            var dadosAnteriores = new DadosPerfilUsuario(usuario.Nome, usuario.Email, usuario.Telefone, usuario.DataNascimento, usuario.IdPerfil);
+            var nomeMae = NormalizarTextoOpcional(viewModel.NomeMae);
+            var nomePai = NormalizarTextoOpcional(viewModel.NomePai);
+            var endereco = NormalizarTextoOpcional(viewModel.Endereco);
+            var dadosAnteriores = new DadosPerfilUsuario(
+                usuario.Nome,
+                usuario.Email,
+                usuario.Telefone,
+                usuario.DataNascimento,
+                usuario.NomeMae,
+                usuario.NomePai,
+                usuario.Endereco,
+                usuario.IdPerfil);
             var dadosCadastraisAlterados =
                 usuario.Nome != viewModel.Nome.Trim()
                 || usuario.Email != email
                 || usuario.Telefone != viewModel.Telefone.Trim()
-                || usuario.DataNascimento != viewModel.DataNascimento;
+                || usuario.DataNascimento != viewModel.DataNascimento
+                || usuario.NomeMae != nomeMae
+                || usuario.NomePai != nomePai
+                || usuario.Endereco != endereco;
 
             usuario.Nome = viewModel.Nome.Trim();
             usuario.Email = email;
             usuario.Telefone = viewModel.Telefone.Trim();
             usuario.DataNascimento = viewModel.DataNascimento;
+            usuario.NomeMae = nomeMae;
+            usuario.NomePai = nomePai;
+            usuario.Endereco = endereco;
 
             if (alterarTipoUsuario)
             {
@@ -214,6 +237,11 @@ namespace ESCOLA_API.Services
             return email.Trim().ToLowerInvariant();
         }
 
+        private static string? NormalizarTextoOpcional(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        }
+
         private static void ValidarPermissaoCadastro(ClaimsPrincipal principal, int idPerfil)
         {
             if (IsAdministrador(principal))
@@ -264,7 +292,7 @@ namespace ESCOLA_API.Services
                 IdUsuario = usuario.IdUsuario,
                 Tipo = "CadastroUsuario",
                 Titulo = "Cadastro criado",
-                Mensagem = $"Seu cadastro foi criado por {nomeCriador}. Dados cadastrados: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}. Voce pode editar seus dados quando achar necessario.",
+                Mensagem = $"Seu cadastro foi criado por {nomeCriador}. Dados cadastrados: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Nome da mae: {FormatarValorOpcional(usuario.NomeMae)}; Nome do pai: {FormatarValorOpcional(usuario.NomePai)}; Endereco: {FormatarValorOpcional(usuario.Endereco)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}. Voce pode editar seus dados quando achar necessario.",
                 Link = $"/usuarios/{usuario.IdUsuario}",
                 CriadaEmUtc = DateTime.UtcNow
             });
@@ -284,8 +312,8 @@ namespace ESCOLA_API.Services
             }
 
             var mensagem = $"O usuario {usuario.Nome} alterou seus dados de perfil. "
-                + $"Dados anteriores: Nome: {dadosAnteriores.Nome}; E-mail: {dadosAnteriores.Email}; Telefone: {dadosAnteriores.Telefone}; Data de nascimento: {FormatarDataNascimento(dadosAnteriores.DataNascimento)}; Perfil: {PerfilSistema.ObterDescricaoPorId(dadosAnteriores.IdPerfil)}. "
-                + $"Dados atuais: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}.";
+                + $"Dados anteriores: Nome: {dadosAnteriores.Nome}; E-mail: {dadosAnteriores.Email}; Telefone: {dadosAnteriores.Telefone}; Data de nascimento: {FormatarDataNascimento(dadosAnteriores.DataNascimento)}; Nome da mae: {FormatarValorOpcional(dadosAnteriores.NomeMae)}; Nome do pai: {FormatarValorOpcional(dadosAnteriores.NomePai)}; Endereco: {FormatarValorOpcional(dadosAnteriores.Endereco)}; Perfil: {PerfilSistema.ObterDescricaoPorId(dadosAnteriores.IdPerfil)}. "
+                + $"Dados atuais: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Nome da mae: {FormatarValorOpcional(usuario.NomeMae)}; Nome do pai: {FormatarValorOpcional(usuario.NomePai)}; Endereco: {FormatarValorOpcional(usuario.Endereco)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}.";
 
             foreach (var administradorId in administradoresIds)
             {
@@ -322,6 +350,19 @@ namespace ESCOLA_API.Services
             return dataNascimento?.ToString("dd/MM/yyyy") ?? "nao informada";
         }
 
-        private sealed record DadosPerfilUsuario(string Nome, string Email, string Telefone, DateOnly? DataNascimento, int IdPerfil);
+        private static string FormatarValorOpcional(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "nao informado" : value.Trim();
+        }
+
+        private sealed record DadosPerfilUsuario(
+            string Nome,
+            string Email,
+            string Telefone,
+            DateOnly? DataNascimento,
+            string? NomeMae,
+            string? NomePai,
+            string? Endereco,
+            int IdPerfil);
     }
 }

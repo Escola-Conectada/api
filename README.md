@@ -166,7 +166,7 @@ O backend usa arquitetura em camadas:
 - `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; consulta seus proprios holerites; cadastra disciplinas; faz lancamentos de notas, presencas e faltas; agenda avaliacoes e entregas de trabalhos nas suas disciplinas.
 - `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas e eventos das disciplinas associadas; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas, frequencia, avaliacoes e trabalhos sao publicados.
 
-No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios. O campo opcional `dataNascimento` usa formato ISO `yyyy-MM-dd`, adequado para Datepicker que permita digitar ou selecionar a data.
+No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios. Os campos opcionais `dataNascimento`, `nomeMae`, `nomePai` e `endereco` ficam no contrato de criacao/edicao e retornam nas consultas. `dataNascimento` usa formato ISO `yyyy-MM-dd`, adequado para Datepicker que permita digitar ou selecionar a data.
 
 Exemplo de evento de disciplina:
 

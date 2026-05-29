@@ -26,6 +26,21 @@ namespace ESCOLA_API.ViewModels
         public DateOnly? DataNascimento { get; set; }
 
         /// <summary>
+        /// Nome da mae do usuario.
+        /// </summary>
+        public string? NomeMae { get; set; }
+
+        /// <summary>
+        /// Nome do pai do usuario.
+        /// </summary>
+        public string? NomePai { get; set; }
+
+        /// <summary>
+        /// Endereco residencial do usuario.
+        /// </summary>
+        public string? Endereco { get; set; }
+
+        /// <summary>
         /// Tipo do usuario: Aluno, Professor ou Administrador.
         /// </summary>
         public string TipoUsuario { get; set; } = string.Empty;
@@ -55,6 +70,21 @@ namespace ESCOLA_API.ViewModels
         /// Data de nascimento do usuario.
         /// </summary>
         public DateOnly? DataNascimento { get; set; }
+
+        /// <summary>
+        /// Nome da mae do usuario.
+        /// </summary>
+        public string? NomeMae { get; set; }
+
+        /// <summary>
+        /// Nome do pai do usuario.
+        /// </summary>
+        public string? NomePai { get; set; }
+
+        /// <summary>
+        /// Endereco residencial do usuario.
+        /// </summary>
+        public string? Endereco { get; set; }
 
         /// <summary>
         /// URL publica da foto de perfil do usuario.
@@ -96,6 +126,21 @@ namespace ESCOLA_API.ViewModels
         /// Data de nascimento do usuario.
         /// </summary>
         public DateOnly? DataNascimento { get; set; }
+
+        /// <summary>
+        /// Nome da mae do usuario.
+        /// </summary>
+        public string? NomeMae { get; set; }
+
+        /// <summary>
+        /// Nome do pai do usuario.
+        /// </summary>
+        public string? NomePai { get; set; }
+
+        /// <summary>
+        /// Endereco residencial do usuario.
+        /// </summary>
+        public string? Endereco { get; set; }
 
         /// <summary>
         /// URL publica da foto de perfil do usuario.

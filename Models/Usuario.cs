@@ -9,6 +9,9 @@ namespace ESCOLA_API.Models
         public string Email { get; set; } = string.Empty;
         public string Telefone { get; set; } = string.Empty;
         public DateOnly? DataNascimento { get; set; }
+        public string? NomeMae { get; set; }
+        public string? NomePai { get; set; }
+        public string? Endereco { get; set; }
         public string Senha { get; set; } = string.Empty;
         public string? FotoPerfilUrl { get; set; }
         public int? IdUsuarioCriador { get; set; }

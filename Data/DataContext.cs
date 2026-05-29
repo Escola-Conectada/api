@@ -52,6 +52,12 @@ namespace ESCOLA_API.Data
                     .HasMaxLength(20);
                 entity.Property(usuario => usuario.DataNascimento)
                     .HasColumnType("date");
+                entity.Property(usuario => usuario.NomeMae)
+                    .HasMaxLength(100);
+                entity.Property(usuario => usuario.NomePai)
+                    .HasMaxLength(100);
+                entity.Property(usuario => usuario.Endereco)
+                    .HasMaxLength(200);
                 entity.Property(usuario => usuario.Senha)
                     .IsRequired()
                     .HasMaxLength(255);
