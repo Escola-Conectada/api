@@ -18,6 +18,9 @@ namespace ESCOLA_API.Data
         public DbSet<Diretoria> Diretorias { get; set; }
         public DbSet<Perfil> Perfis { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<TipoEnsino> TiposEnsino { get; set; }
+        public DbSet<TurmaEnsino> TurmasEnsino { get; set; }
+        public DbSet<AreaConhecimento> AreasConhecimento { get; set; }
         public DbSet<Disciplina> Disciplinas { get; set; }
         public DbSet<DisciplinaEvento> DisciplinaEventos { get; set; }
         public DbSet<CalendarioEscolarEvento> CalendarioEscolarEventos { get; set; }
@@ -107,6 +110,50 @@ namespace ESCOLA_API.Data
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
+            builder.Entity<TipoEnsino>(entity =>
+            {
+                entity.ToTable("TipoEnsino");
+                entity.HasKey(tipo => tipo.IdTipoEnsino);
+                entity.Property(tipo => tipo.Nome)
+                    .IsRequired()
+                    .HasMaxLength(80);
+                entity.HasIndex(tipo => tipo.Nome)
+                    .IsUnique();
+            });
+
+            builder.Entity<TurmaEnsino>(entity =>
+            {
+                entity.ToTable("TurmaEnsino");
+                entity.HasKey(turma => turma.IdTurmaEnsino);
+                entity.Property(turma => turma.Nome)
+                    .IsRequired()
+                    .HasMaxLength(80);
+                entity.Property(turma => turma.Codigo)
+                    .IsRequired()
+                    .HasMaxLength(20);
+                entity.HasIndex(turma => new { turma.IdTipoEnsino, turma.Codigo })
+                    .IsUnique();
+                entity.HasOne(turma => turma.TipoEnsino)
+                    .WithMany(tipo => tipo.Turmas)
+                    .HasForeignKey(turma => turma.IdTipoEnsino)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<AreaConhecimento>(entity =>
+            {
+                entity.ToTable("AreaConhecimento");
+                entity.HasKey(area => area.IdAreaConhecimento);
+                entity.Property(area => area.Nome)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.HasIndex(area => new { area.IdTipoEnsino, area.Nome })
+                    .IsUnique();
+                entity.HasOne(area => area.TipoEnsino)
+                    .WithMany(tipo => tipo.AreasConhecimento)
+                    .HasForeignKey(area => area.IdTipoEnsino)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             builder.Entity<Disciplina>(entity =>
             {
                 entity.ToTable("Disciplina");
@@ -114,11 +161,23 @@ namespace ESCOLA_API.Data
                 entity.Property(disciplina => disciplina.Nome)
                     .IsRequired()
                     .HasMaxLength(100);
-                entity.HasIndex(disciplina => new { disciplina.IdProfessorUsuario, disciplina.Nome })
+                entity.Property(disciplina => disciplina.Observacao)
+                    .HasMaxLength(500);
+                entity.Property(disciplina => disciplina.OfertaObrigatoria)
+                    .HasDefaultValue(true);
+                entity.HasIndex(disciplina => new { disciplina.IdProfessorUsuario, disciplina.IdTurmaEnsino, disciplina.Nome })
                     .IsUnique();
                 entity.HasOne(disciplina => disciplina.ProfessorUsuario)
                     .WithMany(usuario => usuario.DisciplinasMinistradas)
                     .HasForeignKey(disciplina => disciplina.IdProfessorUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(disciplina => disciplina.TurmaEnsino)
+                    .WithMany(turma => turma.Disciplinas)
+                    .HasForeignKey(disciplina => disciplina.IdTurmaEnsino)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(disciplina => disciplina.AreaConhecimento)
+                    .WithMany(area => area.Disciplinas)
+                    .HasForeignKey(disciplina => disciplina.IdAreaConhecimento)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -272,6 +331,168 @@ namespace ESCOLA_API.Data
             builder.Entity<Professor>().HasData(CreateProfessores());
             builder.Entity<Aluno>().HasData(CreateAlunos());
             builder.Entity<Diretoria>().HasData(CreateDiretoria());
+            builder.Entity<TipoEnsino>().HasData(CreateTiposEnsino());
+            builder.Entity<TurmaEnsino>().HasData(CreateTurmasEnsino());
+            builder.Entity<AreaConhecimento>().HasData(CreateAreasConhecimento());
+            builder.Entity<Disciplina>().HasData(CreateDisciplinasCurriculares());
+        }
+
+        private const int TipoEnsinoFundamentalId = 1;
+        private const int TipoEnsinoMedioId = 2;
+        private const int AreaFundamentalLinguagensId = 101;
+        private const int AreaFundamentalMatematicaId = 102;
+        private const int AreaFundamentalCienciasNaturezaId = 103;
+        private const int AreaFundamentalCienciasHumanasId = 104;
+        private const int AreaFundamentalEnsinoReligiosoId = 105;
+        private const int AreaMedioLinguagensId = 201;
+        private const int AreaMedioMatematicaId = 202;
+        private const int AreaMedioCienciasNaturezaId = 203;
+        private const int AreaMedioCienciasHumanasId = 204;
+
+        private static IEnumerable<TipoEnsino> CreateTiposEnsino()
+        {
+            return new[]
+            {
+                new TipoEnsino { IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "Ensino Fundamental", Ordem = 1 },
+                new TipoEnsino { IdTipoEnsino = TipoEnsinoMedioId, Nome = "Ensino Médio", Ordem = 2 }
+            };
+        }
+
+        private static IEnumerable<TurmaEnsino> CreateTurmasEnsino()
+        {
+            return new[]
+            {
+                new TurmaEnsino { IdTurmaEnsino = 101, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "1º ano", Codigo = "EF1", Ordem = 1 },
+                new TurmaEnsino { IdTurmaEnsino = 102, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "2º ano", Codigo = "EF2", Ordem = 2 },
+                new TurmaEnsino { IdTurmaEnsino = 103, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "3º ano", Codigo = "EF3", Ordem = 3 },
+                new TurmaEnsino { IdTurmaEnsino = 104, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "4º ano", Codigo = "EF4", Ordem = 4 },
+                new TurmaEnsino { IdTurmaEnsino = 105, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "5º ano", Codigo = "EF5", Ordem = 5 },
+                new TurmaEnsino { IdTurmaEnsino = 106, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "6º ano", Codigo = "EF6", Ordem = 6 },
+                new TurmaEnsino { IdTurmaEnsino = 107, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "7º ano", Codigo = "EF7", Ordem = 7 },
+                new TurmaEnsino { IdTurmaEnsino = 108, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "8º ano", Codigo = "EF8", Ordem = 8 },
+                new TurmaEnsino { IdTurmaEnsino = 109, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "9º ano", Codigo = "EF9", Ordem = 9 },
+                new TurmaEnsino { IdTurmaEnsino = 201, IdTipoEnsino = TipoEnsinoMedioId, Nome = "1ª série", Codigo = "EM1", Ordem = 1 },
+                new TurmaEnsino { IdTurmaEnsino = 202, IdTipoEnsino = TipoEnsinoMedioId, Nome = "2ª série", Codigo = "EM2", Ordem = 2 },
+                new TurmaEnsino { IdTurmaEnsino = 203, IdTipoEnsino = TipoEnsinoMedioId, Nome = "3ª série", Codigo = "EM3", Ordem = 3 }
+            };
+        }
+
+        private static IEnumerable<AreaConhecimento> CreateAreasConhecimento()
+        {
+            return new[]
+            {
+                new AreaConhecimento { IdAreaConhecimento = AreaFundamentalLinguagensId, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "Linguagens", Ordem = 1 },
+                new AreaConhecimento { IdAreaConhecimento = AreaFundamentalMatematicaId, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "Matemática", Ordem = 2 },
+                new AreaConhecimento { IdAreaConhecimento = AreaFundamentalCienciasNaturezaId, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "Ciências da Natureza", Ordem = 3 },
+                new AreaConhecimento { IdAreaConhecimento = AreaFundamentalCienciasHumanasId, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "Ciências Humanas", Ordem = 4 },
+                new AreaConhecimento { IdAreaConhecimento = AreaFundamentalEnsinoReligiosoId, IdTipoEnsino = TipoEnsinoFundamentalId, Nome = "Ensino Religioso", Ordem = 5 },
+                new AreaConhecimento { IdAreaConhecimento = AreaMedioLinguagensId, IdTipoEnsino = TipoEnsinoMedioId, Nome = "Linguagens e suas Tecnologias", Ordem = 1 },
+                new AreaConhecimento { IdAreaConhecimento = AreaMedioMatematicaId, IdTipoEnsino = TipoEnsinoMedioId, Nome = "Matemática e suas Tecnologias", Ordem = 2 },
+                new AreaConhecimento { IdAreaConhecimento = AreaMedioCienciasNaturezaId, IdTipoEnsino = TipoEnsinoMedioId, Nome = "Ciências da Natureza e suas Tecnologias", Ordem = 3 },
+                new AreaConhecimento { IdAreaConhecimento = AreaMedioCienciasHumanasId, IdTipoEnsino = TipoEnsinoMedioId, Nome = "Ciências Humanas e Sociais Aplicadas", Ordem = 4 }
+            };
+        }
+
+        private static IEnumerable<Disciplina> CreateDisciplinasCurriculares()
+        {
+            var disciplinas = new List<Disciplina>();
+            var idDisciplina = 1001;
+
+            foreach (var idTurma in new[] { 101, 102, 103, 104, 105 })
+            {
+                AddFundamentalDisciplinas(disciplinas, ref idDisciplina, idTurma, incluirLinguaInglesa: false);
+            }
+
+            foreach (var idTurma in new[] { 106, 107, 108, 109 })
+            {
+                AddFundamentalDisciplinas(disciplinas, ref idDisciplina, idTurma, incluirLinguaInglesa: true);
+            }
+
+            foreach (var idTurma in new[] { 201, 202, 203 })
+            {
+                AddMedioDisciplinas(disciplinas, ref idDisciplina, idTurma);
+            }
+
+            return disciplinas;
+        }
+
+        private static void AddFundamentalDisciplinas(
+            List<Disciplina> disciplinas,
+            ref int idDisciplina,
+            int idTurmaEnsino,
+            bool incluirLinguaInglesa)
+        {
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaFundamentalLinguagensId, "Língua Portuguesa", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaFundamentalLinguagensId, "Arte", 2);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaFundamentalLinguagensId, "Educação Física", 3);
+
+            if (incluirLinguaInglesa)
+            {
+                AddDisciplina(
+                    disciplinas,
+                    ref idDisciplina,
+                    idTurmaEnsino,
+                    AreaFundamentalLinguagensId,
+                    "Língua Inglesa",
+                    4,
+                    "Obrigatória a partir do 6º ano.");
+            }
+
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaFundamentalMatematicaId, "Matemática", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaFundamentalCienciasNaturezaId, "Ciências", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaFundamentalCienciasHumanasId, "História", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaFundamentalCienciasHumanasId, "Geografia", 2);
+            AddDisciplina(
+                disciplinas,
+                ref idDisciplina,
+                idTurmaEnsino,
+                AreaFundamentalEnsinoReligiosoId,
+                "Ensino Religioso",
+                1,
+                "Oferta obrigatória pela escola, matrícula facultativa para o aluno.",
+                ofertaObrigatoria: true,
+                matriculaFacultativa: true);
+        }
+
+        private static void AddMedioDisciplinas(List<Disciplina> disciplinas, ref int idDisciplina, int idTurmaEnsino)
+        {
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioLinguagensId, "Língua Portuguesa", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioLinguagensId, "Literatura", 2);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioLinguagensId, "Arte", 3);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioLinguagensId, "Educação Física", 4);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioLinguagensId, "Língua Inglesa", 5);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioMatematicaId, "Matemática", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioCienciasNaturezaId, "Física", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioCienciasNaturezaId, "Química", 2);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioCienciasNaturezaId, "Biologia", 3);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioCienciasHumanasId, "História", 1);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioCienciasHumanasId, "Geografia", 2);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioCienciasHumanasId, "Filosofia", 3);
+            AddDisciplina(disciplinas, ref idDisciplina, idTurmaEnsino, AreaMedioCienciasHumanasId, "Sociologia", 4);
+        }
+
+        private static void AddDisciplina(
+            List<Disciplina> disciplinas,
+            ref int idDisciplina,
+            int idTurmaEnsino,
+            int idAreaConhecimento,
+            string nome,
+            int ordem,
+            string? observacao = null,
+            bool ofertaObrigatoria = true,
+            bool matriculaFacultativa = false)
+        {
+            disciplinas.Add(new Disciplina
+            {
+                IdDisciplina = idDisciplina++,
+                Nome = nome,
+                IdTurmaEnsino = idTurmaEnsino,
+                IdAreaConhecimento = idAreaConhecimento,
+                Observacao = observacao,
+                OfertaObrigatoria = ofertaObrigatoria,
+                MatriculaFacultativa = matriculaFacultativa,
+                Ordem = ordem
+            });
         }
 
         private static IEnumerable<Perfil> CreatePerfis()

@@ -194,6 +194,70 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task GetEstruturaEnsinoAsync_ReturnsSeededCurriculum()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+
+            var estrutura = await service.GetEstruturaEnsinoAsync(CreatePrincipal(1, PerfilSistema.Administrador));
+
+            Assert.Equal(2, estrutura.Length);
+
+            var fundamental = Assert.Single(estrutura, tipo => tipo.Nome == "Ensino Fundamental");
+            Assert.Equal(9, fundamental.Turmas.Length);
+
+            var primeiroAno = Assert.Single(fundamental.Turmas, turma => turma.Codigo == "EF1");
+            Assert.DoesNotContain(
+                primeiroAno.AreasConhecimento.SelectMany(area => area.Disciplinas),
+                disciplina => disciplina.Nome == "Língua Inglesa");
+
+            var sextoAno = Assert.Single(fundamental.Turmas, turma => turma.Codigo == "EF6");
+            Assert.Contains(
+                sextoAno.AreasConhecimento.SelectMany(area => area.Disciplinas),
+                disciplina => disciplina.Nome == "Língua Inglesa");
+
+            var ensinoReligioso = Assert.Single(
+                sextoAno.AreasConhecimento.SelectMany(area => area.Disciplinas),
+                disciplina => disciplina.Nome == "Ensino Religioso");
+            Assert.True(ensinoReligioso.OfertaObrigatoria);
+            Assert.True(ensinoReligioso.MatriculaFacultativa);
+
+            var medio = Assert.Single(estrutura, tipo => tipo.Nome == "Ensino Médio");
+            Assert.Equal(3, medio.Turmas.Length);
+
+            var primeiraSerie = Assert.Single(medio.Turmas, turma => turma.Codigo == "EM1");
+            var disciplinasMedio = primeiraSerie.AreasConhecimento.SelectMany(area => area.Disciplinas).ToArray();
+            Assert.Contains(disciplinasMedio, disciplina => disciplina.Nome == "Física");
+            Assert.Contains(disciplinasMedio, disciplina => disciplina.Nome == "Química");
+            Assert.Contains(disciplinasMedio, disciplina => disciplina.Nome == "Sociologia");
+        }
+
+        [Fact]
+        public async Task AddDisciplinaAsync_WhenTurmaAndAreaBelongToDifferentTipos_ThrowsInvalidOperationException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+                {
+                    Nome = "Projeto Integrador",
+                    IdTurmaEnsino = 101,
+                    IdAreaConhecimento = 201
+                }, CreatePrincipal(2, PerfilSistema.Professor)));
+
+            Assert.Equal("A area de conhecimento deve pertencer ao mesmo tipo de ensino da turma.", exception.Message);
+        }
+
+        [Fact]
         public async Task AddDisciplinaAsync_WhenProfessorTokenDoesNotMatchUsuario_ThrowsInvalidSessionException()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");

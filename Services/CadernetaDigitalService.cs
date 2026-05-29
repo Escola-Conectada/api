@@ -39,6 +39,9 @@ namespace ESCOLA_API.Services
 
             var cadernetas = await query
                 .OrderBy(caderneta => caderneta.AlunoUsuario!.Nome)
+                .ThenBy(caderneta => caderneta.Disciplina!.TurmaEnsino!.TipoEnsino!.Ordem)
+                .ThenBy(caderneta => caderneta.Disciplina!.TurmaEnsino!.Ordem)
+                .ThenBy(caderneta => caderneta.Disciplina!.AreaConhecimento!.Ordem)
                 .ThenBy(caderneta => caderneta.Disciplina!.Nome)
                 .ToArrayAsync();
 
@@ -182,6 +185,9 @@ namespace ESCOLA_API.Services
         {
             var query = _context.Disciplinas
                 .Include(disciplina => disciplina.ProfessorUsuario)
+                .Include(disciplina => disciplina.TurmaEnsino)
+                    .ThenInclude(turma => turma!.TipoEnsino)
+                .Include(disciplina => disciplina.AreaConhecimento)
                 .AsNoTracking();
 
             if (IsProfessor(principal))
@@ -201,10 +207,98 @@ namespace ESCOLA_API.Services
             }
 
             var disciplinas = await query
-                .OrderBy(disciplina => disciplina.Nome)
+                .OrderBy(disciplina => disciplina.TurmaEnsino!.TipoEnsino!.Ordem)
+                .ThenBy(disciplina => disciplina.TurmaEnsino!.Ordem)
+                .ThenBy(disciplina => disciplina.AreaConhecimento!.Ordem)
+                .ThenBy(disciplina => disciplina.Nome)
                 .ToArrayAsync();
 
             return disciplinas.Select(ToViewModel).ToArray();
+        }
+
+        public async Task<TipoEnsinoCurricularViewModel[]> GetEstruturaEnsinoAsync(ClaimsPrincipal principal)
+        {
+            if (!IsAdministrador(principal) && !IsProfessor(principal) && !IsAluno(principal))
+            {
+                throw new UnauthorizedAccessException("Usuario nao autorizado a consultar a estrutura de ensino.");
+            }
+
+            var disciplinas = await _context.Disciplinas
+                .Include(disciplina => disciplina.TurmaEnsino)
+                    .ThenInclude(turma => turma!.TipoEnsino)
+                .Include(disciplina => disciplina.AreaConhecimento)
+                .AsNoTracking()
+                .Where(disciplina =>
+                    disciplina.IdProfessorUsuario == null
+                    && disciplina.IdTurmaEnsino != null
+                    && disciplina.IdAreaConhecimento != null)
+                .OrderBy(disciplina => disciplina.TurmaEnsino!.TipoEnsino!.Ordem)
+                .ThenBy(disciplina => disciplina.TurmaEnsino!.Ordem)
+                .ThenBy(disciplina => disciplina.AreaConhecimento!.Ordem)
+                .ThenBy(disciplina => disciplina.Ordem)
+                .ThenBy(disciplina => disciplina.Nome)
+                .ToArrayAsync();
+
+            return disciplinas
+                .GroupBy(disciplina => new
+                {
+                    disciplina.TurmaEnsino!.TipoEnsino!.IdTipoEnsino,
+                    disciplina.TurmaEnsino.TipoEnsino.Nome,
+                    disciplina.TurmaEnsino.TipoEnsino.Ordem
+                })
+                .OrderBy(group => group.Key.Ordem)
+                .Select(tipoGroup => new TipoEnsinoCurricularViewModel
+                {
+                    IdTipoEnsino = tipoGroup.Key.IdTipoEnsino,
+                    Nome = tipoGroup.Key.Nome,
+                    Ordem = tipoGroup.Key.Ordem,
+                    Turmas = tipoGroup
+                        .GroupBy(disciplina => new
+                        {
+                            disciplina.TurmaEnsino!.IdTurmaEnsino,
+                            disciplina.TurmaEnsino.Nome,
+                            disciplina.TurmaEnsino.Codigo,
+                            disciplina.TurmaEnsino.Ordem
+                        })
+                        .OrderBy(group => group.Key.Ordem)
+                        .Select(turmaGroup => new TurmaEnsinoCurricularViewModel
+                        {
+                            IdTurmaEnsino = turmaGroup.Key.IdTurmaEnsino,
+                            Nome = turmaGroup.Key.Nome,
+                            Codigo = turmaGroup.Key.Codigo,
+                            Ordem = turmaGroup.Key.Ordem,
+                            AreasConhecimento = turmaGroup
+                                .GroupBy(disciplina => new
+                                {
+                                    disciplina.AreaConhecimento!.IdAreaConhecimento,
+                                    disciplina.AreaConhecimento.Nome,
+                                    disciplina.AreaConhecimento.Ordem
+                                })
+                                .OrderBy(group => group.Key.Ordem)
+                                .Select(areaGroup => new AreaConhecimentoCurricularViewModel
+                                {
+                                    IdAreaConhecimento = areaGroup.Key.IdAreaConhecimento,
+                                    Nome = areaGroup.Key.Nome,
+                                    Ordem = areaGroup.Key.Ordem,
+                                    Disciplinas = areaGroup
+                                        .OrderBy(disciplina => disciplina.Ordem)
+                                        .ThenBy(disciplina => disciplina.Nome)
+                                        .Select(disciplina => new DisciplinaCurricularViewModel
+                                        {
+                                            IdDisciplina = disciplina.IdDisciplina,
+                                            Nome = disciplina.Nome,
+                                            Observacao = disciplina.Observacao,
+                                            OfertaObrigatoria = disciplina.OfertaObrigatoria,
+                                            MatriculaFacultativa = disciplina.MatriculaFacultativa,
+                                            Ordem = disciplina.Ordem
+                                        })
+                                        .ToArray()
+                                })
+                                .ToArray()
+                        })
+                        .ToArray()
+                })
+                .ToArray();
         }
 
         public async Task<DisciplinaViewModel> AddDisciplinaAsync(DisciplinaCreateUpdateViewModel viewModel, ClaimsPrincipal principal)
@@ -212,7 +306,8 @@ namespace ESCOLA_API.Services
             var usuarioId = await ValidarProfessorAsync(principal);
             var nome = viewModel.Nome.Trim();
 
-            var jaExiste = await DisciplinaJaExisteAsync(nome);
+            await ValidarEstruturaCurricularAsync(viewModel.IdTurmaEnsino, viewModel.IdAreaConhecimento);
+            var jaExiste = await DisciplinaJaExisteAsync(nome, usuarioId, viewModel.IdTurmaEnsino);
 
             if (jaExiste)
             {
@@ -222,7 +317,12 @@ namespace ESCOLA_API.Services
             var disciplina = new Disciplina
             {
                 Nome = nome,
-                IdProfessorUsuario = usuarioId
+                IdProfessorUsuario = usuarioId,
+                IdTurmaEnsino = viewModel.IdTurmaEnsino,
+                IdAreaConhecimento = viewModel.IdAreaConhecimento,
+                Observacao = NormalizarTextoOpcional(viewModel.Observacao),
+                OfertaObrigatoria = viewModel.OfertaObrigatoria,
+                MatriculaFacultativa = viewModel.MatriculaFacultativa
             };
 
             _context.Disciplinas.Add(disciplina);
@@ -230,6 +330,9 @@ namespace ESCOLA_API.Services
 
             var created = await _context.Disciplinas
                 .Include(item => item.ProfessorUsuario)
+                .Include(item => item.TurmaEnsino)
+                    .ThenInclude(turma => turma!.TipoEnsino)
+                .Include(item => item.AreaConhecimento)
                 .AsNoTracking()
                 .FirstAsync(item => item.IdDisciplina == disciplina.IdDisciplina);
 
@@ -253,7 +356,8 @@ namespace ESCOLA_API.Services
             }
 
             var nome = viewModel.Nome.Trim();
-            var jaExiste = await DisciplinaJaExisteAsync(nome, disciplinaId);
+            await ValidarEstruturaCurricularAsync(viewModel.IdTurmaEnsino, viewModel.IdAreaConhecimento);
+            var jaExiste = await DisciplinaJaExisteAsync(nome, usuarioId, viewModel.IdTurmaEnsino, disciplinaId);
 
             if (jaExiste)
             {
@@ -261,10 +365,18 @@ namespace ESCOLA_API.Services
             }
 
             disciplina.Nome = nome;
+            disciplina.IdTurmaEnsino = viewModel.IdTurmaEnsino;
+            disciplina.IdAreaConhecimento = viewModel.IdAreaConhecimento;
+            disciplina.Observacao = NormalizarTextoOpcional(viewModel.Observacao);
+            disciplina.OfertaObrigatoria = viewModel.OfertaObrigatoria;
+            disciplina.MatriculaFacultativa = viewModel.MatriculaFacultativa;
             await SaveChangesAsync("Disciplina ja cadastrada.");
 
             var updated = await _context.Disciplinas
                 .Include(item => item.ProfessorUsuario)
+                .Include(item => item.TurmaEnsino)
+                    .ThenInclude(turma => turma!.TipoEnsino)
+                .Include(item => item.AreaConhecimento)
                 .AsNoTracking()
                 .FirstAsync(item => item.IdDisciplina == disciplinaId);
 
@@ -298,6 +410,11 @@ namespace ESCOLA_API.Services
                 .Include(caderneta => caderneta.AlunoUsuario)
                 .Include(caderneta => caderneta.Disciplina)
                     .ThenInclude(disciplina => disciplina!.ProfessorUsuario)
+                .Include(caderneta => caderneta.Disciplina)
+                    .ThenInclude(disciplina => disciplina!.TurmaEnsino)
+                    .ThenInclude(turma => turma!.TipoEnsino)
+                .Include(caderneta => caderneta.Disciplina)
+                    .ThenInclude(disciplina => disciplina!.AreaConhecimento)
                 .AsNoTracking();
         }
 
@@ -307,14 +424,60 @@ namespace ESCOLA_API.Services
                 .FirstOrDefaultAsync(disciplina => disciplina.IdDisciplina == disciplinaId && disciplina.IdProfessorUsuario == usuarioId);
         }
 
-        private async Task<bool> DisciplinaJaExisteAsync(string nome, int? ignorarDisciplinaId = null)
+        private async Task<bool> DisciplinaJaExisteAsync(
+            string nome,
+            int idProfessorUsuario,
+            int? idTurmaEnsino,
+            int? ignorarDisciplinaId = null)
         {
             var nomeNormalizado = NormalizarNomeParaComparacao(nome);
 
             return await _context.Disciplinas
                 .AnyAsync(disciplina =>
                     (!ignorarDisciplinaId.HasValue || disciplina.IdDisciplina != ignorarDisciplinaId.Value)
+                    && disciplina.IdProfessorUsuario == idProfessorUsuario
+                    && disciplina.IdTurmaEnsino == idTurmaEnsino
                     && disciplina.Nome.Trim().ToUpper() == nomeNormalizado);
+        }
+
+        private async Task ValidarEstruturaCurricularAsync(int? idTurmaEnsino, int? idAreaConhecimento)
+        {
+            if (!idTurmaEnsino.HasValue && !idAreaConhecimento.HasValue)
+            {
+                return;
+            }
+
+            TurmaEnsino? turma = null;
+            AreaConhecimento? area = null;
+
+            if (idTurmaEnsino.HasValue)
+            {
+                turma = await _context.TurmasEnsino
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(item => item.IdTurmaEnsino == idTurmaEnsino.Value);
+
+                if (turma == null)
+                {
+                    throw new InvalidOperationException("Turma de ensino nao encontrada.");
+                }
+            }
+
+            if (idAreaConhecimento.HasValue)
+            {
+                area = await _context.AreasConhecimento
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(item => item.IdAreaConhecimento == idAreaConhecimento.Value);
+
+                if (area == null)
+                {
+                    throw new InvalidOperationException("Area de conhecimento nao encontrada.");
+                }
+            }
+
+            if (turma != null && area != null && turma.IdTipoEnsino != area.IdTipoEnsino)
+            {
+                throw new InvalidOperationException("A area de conhecimento deve pertencer ao mesmo tipo de ensino da turma.");
+            }
         }
 
         private async Task CriarNotificacaoLancamentoAsync(CadernetaDigitalViewModel caderneta, string operacao)
@@ -369,6 +532,11 @@ namespace ESCOLA_API.Services
         private static string NormalizarNomeParaComparacao(string nome)
         {
             return nome.Trim().ToUpperInvariant();
+        }
+
+        private static string? NormalizarTextoOpcional(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
 
         private static string FormatarDecimalPtBr(decimal valor)
@@ -427,8 +595,14 @@ namespace ESCOLA_API.Services
                 EmailAluno = caderneta.AlunoUsuario?.Email ?? string.Empty,
                 IdDisciplina = caderneta.IdDisciplina,
                 NomeDisciplina = caderneta.Disciplina?.Nome ?? string.Empty,
-                IdProfessorUsuario = caderneta.Disciplina?.IdProfessorUsuario ?? 0,
+                IdProfessorUsuario = caderneta.Disciplina?.IdProfessorUsuario,
                 NomeProfessor = caderneta.Disciplina?.ProfessorUsuario?.Nome ?? string.Empty,
+                IdTipoEnsino = caderneta.Disciplina?.TurmaEnsino?.IdTipoEnsino,
+                NomeTipoEnsino = caderneta.Disciplina?.TurmaEnsino?.TipoEnsino?.Nome,
+                IdTurmaEnsino = caderneta.Disciplina?.IdTurmaEnsino,
+                NomeTurmaEnsino = caderneta.Disciplina?.TurmaEnsino?.Nome,
+                IdAreaConhecimento = caderneta.Disciplina?.IdAreaConhecimento,
+                NomeAreaConhecimento = caderneta.Disciplina?.AreaConhecimento?.Nome,
                 Notas = notas,
                 MediaAritmetica = media,
                 Situacao = situacao.Label,
@@ -445,7 +619,17 @@ namespace ESCOLA_API.Services
                 IdDisciplina = disciplina.IdDisciplina,
                 Nome = disciplina.Nome,
                 IdProfessorUsuario = disciplina.IdProfessorUsuario,
-                NomeProfessor = disciplina.ProfessorUsuario?.Nome ?? string.Empty
+                NomeProfessor = disciplina.ProfessorUsuario?.Nome ?? string.Empty,
+                IdTipoEnsino = disciplina.TurmaEnsino?.IdTipoEnsino,
+                NomeTipoEnsino = disciplina.TurmaEnsino?.TipoEnsino?.Nome,
+                IdTurmaEnsino = disciplina.IdTurmaEnsino,
+                NomeTurmaEnsino = disciplina.TurmaEnsino?.Nome,
+                IdAreaConhecimento = disciplina.IdAreaConhecimento,
+                NomeAreaConhecimento = disciplina.AreaConhecimento?.Nome,
+                Observacao = disciplina.Observacao,
+                OfertaObrigatoria = disciplina.OfertaObrigatoria,
+                MatriculaFacultativa = disciplina.MatriculaFacultativa,
+                Ordem = disciplina.Ordem
             };
         }
 

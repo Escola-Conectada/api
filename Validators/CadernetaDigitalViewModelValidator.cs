@@ -11,6 +11,19 @@ namespace ESCOLA_API.Validators
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("O nome da disciplina e obrigatorio.")
                 .MaximumLength(100).WithMessage("O nome da disciplina deve ter no maximo 100 caracteres.");
+
+            RuleFor(model => model.IdTurmaEnsino)
+                .GreaterThan(0)
+                .When(model => model.IdTurmaEnsino.HasValue)
+                .WithMessage("Informe uma turma de ensino valida.");
+
+            RuleFor(model => model.IdAreaConhecimento)
+                .GreaterThan(0)
+                .When(model => model.IdAreaConhecimento.HasValue)
+                .WithMessage("Informe uma area de conhecimento valida.");
+
+            RuleFor(model => model.Observacao)
+                .MaximumLength(500).WithMessage("A observacao deve ter no maximo 500 caracteres.");
         }
     }
 

@@ -47,7 +47,7 @@ namespace ESCOLA_API.Services
                     EmailAluno = caderneta.EmailAluno,
                     IdDisciplina = caderneta.IdDisciplina,
                     NomeDisciplina = caderneta.NomeDisciplina,
-                    IdProfessorUsuario = caderneta.IdProfessorUsuario,
+                    IdProfessorUsuario = caderneta.IdProfessorUsuario ?? 0,
                     NomeProfessor = caderneta.NomeProfessor,
                     Notas = caderneta.Notas,
                     MediaAritmetica = caderneta.MediaAritmetica,

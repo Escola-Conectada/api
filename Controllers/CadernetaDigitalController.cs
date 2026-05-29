@@ -184,6 +184,30 @@ namespace ESCOLA_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Lista a estrutura curricular por tipo de ensino, turma/ano-serie, area de conhecimento e disciplina.
+        /// </summary>
+        [HttpGet("estrutura-ensino")]
+        [ProducesResponseType(typeof(TipoEnsinoCurricularViewModel[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetEstruturaEnsino()
+        {
+            try
+            {
+                return Ok(await _service.GetEstruturaEnsinoAsync(User));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter estrutura de ensino");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
         [HttpPost("disciplinas")]
         [ProducesResponseType(typeof(DisciplinaViewModel), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

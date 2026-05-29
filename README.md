@@ -160,7 +160,7 @@ O backend usa arquitetura em camadas:
 | Holerites | `GET /api/holerites/me`, `GET /api/holerites/me/{holeriteId}/download`, `GET /api/holerites/usuarios/{usuarioId}`, `POST /api/holerites/usuarios/{usuarioId}`, `GET /api/holerites/usuarios/{usuarioId}/{holeriteId}/download`, `DELETE /api/holerites/usuarios/{usuarioId}/{holeriteId}` |
 | Calendario Escolar | `GET /api/calendario-escolar?ano=2026&mesSelecionado=5` |
 | Caderneta Digital | `GET /api/caderneta-digital`, `GET /api/caderneta-digital/{id}`, `POST /api/caderneta-digital`, `PUT /api/caderneta-digital/{id}`, `DELETE /api/caderneta-digital/{id}` |
-| Disciplinas | `GET /api/caderneta-digital/disciplinas`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
+| Disciplinas | `GET /api/caderneta-digital/disciplinas`, `GET /api/caderneta-digital/estrutura-ensino`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
 | Eventos de disciplinas | `GET /api/caderneta-digital/disciplinas/eventos`, `POST /api/caderneta-digital/disciplinas/{disciplinaId}/eventos`, `PUT /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}`, `DELETE /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}` |
 | Notificacoes | `GET /api/notificacoes`, `GET /api/notificacoes/nao-lidas/contador`, `POST /api/notificacoes`, `POST /api/notificacoes/perfis`, `PATCH /api/notificacoes/{id}/lida`, `PATCH /api/notificacoes/lidas` |
 | Paginas legais | `GET /legal/privacidade`, `GET /legal/suporte`, `GET /legal/exclusao-conta`, `POST /conta/exclusao` |
@@ -189,6 +189,8 @@ O endpoint de QR Code retorna dados bancarios ficticios, `qrCodeBase64`, `qrCode
 O endpoint de QR Code e exclusivo para usuarios com perfil `Aluno`. Professores e administradores nao acessam esse recurso; para funcionarios, a API disponibiliza holerites em PDF com listagem e download autenticados. O envio e a exclusao de holerites sao operacoes exclusivas de administradores, e holerites nao podem ser vinculados a alunos.
 
 Quando o professor cria ou atualiza uma avaliacao/trabalho em uma disciplina, a API identifica os alunos matriculados pela caderneta digital e cria notificacoes individuais para eles em `/api/notificacoes`.
+
+A estrutura curricular fica disponivel em `GET /api/caderneta-digital/estrutura-ensino`, organizada como tipo de ensino, turma/ano-serie, area de conhecimento e disciplinas. A carga inicial inclui Ensino Fundamental do 1º ao 9º ano e Ensino Medio da 1ª a 3ª serie, com Lingua Inglesa no Fundamental a partir do 6º ano e Ensino Religioso marcado como oferta obrigatoria e matricula facultativa. As disciplinas de catalogo sao gravadas sem professor; as disciplinas criadas por professores continuam vinculadas ao usuario professor para caderneta e eventos.
 
 O fluxo `POST /api/Auth/esqueci-senha` gera um token temporario de redefinicao em vez de trocar a senha para uma senha padrao. Em desenvolvimento, o token volta na resposta para facilitar testes locais. Em producao, integre esse token a um provedor de email/SMS antes de publicar o app.
 
