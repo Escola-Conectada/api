@@ -83,6 +83,8 @@ namespace ESCOLA_API.Services
                 throw new InvalidOperationException("Aluno nao encontrado.");
             }
 
+            await ValidarMatriculaAlunoTurmaAsync(aluno.IdUsuario, viewModel.IdTurmaEnsino);
+
             var jaAssociado = await _context.CadernetasDigitais
                 .AnyAsync(caderneta => caderneta.IdAlunoUsuario == aluno.IdUsuario && caderneta.IdDisciplina == disciplina.IdDisciplina);
 
@@ -144,6 +146,8 @@ namespace ESCOLA_API.Services
             {
                 throw new InvalidOperationException("Aluno nao encontrado.");
             }
+
+            await ValidarMatriculaAlunoTurmaAsync(aluno.IdUsuario, viewModel.IdTurmaEnsino);
 
             var jaAssociado = await _context.CadernetasDigitais
                 .AnyAsync(item =>
@@ -596,6 +600,23 @@ namespace ESCOLA_API.Services
         {
             return await _context.Usuarios
                 .FirstOrDefaultAsync(usuario => usuario.IdUsuario == alunoUsuarioId && usuario.IdPerfil == PerfilSistema.AlunoId);
+        }
+
+        private async Task ValidarMatriculaAlunoTurmaAsync(int alunoUsuarioId, int turmaEnsinoId)
+        {
+            var matricula = await _context.AlunosTurmasEnsino
+                .AsNoTracking()
+                .FirstOrDefaultAsync(item => item.IdAlunoUsuario == alunoUsuarioId);
+
+            if (matricula == null)
+            {
+                throw new InvalidOperationException("Aluno nao matriculado em nenhuma turma.");
+            }
+
+            if (matricula.IdTurmaEnsino != turmaEnsinoId)
+            {
+                throw new InvalidOperationException("Aluno nao matriculado na turma informada.");
+            }
         }
 
         private static bool PodeConsultar(ClaimsPrincipal principal, CadernetaDigital caderneta)

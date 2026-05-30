@@ -11,5 +11,6 @@ namespace ESCOLA_API.Models
         public string Codigo { get; set; } = string.Empty;
         public int Ordem { get; set; }
         public List<Disciplina> Disciplinas { get; set; } = new();
+        public List<AlunoTurmaEnsino> AlunosMatriculados { get; set; } = new();
     }
 }

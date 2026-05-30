@@ -27,6 +27,7 @@ namespace ESCOLA_API.Models
         public List<Professor> Professores { get; set; } = new();
         public List<Diretoria> Diretorias { get; set; } = new();
         public List<Disciplina> DisciplinasMinistradas { get; set; } = new();
+        public List<AlunoTurmaEnsino> MatriculasTurma { get; set; } = new();
         public List<CadernetaDigital> CadernetasComoAluno { get; set; } = new();
         public List<UsuarioArquivo> Arquivos { get; set; } = new();
         public List<Holerite> Holerites { get; set; } = new();

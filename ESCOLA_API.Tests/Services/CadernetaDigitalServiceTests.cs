@@ -22,6 +22,7 @@ namespace ESCOLA_API.Tests.Services
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Matematica"), professor);
+            await MatricularAlunoAsync(context, 12, 106);
 
             var created = await service.AddAsync(
                 CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 8.5m, 9m }, 18, 2),
@@ -75,6 +76,7 @@ namespace ESCOLA_API.Tests.Services
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Matematica"), professor);
+            await MatricularAlunoAsync(context, 12, 106);
 
             var created = await service.AddAsync(
                 CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 8m, 9m }, 20, 1),
@@ -148,6 +150,7 @@ namespace ESCOLA_API.Tests.Services
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Portugues"), professor);
+            await MatricularAlunoAsync(context, 12, 106);
 
             await service.AddAsync(
                 CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 7m }, 10, 1),
@@ -170,6 +173,7 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
+            await MatricularAlunoAsync(context, 12, 106);
 
             var created = await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
             {
@@ -215,6 +219,27 @@ namespace ESCOLA_API.Tests.Services
                 }, CreatePrincipal(2, PerfilSistema.Professor)));
 
             Assert.Equal("Disciplina nao encontrada para o tipo de ensino e turma informados.", exception.Message);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenAlunoIsNotMatriculadoInTurma_ThrowsInvalidOperationException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+            var professor = CreatePrincipal(2, PerfilSistema.Professor);
+            var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Matematica"), professor);
+            await MatricularAlunoAsync(context, 12, 107);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.AddAsync(
+                    CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 8m }, 10, 1),
+                    professor));
+
+            Assert.Equal("Aluno nao matriculado na turma informada.", exception.Message);
         }
 
         [Fact]
@@ -337,6 +362,7 @@ namespace ESCOLA_API.Tests.Services
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var matematica = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Matematica"), professor);
             var portugues = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Portugues"), professor);
+            await MatricularAlunoAsync(context, 12, 106);
 
             await service.AddAsync(
                 CriarLancamentoPayload(12, matematica.IdDisciplina, new[] { 8m }, 10, 1),
@@ -363,6 +389,7 @@ namespace ESCOLA_API.Tests.Services
             var service = new CadernetaDigitalService(context);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var disciplina = await service.AddDisciplinaAsync(CriarDisciplinaPayload("Ciencias"), professor);
+            await MatricularAlunoAsync(context, 12, 106);
             var payload = CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 8m }, 10, 1);
 
             await service.AddAsync(payload, professor);
@@ -451,10 +478,24 @@ namespace ESCOLA_API.Tests.Services
             var disciplina = await service.AddDisciplinaAsync(
                 CriarDisciplinaPayload($"Disciplina {Guid.NewGuid():N}"),
                 professor);
+            await MatricularAlunoAsync(context, 12, 106);
 
             return await service.AddAsync(
                 CriarLancamentoPayload(12, disciplina.IdDisciplina, notas, 20, faltas),
                 professor);
+        }
+
+        private static async Task MatricularAlunoAsync(DataContext context, int idAlunoUsuario, int idTurmaEnsino)
+        {
+            context.AlunosTurmasEnsino.Add(new AlunoTurmaEnsino
+            {
+                IdAlunoUsuario = idAlunoUsuario,
+                IdTurmaEnsino = idTurmaEnsino,
+                IdUsuarioResponsavel = 1,
+                MatriculadoEmUtc = DateTime.UtcNow
+            });
+
+            await context.SaveChangesAsync();
         }
 
     }

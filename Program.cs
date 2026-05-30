@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -37,6 +38,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UsuarioCreateViewModelValid
 builder.Services.AddCors();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IAlunoTurmaEnsinoService, AlunoTurmaEnsinoService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
 builder.Services.AddScoped<IDisciplinaEventoService, DisciplinaEventoService>();
 builder.Services.AddScoped<ICalendarioEscolarService, CalendarioEscolarService>();
@@ -154,6 +156,7 @@ using (var scope = app.Services.CreateScope())
         if (db.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
         {
             db.Database.EnsureCreated();
+            await EnsureSqliteAlunoTurmaEnsinoAsync(db);
         }
         else
         {
@@ -365,4 +368,120 @@ static async Task EnsurePerfisSistemaAsync(DataContext db)
     }
 
     await db.SaveChangesAsync();
+}
+
+static async Task EnsureSqliteAlunoTurmaEnsinoAsync(DataContext db)
+{
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS "AlunoTurmaEnsino" (
+            "IdAlunoTurmaEnsino" INTEGER NOT NULL CONSTRAINT "PK_AlunoTurmaEnsino" PRIMARY KEY AUTOINCREMENT,
+            "IdAlunoUsuario" INTEGER NOT NULL,
+            "IdTurmaEnsino" INTEGER NOT NULL,
+            "IdUsuarioResponsavel" INTEGER NULL,
+            "MatriculadoEmUtc" TEXT NOT NULL,
+            CONSTRAINT "FK_AlunoTurmaEnsino_TurmaEnsino_IdTurmaEnsino" FOREIGN KEY ("IdTurmaEnsino") REFERENCES "TurmaEnsino" ("IdTurmaEnsino") ON DELETE RESTRICT,
+            CONSTRAINT "FK_AlunoTurmaEnsino_Usuario_IdAlunoUsuario" FOREIGN KEY ("IdAlunoUsuario") REFERENCES "Usuario" ("IdUsuario") ON DELETE RESTRICT,
+            CONSTRAINT "FK_AlunoTurmaEnsino_Usuario_IdUsuarioResponsavel" FOREIGN KEY ("IdUsuarioResponsavel") REFERENCES "Usuario" ("IdUsuario") ON DELETE SET NULL
+        );
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_AlunoTurmaEnsino_IdAlunoUsuario"
+            ON "AlunoTurmaEnsino" ("IdAlunoUsuario");
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE INDEX IF NOT EXISTS "IX_AlunoTurmaEnsino_IdTurmaEnsino"
+            ON "AlunoTurmaEnsino" ("IdTurmaEnsino");
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE INDEX IF NOT EXISTS "IX_AlunoTurmaEnsino_IdUsuarioResponsavel"
+            ON "AlunoTurmaEnsino" ("IdUsuarioResponsavel");
+        """);
+
+    if (await SqliteTableExistsAsync(db, "CadernetaDigital") && await SqliteTableExistsAsync(db, "Usuario"))
+    {
+        await ExecuteSqliteSchemaCommandAsync(
+            db,
+            """
+            INSERT OR IGNORE INTO "AlunoTurmaEnsino" ("IdAlunoUsuario", "IdTurmaEnsino", "IdUsuarioResponsavel", "MatriculadoEmUtc")
+            SELECT
+                caderneta."IdAlunoUsuario",
+                MIN(caderneta."IdTurmaEnsino"),
+                MIN(caderneta."IdProfessorUsuario"),
+                CURRENT_TIMESTAMP
+            FROM "CadernetaDigital" AS caderneta
+            INNER JOIN "Usuario" AS aluno
+                ON aluno."IdUsuario" = caderneta."IdAlunoUsuario"
+                AND aluno."IdPerfil" = 3
+            WHERE caderneta."IdTurmaEnsino" IS NOT NULL
+            GROUP BY caderneta."IdAlunoUsuario";
+            """);
+    }
+}
+
+static async Task<bool> SqliteTableExistsAsync(DataContext db, string tableName)
+{
+    var connection = db.Database.GetDbConnection();
+    var shouldCloseConnection = connection.State == ConnectionState.Closed;
+
+    if (shouldCloseConnection)
+    {
+        await connection.OpenAsync();
+    }
+
+    try
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = $tableName;";
+
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "$tableName";
+        parameter.Value = tableName;
+        command.Parameters.Add(parameter);
+
+        var result = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(result) > 0;
+    }
+    finally
+    {
+        if (shouldCloseConnection)
+        {
+            await connection.CloseAsync();
+        }
+    }
+}
+
+static async Task ExecuteSqliteSchemaCommandAsync(DataContext db, string commandText)
+{
+    var connection = db.Database.GetDbConnection();
+    var shouldCloseConnection = connection.State == ConnectionState.Closed;
+
+    if (shouldCloseConnection)
+    {
+        await connection.OpenAsync();
+    }
+
+    try
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = commandText;
+        await command.ExecuteNonQueryAsync();
+    }
+    finally
+    {
+        if (shouldCloseConnection)
+        {
+            await connection.CloseAsync();
+        }
+    }
 }

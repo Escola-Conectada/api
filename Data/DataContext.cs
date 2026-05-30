@@ -20,6 +20,7 @@ namespace ESCOLA_API.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<TipoEnsino> TiposEnsino { get; set; }
         public DbSet<TurmaEnsino> TurmasEnsino { get; set; }
+        public DbSet<AlunoTurmaEnsino> AlunosTurmasEnsino { get; set; }
         public DbSet<AreaConhecimento> AreasConhecimento { get; set; }
         public DbSet<Disciplina> Disciplinas { get; set; }
         public DbSet<DisciplinaEvento> DisciplinaEventos { get; set; }
@@ -137,6 +138,29 @@ namespace ESCOLA_API.Data
                     .WithMany(tipo => tipo.Turmas)
                     .HasForeignKey(turma => turma.IdTipoEnsino)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<AlunoTurmaEnsino>(entity =>
+            {
+                entity.ToTable("AlunoTurmaEnsino");
+                entity.HasKey(matricula => matricula.IdAlunoTurmaEnsino);
+                entity.Property(matricula => matricula.MatriculadoEmUtc)
+                    .IsRequired();
+                entity.HasIndex(matricula => matricula.IdAlunoUsuario)
+                    .IsUnique();
+                entity.HasIndex(matricula => matricula.IdTurmaEnsino);
+                entity.HasOne(matricula => matricula.AlunoUsuario)
+                    .WithMany(usuario => usuario.MatriculasTurma)
+                    .HasForeignKey(matricula => matricula.IdAlunoUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(matricula => matricula.TurmaEnsino)
+                    .WithMany(turma => turma.AlunosMatriculados)
+                    .HasForeignKey(matricula => matricula.IdTurmaEnsino)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(matricula => matricula.UsuarioResponsavel)
+                    .WithMany()
+                    .HasForeignKey(matricula => matricula.IdUsuarioResponsavel)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             builder.Entity<AreaConhecimento>(entity =>
