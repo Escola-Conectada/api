@@ -33,9 +33,13 @@ services:
         value: arquivos
       - key: AzureBlob__PublicBaseUrl
         sync: false
-      - key: ServiceBus__ConnectionString
+      - key: QueueStorage__ConnectionString
         sync: false
-      - key: ServiceBus__QueueName
+      - key: QueueStorage__QueueName
         value: notificacoes
-      - key: ServiceBus__ConsumerEnabled
+      - key: QueueStorage__ConsumerEnabled
         value: "true"
+      - key: QueueStorage__MaxDequeueCount
+        value: "5"
+      - key: QueueStorage__PollingIntervalSeconds
+        value: "5"

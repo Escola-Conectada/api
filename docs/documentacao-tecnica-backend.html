@@ -338,7 +338,7 @@
     <tr><td>Swashbuckle.AspNetCore</td><td><code>10.1.7</code></td><td>Swagger/OpenAPI e Swagger UI.</td></tr>
     <tr><td>Scalar.AspNetCore</td><td><code>2.14.14</code></td><td>Documentacao interativa alternativa em <code>/scalar</code>.</td></tr>
     <tr><td>QRCoder</td><td><code>1.8.0</code></td><td>Geracao de QR Code PNG para dados bancarios ficticios do aluno.</td></tr>
-    <tr><td>Azure.Messaging.ServiceBus</td><td><code>7.20.1</code></td><td>Consumo opcional de eventos de notificacao.</td></tr>
+    <tr><td>Azure.Storage.Queues</td><td><code>12.26.0</code></td><td>Mensageria opcional de notificacoes da caderneta digital.</td></tr>
     <tr><td>Azure.Storage.Blobs</td><td><code>12.28.0</code></td><td>Storage de fotos de perfil, certificados PDF e holerites PDF.</td></tr>
     <tr><td>SQL Server</td><td><code>2022-latest</code></td><td>Banco em Docker Compose.</td></tr>
     <tr><td>Docker .NET SDK/Runtime</td><td><code>10.0</code></td><td>Build e runtime da imagem da API.</td></tr>
@@ -545,9 +545,9 @@
     <tr><td><code>HoleriteService</code></td><td>Regra de holerites.</td><td>Permite que professor/administrador consultem os proprios holerites, que administradores gerenciem PDFs de funcionarios e que todos os professores sejam notificados quando um holerite for lancado pelo administrador.</td></tr>
     <tr><td><code>INotificacaoService</code></td><td>Contrato de notificacoes.</td><td>Lista, conta e marca notificacoes como lidas.</td></tr>
     <tr><td><code>NotificacaoService</code></td><td>Regra de notificacoes.</td><td>Controla notificacoes por usuario e permite envio manual individual ou por perfis pelo administrador.</td></tr>
+    <tr><td><code>AzureQueueNotificacaoWorker</code></td><td>Worker opcional.</td><td>Consome mensagens do Azure Queue Storage e grava notificacoes da caderneta digital no banco.</td></tr>
     <tr><td><code>IUsuarioArquivoService</code></td><td>Contrato de arquivos de usuario.</td><td>Define upload/download/listagem/remocao de foto e certificados.</td></tr>
     <tr><td><code>UsuarioArquivoService</code></td><td>Regra de arquivos de usuario.</td><td>Valida permissao, tipo/tamanho de arquivo e persiste metadados no banco.</td></tr>
-    <tr><td><code>ServiceBusNotificacaoWorker</code></td><td>Worker opcional.</td><td>Consome mensagens do Azure Service Bus e grava notificacoes no banco quando configurado.</td></tr>
     <tr><td><code>IAuthService</code></td><td>Contrato de autenticacao.</td><td>Login, usuario atual e troca de senha.</td></tr>
     <tr><td><code>AuthService</code></td><td>Regra de autenticacao e JWT.</td><td>Verifica senha, gera token, monta claims e altera senha do usuario autenticado.</td></tr>
   </table>

@@ -36,9 +36,11 @@ services:
       PasswordReset__ExpirationMinutes: ${PASSWORD_RESET_EXPIRATION_MINUTES:-30}
       Legal__AppName: ${LEGAL_APP_NAME:-Escola Conectada}
       Legal__SupportEmail: ${LEGAL_SUPPORT_EMAIL:-suporte@escola.com}
-      ServiceBus__ConnectionString: ${SERVICEBUS_CONNECTION_STRING:-}
-      ServiceBus__QueueName: ${SERVICEBUS_QUEUE_NAME:-notificacoes}
-      ServiceBus__ConsumerEnabled: ${SERVICEBUS_CONSUMER_ENABLED:-true}
+      QueueStorage__ConnectionString: ${QUEUESTORAGE_CONNECTION_STRING:-}
+      QueueStorage__QueueName: ${QUEUESTORAGE_QUEUE_NAME:-notificacoes}
+      QueueStorage__ConsumerEnabled: ${QUEUESTORAGE_CONSUMER_ENABLED:-true}
+      QueueStorage__MaxDequeueCount: ${QUEUESTORAGE_MAX_DEQUEUE_COUNT:-5}
+      QueueStorage__PollingIntervalSeconds: ${QUEUESTORAGE_POLLING_INTERVAL_SECONDS:-5}
       Uploads__Provider: ${UPLOADS_PROVIDER:-Local}
       AzureBlob__ConnectionString: ${AZUREBLOB_CONNECTION_STRING:-}
       AzureBlob__ContainerName: ${AZUREBLOB_CONTAINER_NAME:-arquivos}

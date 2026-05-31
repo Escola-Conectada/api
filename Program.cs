@@ -40,12 +40,15 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IAlunoTurmaEnsinoService, AlunoTurmaEnsinoService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
+builder.Services.AddScoped<DatabaseCadernetaDigitalEventPublisher>();
+builder.Services.AddScoped<ICadernetaDigitalEventPublisher, AzureQueueCadernetaDigitalEventPublisher>();
 builder.Services.AddScoped<IDisciplinaEventoService, DisciplinaEventoService>();
 builder.Services.AddScoped<ICalendarioEscolarService, CalendarioEscolarService>();
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 builder.Services.AddScoped<IUsuarioArquivoService, UsuarioArquivoService>();
 builder.Services.AddScoped<IAlunoQrCodeBancarioService, AlunoQrCodeBancarioService>();
 builder.Services.AddScoped<IHoleriteService, HoleriteService>();
+builder.Services.AddHostedService<AzureQueueNotificacaoWorker>();
 builder.Services.AddScoped<IUsuarioArquivoStorage>(serviceProvider =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
@@ -54,9 +57,6 @@ builder.Services.AddScoped<IUsuarioArquivoStorage>(serviceProvider =>
         ? ActivatorUtilities.CreateInstance<AzureBlobUsuarioArquivoStorage>(serviceProvider)
         : ActivatorUtilities.CreateInstance<LocalUsuarioArquivoStorage>(serviceProvider);
 });
-builder.Services.AddSingleton<ICadernetaDigitalEventPublisher, ServiceBusCadernetaDigitalEventPublisher>();
-builder.Services.AddHostedService<ServiceBusNotificacaoWorker>();
-
 var jwtKey = ResolveJwtKey(builder.Environment, builder.Configuration);
 builder.Configuration["Jwt:Key"] = jwtKey;
 

@@ -12,10 +12,17 @@ namespace ESCOLA_API.Services
     public class CadernetaDigitalService : ICadernetaDigitalService
     {
         private readonly DataContext _context;
+        private readonly ICadernetaDigitalEventPublisher _eventPublisher;
 
         public CadernetaDigitalService(DataContext context)
+            : this(context, new DatabaseCadernetaDigitalEventPublisher(context))
+        {
+        }
+
+        public CadernetaDigitalService(DataContext context, ICadernetaDigitalEventPublisher eventPublisher)
         {
             _context = context;
+            _eventPublisher = eventPublisher;
         }
 
         public async Task<CadernetaDigitalViewModel[]> GetAllAsync(ClaimsPrincipal principal)
@@ -515,52 +522,7 @@ namespace ESCOLA_API.Services
 
         private async Task CriarNotificacaoLancamentoAsync(CadernetaDigitalViewModel caderneta, string operacao)
         {
-            var notas = caderneta.Notas.Length == 0
-                ? "-"
-                : string.Join(" / ", caderneta.Notas.Select(FormatarDecimalPtBr));
-            var media = FormatarDecimalPtBr(caderneta.MediaAritmetica);
-            var contextoDisciplina = FormatarContextoDisciplina(caderneta);
-            var acao = operacao.Equals("Atualizacao", StringComparison.OrdinalIgnoreCase)
-                ? "atualizadas"
-                : "publicadas";
-            var titulo = operacao.Equals("Atualizacao", StringComparison.OrdinalIgnoreCase)
-                ? $"Notas atualizadas em {caderneta.NomeDisciplina}"
-                : $"Notas publicadas em {caderneta.NomeDisciplina}";
-
-            _context.Notificacoes.Add(new Notificacao
-            {
-                IdUsuario = caderneta.IdAlunoUsuario,
-                Tipo = "NotasPublicadas",
-                Titulo = titulo,
-                Mensagem = $"Suas notas de {caderneta.NomeDisciplina}{contextoDisciplina} foram {acao} pelo professor {caderneta.NomeProfessor}. Notas: {notas}. Media: {media}. Situacao: {caderneta.Situacao}. Presencas: {caderneta.Presencas}. Faltas: {caderneta.Faltas}.",
-                Link = $"/caderneta-digital?cadernetaId={caderneta.IdCadernetaDigital}",
-                IdCadernetaDigital = caderneta.IdCadernetaDigital,
-                Notas = SerializeNotas(caderneta.Notas),
-                IdTipoEnsino = caderneta.IdTipoEnsino,
-                NomeTipoEnsino = caderneta.NomeTipoEnsino,
-                IdTurmaEnsino = caderneta.IdTurmaEnsino,
-                NomeTurmaEnsino = caderneta.NomeTurmaEnsino,
-                IdDisciplina = caderneta.IdDisciplina,
-                NomeDisciplina = caderneta.NomeDisciplina,
-                MediaAritmetica = caderneta.MediaAritmetica,
-                Situacao = caderneta.Situacao,
-                CorSituacao = caderneta.CorSituacao,
-                CriadaEmUtc = DateTime.UtcNow
-            });
-
-            await _context.SaveChangesAsync();
-        }
-
-        private static string FormatarContextoDisciplina(CadernetaDigitalViewModel caderneta)
-        {
-            var partes = new[]
-            {
-                caderneta.NomeTipoEnsino,
-                caderneta.NomeTurmaEnsino
-            }.Where(parte => !string.IsNullOrWhiteSpace(parte));
-
-            var contexto = string.Join(" - ", partes);
-            return string.IsNullOrWhiteSpace(contexto) ? string.Empty : $" ({contexto})";
+            await _eventPublisher.PublishNotasPublicadasAsync(caderneta, operacao);
         }
 
         private async Task SaveChangesAsync(string duplicateMessage)
@@ -589,11 +551,6 @@ namespace ESCOLA_API.Services
         private static string? NormalizarTextoOpcional(string? value)
         {
             return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-        }
-
-        private static string FormatarDecimalPtBr(decimal valor)
-        {
-            return valor.ToString("0.##", CultureInfo.GetCultureInfo("pt-BR"));
         }
 
         private async Task<Usuario?> ObterAlunoAsync(int alunoUsuarioId)

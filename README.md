@@ -12,7 +12,7 @@ API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, aut
 - Swagger/OpenAPI e Scalar
 - QRCoder para geracao de QR Code PNG
 - Azure Blob Storage para fotos, certificados e holerites
-- Azure Service Bus para consumo opcional de notificacoes
+- Azure Queue Storage para mensageria opcional de notificacoes
 - Paginas publicas de privacidade, suporte e exclusao de conta
 - xUnit, Moq e FluentValidation.TestHelper
 - Logging diario em arquivo
@@ -36,9 +36,6 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | --- | --- |
 | `Jwt__Key` | Chave secreta com ao menos 32 bytes. Gere uma no PowerShell com `[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))`. |
 | `ConnectionStrings__DefaultConnection` | Obrigatoria em producao. Para SQL Server, use algo como `Server=tcp:SEU_HOST,1433;Database=ESCOLA_API;User Id=SEU_USUARIO;Password=SUA_SENHA;Encrypt=True;TrustServerCertificate=True;`. |
-| `ServiceBus__ConnectionString` | Opcional. Cadeia de conexao primaria do Azure Service Bus para publicar eventos da caderneta digital. |
-| `ServiceBus__QueueName` | Opcional. Nome da fila de notificacoes. Padrao: `notificacoes`. |
-| `ServiceBus__ConsumerEnabled` | Opcional. Define se a API tambem consome a fila e grava notificacoes no banco. Padrao: `true`. |
 | `Uploads__Provider` | Use `AzureBlob` em producao para salvar fotos, certificados e holerites no Azure Blob Storage. Use `Local` em desenvolvimento. |
 | `AzureBlob__ConnectionString` | Obrigatoria quando `Uploads__Provider=AzureBlob`. Use a connection string do Storage Account. |
 | `AzureBlob__ContainerName` | Container dos arquivos. Padrao usado no deploy: `arquivos`. |
@@ -46,6 +43,11 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `PasswordReset__ExpirationMinutes` | Opcional. Tempo de validade do token de redefinicao de senha. Padrao: `30`. |
 | `Legal__AppName` | Opcional. Nome publico exibido nas paginas legais. Padrao: `Escola Conectada`. |
 | `Legal__SupportEmail` | Opcional. Email publico de suporte exibido nas paginas legais. |
+| `QueueStorage__ConnectionString` | Opcional. Cadeia de conexao do Azure Queue Storage. Se vazia, a API tenta usar `AzureBlob__ConnectionString`/`AzureStorage__ConnectionString`; se nenhuma existir, grava notificacoes diretamente no banco. |
+| `QueueStorage__QueueName` | Opcional. Nome da fila de notificacoes. Padrao: `notificacoes`. |
+| `QueueStorage__ConsumerEnabled` | Opcional. Define se a API consome a fila e grava notificacoes no banco. Padrao: `true`. |
+| `QueueStorage__MaxDequeueCount` | Opcional. Quantidade maxima de tentativas antes de mover a mensagem para a fila `-poison`. Padrao: `5`. |
+| `QueueStorage__PollingIntervalSeconds` | Opcional. Intervalo de consulta da fila quando nao ha mensagens. Padrao: `5`. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
 
 O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`. A API tambem aceita `AzureStorage__ConnectionString`, `AzureStorage__ContainerName` e `AzureStorage__PublicBaseUrl` como alias.
@@ -54,7 +56,7 @@ Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStr
 
 O arquivo `render.yaml` deste repositorio tambem declara essas variaveis para deploy via Blueprint. Nesse fluxo, o Render gera `Jwt__Key` automaticamente e pede `ConnectionStrings__DefaultConnection` no dashboard.
 
-As notificacoes principais da caderneta, do cadastro de usuarios e da agenda de avaliacoes/trabalhos sao gravadas na tabela `Notificacao`. Quando `ServiceBus__ConnectionString` estiver configurada, a API tambem pode consumir mensagens da fila `ServiceBus__QueueName` e transformar cada mensagem valida em notificacao no banco. Se a variavel nao estiver configurada, a API continua funcionando normalmente sem iniciar o consumidor.
+As notificacoes principais do cadastro de usuarios e da agenda de avaliacoes/trabalhos sao gravadas diretamente na tabela `Notificacao`. As notificacoes da caderneta digital usam Azure Queue Storage quando uma connection string de fila/storage estiver configurada; sem essa configuracao, a API usa fallback local e grava diretamente no banco.
 
 Quando `Uploads__Provider=AzureBlob`, a API grava fotos, certificados e holerites no Azure Blob Storage e salva no banco apenas a URL e os metadados do arquivo. Para que o front consiga exibir fotos e abrir PDFs diretamente, o container precisa permitir leitura publica dos blobs ou `AzureBlob__PublicBaseUrl` deve apontar para uma URL publica/CDN configurada para esse container.
 
