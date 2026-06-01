@@ -1,4 +1,5 @@
 using System.Net;
+using ESCOLA_API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,19 +13,23 @@ namespace ESCOLA_API.Controllers
     public class LegalController : Controller
     {
         private readonly IConfiguration _configuration;
+        private readonly IConfiguracaoAplicacaoService _configuracaoAplicacaoService;
 
-        public LegalController(IConfiguration configuration)
+        public LegalController(
+            IConfiguration configuration,
+            IConfiguracaoAplicacaoService configuracaoAplicacaoService)
         {
             _configuration = configuration;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
         }
 
         [HttpGet("privacidade")]
-        public IActionResult Privacidade()
+        public async Task<IActionResult> Privacidade()
         {
-            var appName = AppName();
+            var appName = await AppNameAsync();
             var supportEmail = SupportEmail();
 
-            return HtmlPage(
+            return await HtmlPageAsync(
                 "Politica de Privacidade",
                 $$"""
                 <p>O {{appName}} usa os dados cadastrais necessarios para identificacao escolar, autenticacao, comunicacao, registros academicos, arquivos vinculados ao usuario, notificacoes e recursos administrativos.</p>
@@ -36,12 +41,12 @@ namespace ESCOLA_API.Controllers
         }
 
         [HttpGet("suporte")]
-        public IActionResult Suporte()
+        public async Task<IActionResult> Suporte()
         {
-            var appName = AppName();
+            var appName = await AppNameAsync();
             var supportEmail = SupportEmail();
 
-            return HtmlPage(
+            return await HtmlPageAsync(
                 "Suporte",
                 $$"""
                 <p>Para ajuda com acesso, senha, dados cadastrais, notificacoes, documentos ou exclusao de conta do {{appName}}, envie uma mensagem para <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>.</p>
@@ -50,12 +55,12 @@ namespace ESCOLA_API.Controllers
         }
 
         [HttpGet("exclusao-conta")]
-        public IActionResult ExclusaoConta()
+        public async Task<IActionResult> ExclusaoConta()
         {
-            var appName = AppName();
+            var appName = await AppNameAsync();
             var supportEmail = SupportEmail();
 
-            return HtmlPage(
+            return await HtmlPageAsync(
                 "Exclusao de conta",
                 $$"""
                 <p>Usuarios do {{appName}} podem solicitar a exclusao da conta pelo app em Perfil &gt; Exclusao de conta ou por esta pagina.</p>
@@ -71,9 +76,9 @@ namespace ESCOLA_API.Controllers
                 """);
         }
 
-        private ContentResult HtmlPage(string title, string body)
+        private async Task<ContentResult> HtmlPageAsync(string title, string body)
         {
-            var appName = AppName();
+            var appName = await AppNameAsync();
             var safeTitle = WebUtility.HtmlEncode(title);
 
             var html = $$"""
@@ -105,9 +110,9 @@ namespace ESCOLA_API.Controllers
             return Content(html, "text/html; charset=utf-8");
         }
 
-        private string AppName()
+        private async Task<string> AppNameAsync()
         {
-            return WebUtility.HtmlEncode(_configuration["Legal:AppName"] ?? "Escola Conectada");
+            return WebUtility.HtmlEncode(await _configuracaoAplicacaoService.GetNomeEscolaAsync());
         }
 
         private string SupportEmail()

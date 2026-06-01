@@ -10,10 +10,14 @@ namespace ESCOLA_API.Services
     public class DisciplinaEventoService : IDisciplinaEventoService
     {
         private readonly DataContext _context;
+        private readonly IConfiguracaoAplicacaoService? _configuracaoAplicacaoService;
 
-        public DisciplinaEventoService(DataContext context)
+        public DisciplinaEventoService(
+            DataContext context,
+            IConfiguracaoAplicacaoService? configuracaoAplicacaoService = null)
         {
             _context = context;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
         }
 
         public async Task<DisciplinaEventoViewModel[]> GetEventosAsync(
@@ -239,7 +243,8 @@ namespace ESCOLA_API.Services
             var descricao = string.IsNullOrWhiteSpace(evento.Descricao)
                 ? string.Empty
                 : $" Descricao: {evento.Descricao}.";
-            var mensagem = $"{titulo} em {evento.NomeDisciplina} pelo professor {evento.NomeProfessor}. "
+            var nomeEscola = await GetNomeEscolaAsync();
+            var mensagem = $"No {nomeEscola}, {titulo.ToLowerInvariant()} em {evento.NomeDisciplina} pelo professor {evento.NomeProfessor}. "
                 + $"Data: {evento.Data:dd/MM/yyyy}. Titulo: {evento.Titulo}.{descricao}";
 
             foreach (var alunoId in alunosIds)
@@ -260,6 +265,13 @@ namespace ESCOLA_API.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<string> GetNomeEscolaAsync()
+        {
+            return _configuracaoAplicacaoService == null
+                ? ConfiguracaoAplicacaoService.NomeEscolaPadrao
+                : await _configuracaoAplicacaoService.GetNomeEscolaAsync();
         }
 
         private static void ValidarPeriodo(int? ano, int? mes)

@@ -5,6 +5,7 @@ namespace ESCOLA_API.Services
         public string Tipo { get; init; } = "NotasPublicadas";
         public string Operacao { get; init; } = string.Empty;
         public string OrigemMensagemId { get; init; } = string.Empty;
+        public string NomeEscola { get; init; } = ConfiguracaoAplicacaoService.NomeEscolaPadrao;
         public int IdCadernetaDigital { get; init; }
         public int IdAlunoUsuario { get; init; }
         public string NomeAluno { get; init; } = string.Empty;

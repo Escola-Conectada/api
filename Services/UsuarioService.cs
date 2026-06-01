@@ -10,10 +10,14 @@ namespace ESCOLA_API.Services
     public class UsuarioService : IUsuarioService
     {
         private readonly DataContext _context;
+        private readonly IConfiguracaoAplicacaoService? _configuracaoAplicacaoService;
 
-        public UsuarioService(DataContext context)
+        public UsuarioService(
+            DataContext context,
+            IConfiguracaoAplicacaoService? configuracaoAplicacaoService = null)
         {
             _context = context;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
         }
 
         public async Task<UsuarioSummaryViewModel[]> GetAllAsync(ClaimsPrincipal principal)
@@ -111,7 +115,7 @@ namespace ESCOLA_API.Services
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
-            CriarNotificacaoCadastro(usuario);
+            await CriarNotificacaoCadastroAsync(usuario);
             await _context.SaveChangesAsync();
 
             var created = await _context.Usuarios
@@ -351,18 +355,19 @@ namespace ESCOLA_API.Services
                     && (usuario.IdPerfil == PerfilSistema.AlunoId || usuario.IdPerfil == PerfilSistema.ProfessorId));
         }
 
-        private void CriarNotificacaoCadastro(Usuario usuario)
+        private async Task CriarNotificacaoCadastroAsync(Usuario usuario)
         {
             var nomeCriador = string.IsNullOrWhiteSpace(usuario.NomeUsuarioCriador)
                 ? "Administrador"
                 : usuario.NomeUsuarioCriador;
+            var nomeEscola = await GetNomeEscolaAsync();
 
             _context.Notificacoes.Add(new Notificacao
             {
                 IdUsuario = usuario.IdUsuario,
                 Tipo = "CadastroUsuario",
                 Titulo = "Cadastro criado",
-                Mensagem = $"Seu cadastro foi criado por {nomeCriador}. Dados cadastrados: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Nome da mae: {FormatarValorOpcional(usuario.NomeMae)}; Nome do pai: {FormatarValorOpcional(usuario.NomePai)}; Endereco: {FormatarValorOpcional(usuario.Endereco)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}. Voce pode editar seus dados quando achar necessario.",
+                Mensagem = $"Seu cadastro no {nomeEscola} foi criado por {nomeCriador}. Dados cadastrados: Nome: {usuario.Nome}; E-mail: {usuario.Email}; Telefone: {usuario.Telefone}; Data de nascimento: {FormatarDataNascimento(usuario.DataNascimento)}; Nome da mae: {FormatarValorOpcional(usuario.NomeMae)}; Nome do pai: {FormatarValorOpcional(usuario.NomePai)}; Endereco: {FormatarValorOpcional(usuario.Endereco)}; Perfil: {PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}. Voce pode editar seus dados quando achar necessario.",
                 Link = $"/usuarios/{usuario.IdUsuario}",
                 CriadaEmUtc = DateTime.UtcNow
             });
@@ -457,6 +462,13 @@ namespace ESCOLA_API.Services
         private static bool IsAdministrador(ClaimsPrincipal principal)
         {
             return principal.IsInRole(PerfilSistema.Administrador);
+        }
+
+        private async Task<string> GetNomeEscolaAsync()
+        {
+            return _configuracaoAplicacaoService == null
+                ? ConfiguracaoAplicacaoService.NomeEscolaPadrao
+                : await _configuracaoAplicacaoService.GetNomeEscolaAsync();
         }
 
         private static bool IsProfessor(ClaimsPrincipal principal)

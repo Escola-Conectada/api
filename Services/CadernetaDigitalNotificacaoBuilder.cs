@@ -8,7 +8,8 @@ namespace ESCOLA_API.Services
     {
         public static CadernetaDigitalNotificacaoMessage CreateMessage(
             CadernetaDigitalViewModel caderneta,
-            string operacao)
+            string operacao,
+            string? nomeEscola = null)
         {
             var publicadoEmUtc = DateTimeOffset.UtcNow;
             var origemMensagemId = $"caderneta-{caderneta.IdCadernetaDigital}-{NormalizarOperacao(operacao)}-{publicadoEmUtc.ToUnixTimeMilliseconds()}-{Guid.NewGuid():N}";
@@ -17,6 +18,7 @@ namespace ESCOLA_API.Services
             {
                 Operacao = operacao,
                 OrigemMensagemId = origemMensagemId,
+                NomeEscola = NormalizarNomeEscola(nomeEscola),
                 IdCadernetaDigital = caderneta.IdCadernetaDigital,
                 IdAlunoUsuario = caderneta.IdAlunoUsuario,
                 NomeAluno = caderneta.NomeAluno,
@@ -51,13 +53,14 @@ namespace ESCOLA_API.Services
             var titulo = atualizacao
                 ? $"Notas atualizadas em {payload.NomeDisciplina}"
                 : $"Notas publicadas em {payload.NomeDisciplina}";
+            var nomeEscola = NormalizarNomeEscola(payload.NomeEscola);
 
             return new Notificacao
             {
                 IdUsuario = payload.IdAlunoUsuario,
                 Tipo = payload.Tipo,
                 Titulo = titulo,
-                Mensagem = $"Suas notas de {payload.NomeDisciplina}{contexto} foram {acao} pelo professor {payload.NomeProfessor}. Notas: {notas}. Media: {media}. Situacao: {payload.Situacao}. Presencas: {payload.Presencas}. Faltas: {payload.Faltas}.",
+                Mensagem = $"No {nomeEscola}, suas notas de {payload.NomeDisciplina}{contexto} foram {acao} pelo professor {payload.NomeProfessor}. Notas: {notas}. Media: {media}. Situacao: {payload.Situacao}. Presencas: {payload.Presencas}. Faltas: {payload.Faltas}.",
                 Link = $"/caderneta-digital?cadernetaId={payload.IdCadernetaDigital}",
                 IdCadernetaDigital = payload.IdCadernetaDigital,
                 Notas = SerializeNotas(payload.Notas),
@@ -104,6 +107,13 @@ namespace ESCOLA_API.Services
             return string.IsNullOrWhiteSpace(operacao)
                 ? "evento"
                 : operacao.Trim().ToLowerInvariant();
+        }
+
+        private static string NormalizarNomeEscola(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                ? ConfiguracaoAplicacaoService.NomeEscolaPadrao
+                : value.Trim();
         }
     }
 }

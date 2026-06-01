@@ -17,10 +17,14 @@ namespace ESCOLA_API.Services
         private const string PublicoAlunosEProfessores = "AlunosEProfessores";
         private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
         private readonly DataContext _context;
+        private readonly IConfiguracaoAplicacaoService? _configuracaoAplicacaoService;
 
-        public CalendarioEscolarService(DataContext context)
+        public CalendarioEscolarService(
+            DataContext context,
+            IConfiguracaoAplicacaoService? configuracaoAplicacaoService = null)
         {
             _context = context;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
         }
 
         public async Task<CalendarioEscolarAnoViewModel> GetCalendarioAnualAsync(int? ano, int? mesSelecionado)
@@ -166,7 +170,8 @@ namespace ESCOLA_API.Services
             var descricao = string.IsNullOrWhiteSpace(evento.Descricao)
                 ? string.Empty
                 : $" Descricao: {evento.Descricao}.";
-            var mensagem = $"Evento cadastrado no calendario escolar por {evento.NomeUsuarioCriador}. "
+            var nomeEscola = await GetNomeEscolaAsync();
+            var mensagem = $"Evento cadastrado no calendario escolar de {nomeEscola} por {evento.NomeUsuarioCriador}. "
                 + $"Data: {data}. Tipo: {evento.Tipo}. Titulo: {evento.Titulo}.{descricao}";
             var dataIso = evento.Data.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
@@ -183,6 +188,13 @@ namespace ESCOLA_API.Services
             _context.Notificacoes.AddRange(notificacoes);
             await _context.SaveChangesAsync();
             return usuariosIds.Length;
+        }
+
+        private async Task<string> GetNomeEscolaAsync()
+        {
+            return _configuracaoAplicacaoService == null
+                ? ConfiguracaoAplicacaoService.NomeEscolaPadrao
+                : await _configuracaoAplicacaoService.GetNomeEscolaAsync();
         }
 
         private static CalendarioEscolarEventoViewModel ToViewModel(

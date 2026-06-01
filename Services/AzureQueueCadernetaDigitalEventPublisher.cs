@@ -12,16 +12,19 @@ namespace ESCOLA_API.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<AzureQueueCadernetaDigitalEventPublisher> _logger;
         private readonly DatabaseCadernetaDigitalEventPublisher _databasePublisher;
+        private readonly IConfiguracaoAplicacaoService? _configuracaoAplicacaoService;
         private QueueClient? _queueClient;
 
         public AzureQueueCadernetaDigitalEventPublisher(
             IConfiguration configuration,
             ILogger<AzureQueueCadernetaDigitalEventPublisher> logger,
-            DatabaseCadernetaDigitalEventPublisher databasePublisher)
+            DatabaseCadernetaDigitalEventPublisher databasePublisher,
+            IConfiguracaoAplicacaoService? configuracaoAplicacaoService = null)
         {
             _configuration = configuration;
             _logger = logger;
             _databasePublisher = databasePublisher;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
         }
 
         public async Task PublishNotasPublicadasAsync(
@@ -29,7 +32,10 @@ namespace ESCOLA_API.Services
             string operacao,
             CancellationToken cancellationToken = default)
         {
-            var payload = CadernetaDigitalNotificacaoBuilder.CreateMessage(caderneta, operacao);
+            var payload = CadernetaDigitalNotificacaoBuilder.CreateMessage(
+                caderneta,
+                operacao,
+                await GetNomeEscolaAsync(cancellationToken));
             var queueClient = GetQueueClient();
 
             if (queueClient == null)
@@ -81,6 +87,13 @@ namespace ESCOLA_API.Services
                 {
                     MessageEncoding = QueueMessageEncoding.Base64
                 });
+        }
+
+        private async Task<string> GetNomeEscolaAsync(CancellationToken cancellationToken)
+        {
+            return _configuracaoAplicacaoService == null
+                ? ConfiguracaoAplicacaoService.NomeEscolaPadrao
+                : await _configuracaoAplicacaoService.GetNomeEscolaAsync(cancellationToken);
         }
 
         internal static string? GetQueueStorageConnectionString(IConfiguration configuration)

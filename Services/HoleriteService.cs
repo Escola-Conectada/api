@@ -15,12 +15,18 @@ namespace ESCOLA_API.Services
         private static readonly TimeSpan CompartilhamentoValidade = TimeSpan.FromDays(7);
         private readonly DataContext _context;
         private readonly IUsuarioArquivoStorage _storage;
+        private readonly IConfiguracaoAplicacaoService? _configuracaoAplicacaoService;
         private readonly string _shareSecret;
 
-        public HoleriteService(DataContext context, IUsuarioArquivoStorage storage, IConfiguration configuration)
+        public HoleriteService(
+            DataContext context,
+            IUsuarioArquivoStorage storage,
+            IConfiguration configuration,
+            IConfiguracaoAplicacaoService? configuracaoAplicacaoService = null)
         {
             _context = context;
             _storage = storage;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
             _shareSecret = configuration["Holerites:ShareSecret"]
                 ?? configuration["Jwt:Key"]
                 ?? throw new InvalidOperationException("Jwt:Key nao configurada para compartilhamento de holerites.");
@@ -212,9 +218,11 @@ namespace ESCOLA_API.Services
                 .ToArray();
 
             var criadoEmUtc = DateTime.UtcNow;
+            var nomeEscola = await GetNomeEscolaAsync();
             var dadosHolerite = $"Competencia: {holerite.Competencia}. "
                 + $"Arquivo: {holerite.NomeOriginal}. "
-                + $"Funcionario: {funcionario.Nome} ({PerfilSistema.ObterDescricaoPorId(funcionario.IdPerfil)}).";
+                + $"Funcionario: {funcionario.Nome} ({PerfilSistema.ObterDescricaoPorId(funcionario.IdPerfil)}). "
+                + $"Instituicao: {nomeEscola}.";
 
             var notificacoes = destinatariosIds.Select(idUsuario =>
             {
@@ -238,6 +246,13 @@ namespace ESCOLA_API.Services
             _context.Notificacoes.AddRange(notificacoes);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<string> GetNomeEscolaAsync()
+        {
+            return _configuracaoAplicacaoService == null
+                ? ConfiguracaoAplicacaoService.NomeEscolaPadrao
+                : await _configuracaoAplicacaoService.GetNomeEscolaAsync();
         }
 
         private string CriarTokenCompartilhamento(int usuarioId, int holeriteId, DateTime expiraEmUtc)

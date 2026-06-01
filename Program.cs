@@ -38,6 +38,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UsuarioCreateViewModelValid
 builder.Services.AddCors();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IConfiguracaoAplicacaoService, ConfiguracaoAplicacaoService>();
 builder.Services.AddScoped<IAlunoTurmaEnsinoService, AlunoTurmaEnsinoService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
 builder.Services.AddScoped<DatabaseCadernetaDigitalEventPublisher>();
@@ -158,6 +159,7 @@ using (var scope = app.Services.CreateScope())
             db.Database.EnsureCreated();
             await EnsureSqliteAlunoProfessorUsuariosAsync(db);
             await EnsureSqliteAlunoTurmaEnsinoAsync(db);
+            await EnsureSqliteConfiguracaoAplicacaoAsync(db, app.Configuration);
         }
         else
         {
@@ -427,6 +429,62 @@ static async Task EnsureSqliteAlunoTurmaEnsinoAsync(DataContext db)
             WHERE caderneta."IdTurmaEnsino" IS NOT NULL
             GROUP BY caderneta."IdAlunoUsuario";
             """);
+    }
+}
+
+static async Task EnsureSqliteConfiguracaoAplicacaoAsync(DataContext db, IConfiguration configuration)
+{
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS "ConfiguracaoAplicacao" (
+            "IdConfiguracaoAplicacao" INTEGER NOT NULL CONSTRAINT "PK_ConfiguracaoAplicacao" PRIMARY KEY,
+            "NomeEscola" TEXT NOT NULL,
+            "AtualizadoEmUtc" TEXT NOT NULL
+        );
+        """);
+
+    var connection = db.Database.GetDbConnection();
+    var shouldCloseConnection = connection.State == ConnectionState.Closed;
+
+    if (shouldCloseConnection)
+    {
+        await connection.OpenAsync();
+    }
+
+    try
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT OR IGNORE INTO "ConfiguracaoAplicacao"
+                ("IdConfiguracaoAplicacao", "NomeEscola", "AtualizadoEmUtc")
+            VALUES
+                ($idConfiguracaoAplicacao, $nomeEscola, $atualizadoEmUtc);
+            """;
+
+        var idParameter = command.CreateParameter();
+        idParameter.ParameterName = "$idConfiguracaoAplicacao";
+        idParameter.Value = ConfiguracaoAplicacaoService.ConfiguracaoPadraoId;
+        command.Parameters.Add(idParameter);
+
+        var nomeParameter = command.CreateParameter();
+        nomeParameter.ParameterName = "$nomeEscola";
+        nomeParameter.Value = configuration["Legal:AppName"] ?? ConfiguracaoAplicacaoService.NomeEscolaPadrao;
+        command.Parameters.Add(nomeParameter);
+
+        var atualizadoParameter = command.CreateParameter();
+        atualizadoParameter.ParameterName = "$atualizadoEmUtc";
+        atualizadoParameter.Value = DateTime.UtcNow.ToString("O");
+        command.Parameters.Add(atualizadoParameter);
+
+        await command.ExecuteNonQueryAsync();
+    }
+    finally
+    {
+        if (shouldCloseConnection)
+        {
+            await connection.CloseAsync();
+        }
     }
 }
 

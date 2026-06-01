@@ -9,10 +9,14 @@ namespace ESCOLA_API.Services
     public sealed class DatabaseCadernetaDigitalEventPublisher : ICadernetaDigitalEventPublisher
     {
         private readonly DataContext _context;
+        private readonly IConfiguracaoAplicacaoService? _configuracaoAplicacaoService;
 
-        public DatabaseCadernetaDigitalEventPublisher(DataContext context)
+        public DatabaseCadernetaDigitalEventPublisher(
+            DataContext context,
+            IConfiguracaoAplicacaoService? configuracaoAplicacaoService = null)
         {
             _context = context;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
         }
 
         public async Task PublishNotasPublicadasAsync(
@@ -20,7 +24,10 @@ namespace ESCOLA_API.Services
             string operacao,
             CancellationToken cancellationToken = default)
         {
-            var payload = CadernetaDigitalNotificacaoBuilder.CreateMessage(caderneta, operacao);
+            var payload = CadernetaDigitalNotificacaoBuilder.CreateMessage(
+                caderneta,
+                operacao,
+                await GetNomeEscolaAsync(cancellationToken));
             await PublishMessageAsync(payload, cancellationToken);
         }
 
@@ -38,6 +45,13 @@ namespace ESCOLA_API.Services
             {
                 _context.ChangeTracker.Clear();
             }
+        }
+
+        private async Task<string> GetNomeEscolaAsync(CancellationToken cancellationToken)
+        {
+            return _configuracaoAplicacaoService == null
+                ? ConfiguracaoAplicacaoService.NomeEscolaPadrao
+                : await _configuracaoAplicacaoService.GetNomeEscolaAsync(cancellationToken);
         }
 
         internal static bool IsDuplicateMessage(DbUpdateException exception)

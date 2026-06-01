@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ESCOLA_API.Models;
 using ESCOLA_API.Security;
+using ESCOLA_API.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace ESCOLA_API.Data
@@ -29,6 +30,7 @@ namespace ESCOLA_API.Data
         public DbSet<UsuarioArquivo> UsuarioArquivos { get; set; }
         public DbSet<Holerite> Holerites { get; set; }
         public DbSet<Notificacao> Notificacoes { get; set; }
+        public DbSet<ConfiguracaoAplicacao> ConfiguracoesAplicacao { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -376,6 +378,19 @@ namespace ESCOLA_API.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            builder.Entity<ConfiguracaoAplicacao>(entity =>
+            {
+                entity.ToTable("ConfiguracaoAplicacao");
+                entity.HasKey(configuracao => configuracao.IdConfiguracaoAplicacao);
+                entity.Property(configuracao => configuracao.IdConfiguracaoAplicacao)
+                    .ValueGeneratedNever();
+                entity.Property(configuracao => configuracao.NomeEscola)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.Property(configuracao => configuracao.AtualizadoEmUtc)
+                    .IsRequired();
+            });
+
             builder.Entity<Perfil>().HasData(CreatePerfis());
             builder.Entity<Usuario>().HasData(CreateUsuarios());
             builder.Entity<Professor>().HasData(CreateProfessores());
@@ -385,6 +400,7 @@ namespace ESCOLA_API.Data
             builder.Entity<TurmaEnsino>().HasData(CreateTurmasEnsino());
             builder.Entity<AreaConhecimento>().HasData(CreateAreasConhecimento());
             builder.Entity<Disciplina>().HasData(CreateDisciplinasCurriculares());
+            builder.Entity<ConfiguracaoAplicacao>().HasData(CreateConfiguracaoAplicacao());
         }
 
         private const int TipoEnsinoFundamentalId = 1;
@@ -552,6 +568,16 @@ namespace ESCOLA_API.Data
                 new Perfil { IdPerfil = PerfilSistema.AdministradorId, DescricaoPerfil = PerfilSistema.Administrador },
                 new Perfil { IdPerfil = PerfilSistema.ProfessorId, DescricaoPerfil = PerfilSistema.Professor },
                 new Perfil { IdPerfil = PerfilSistema.AlunoId, DescricaoPerfil = PerfilSistema.Aluno }
+            };
+        }
+
+        private static ConfiguracaoAplicacao CreateConfiguracaoAplicacao()
+        {
+            return new ConfiguracaoAplicacao
+            {
+                IdConfiguracaoAplicacao = ConfiguracaoAplicacaoService.ConfiguracaoPadraoId,
+                NomeEscola = ConfiguracaoAplicacaoService.NomeEscolaPadrao,
+                AtualizadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc)
             };
         }
 

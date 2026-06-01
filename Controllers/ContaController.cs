@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using System.Net;
 using ESCOLA_API.Services;
 using ESCOLA_API.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -15,10 +16,15 @@ namespace ESCOLA_API.Controllers
     {
         private readonly ILogger<ContaController> _logger;
         private readonly IUsuarioService _usuarioService;
+        private readonly IConfiguracaoAplicacaoService _configuracaoAplicacaoService;
 
-        public ContaController(IUsuarioService usuarioService, ILogger<ContaController> logger)
+        public ContaController(
+            IUsuarioService usuarioService,
+            IConfiguracaoAplicacaoService configuracaoAplicacaoService,
+            ILogger<ContaController> logger)
         {
             _usuarioService = usuarioService;
+            _configuracaoAplicacaoService = configuracaoAplicacaoService;
             _logger = logger;
         }
 
@@ -31,7 +37,7 @@ namespace ESCOLA_API.Controllers
         {
             if (string.IsNullOrWhiteSpace(model.Email) || !MailAddress.TryCreate(model.Email, out _))
             {
-                return HtmlResponse(
+                return await HtmlResponseAsync(
                     "Solicitacao nao enviada",
                     "Informe um email valido para solicitar a exclusao da conta.",
                     StatusCodes.Status400BadRequest);
@@ -49,22 +55,27 @@ namespace ESCOLA_API.Controllers
                     solicitacao.IdUsuario);
             }
 
-            return HtmlResponse(
+            return await HtmlResponseAsync(
                 "Solicitacao recebida",
                 "Se o email informado estiver cadastrado, a solicitacao sera analisada pela administracao.");
         }
 
-        private static ContentResult HtmlResponse(string title, string message, int statusCode = StatusCodes.Status200OK)
+        private async Task<ContentResult> HtmlResponseAsync(
+            string title,
+            string message,
+            int statusCode = StatusCodes.Status200OK)
         {
+            var nomeEscola = WebUtility.HtmlEncode(await _configuracaoAplicacaoService.GetNomeEscolaAsync());
+
             return new ContentResult
             {
-                Content = HtmlPage(title, message),
+                Content = HtmlPage(title, message, nomeEscola),
                 ContentType = "text/html; charset=utf-8",
                 StatusCode = statusCode
             };
         }
 
-        private static string HtmlPage(string title, string message)
+        private static string HtmlPage(string title, string message, string nomeEscola)
         {
             return $$"""
                 <!doctype html>
@@ -72,7 +83,7 @@ namespace ESCOLA_API.Controllers
                 <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <title>{{title}} - Escola Conectada</title>
+                    <title>{{title}} - {{nomeEscola}}</title>
                     <style>
                         body { font-family: Arial, sans-serif; margin: 0; padding: 32px; line-height: 1.5; color: #1f2937; }
                         main { max-width: 680px; margin: 0 auto; }
