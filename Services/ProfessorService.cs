@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using ESCOLA_API.Data;
+using ESCOLA_API.Models;
 using ESCOLA_API.ViewModels;
 
 namespace ESCOLA_API.Services
@@ -28,6 +29,7 @@ namespace ESCOLA_API.Services
 
         public async Task<ProfessorViewModel> AddAsync(ProfessorCreateEditViewModel viewModel)
         {
+            await ValidarProfessorAsync(viewModel, null);
             var entity = viewModel.ToModel();
             _repo.Add(entity);
             await _repo.SaveChangesAsync();
@@ -43,6 +45,7 @@ namespace ESCOLA_API.Services
                 return null;
             }
 
+            await ValidarProfessorAsync(viewModel, professorId);
             professor.Nome = viewModel.Nome;
             professor.IdUsuario = viewModel.IdUsuario;
             _repo.Update(professor);
@@ -61,6 +64,19 @@ namespace ESCOLA_API.Services
 
             _repo.Delete(professor);
             return await _repo.SaveChangesAsync();
+        }
+
+        private async Task ValidarProfessorAsync(ProfessorCreateEditViewModel viewModel, int? professorId)
+        {
+            if (!await _repo.UsuarioExistsWithPerfilAsync(viewModel.IdUsuario, PerfilSistema.ProfessorId))
+            {
+                throw new InvalidOperationException("Usuario de professor nao encontrado.");
+            }
+
+            if (await _repo.ProfessorUsuarioInUseAsync(viewModel.IdUsuario, professorId))
+            {
+                throw new InvalidOperationException("Este usuario ja esta vinculado a outro professor.");
+            }
         }
     }
 }

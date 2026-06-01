@@ -16,7 +16,8 @@ namespace ESCOLA_API.Tests.Validators
                 Nome = "Maria",
                 Sobrenome = "Solano",
                 DataNasc = "25/02/1982",
-                ProfessorId = 1
+                ProfessorId = 1,
+                IdUsuario = 12
             };
 
             var result = _validator.TestValidate(model);
@@ -35,6 +36,7 @@ namespace ESCOLA_API.Tests.Validators
             result.ShouldHaveValidationErrorFor(aluno => aluno.Sobrenome);
             result.ShouldHaveValidationErrorFor(aluno => aluno.DataNasc);
             result.ShouldHaveValidationErrorFor(aluno => aluno.ProfessorId);
+            result.ShouldHaveValidationErrorFor(aluno => aluno.IdUsuario);
         }
 
         [Fact]
@@ -45,7 +47,8 @@ namespace ESCOLA_API.Tests.Validators
                 Nome = "Maria",
                 Sobrenome = "Solano",
                 DataNasc = "31/02/1982",
-                ProfessorId = 1
+                ProfessorId = 1,
+                IdUsuario = 12
             };
 
             var result = _validator.TestValidate(model);

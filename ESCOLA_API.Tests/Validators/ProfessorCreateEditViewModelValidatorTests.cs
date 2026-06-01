@@ -13,7 +13,8 @@ namespace ESCOLA_API.Tests.Validators
         {
             var model = new ProfessorCreateEditViewModel
             {
-                Nome = "Vinicius"
+                Nome = "Vinicius",
+                IdUsuario = 2
             };
 
             var result = _validator.TestValidate(model);
@@ -29,6 +30,7 @@ namespace ESCOLA_API.Tests.Validators
             var result = _validator.TestValidate(model);
 
             result.ShouldHaveValidationErrorFor(professor => professor.Nome);
+            result.ShouldHaveValidationErrorFor(professor => professor.IdUsuario);
         }
     }
 }

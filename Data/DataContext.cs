@@ -83,10 +83,13 @@ namespace ESCOLA_API.Data
 
             builder.Entity<Professor>(entity =>
             {
+                entity.HasIndex(professor => professor.IdUsuario)
+                    .IsUnique();
                 entity.HasOne(professor => professor.Usuario)
                     .WithMany(usuario => usuario.Professores)
                     .HasForeignKey(professor => professor.IdUsuario)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             builder.Entity<Aluno>(entity =>
@@ -99,7 +102,11 @@ namespace ESCOLA_API.Data
                 entity.HasOne(aluno => aluno.Usuario)
                     .WithMany(usuario => usuario.Alunos)
                     .HasForeignKey(aluno => aluno.IdUsuario)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(aluno => aluno.IdUsuario)
+                    .IsUnique();
             });
 
             builder.Entity<Diretoria>(entity =>
@@ -630,11 +637,11 @@ namespace ESCOLA_API.Data
                 "Amanda", "Leandro"
             };
 
-            return nomes.Select((nome, index) => new Professor
+            return nomes.Take(10).Select((nome, index) => new Professor
             {
                 Id = index + 1,
                 Nome = nome,
-                IdUsuario = index < 10 ? index + 2 : (int?)null
+                IdUsuario = index + 2
             });
         }
 
@@ -662,7 +669,7 @@ namespace ESCOLA_API.Data
                 "Mello", "Assis", "Peixoto", "Nunes", "Macedo", "Brito"
             };
 
-            return nomes.Select((nome, index) => new Aluno
+            return nomes.Take(9).Select((nome, index) => new Aluno
             {
                 Id = index + 1,
                 Nome = nome,
@@ -675,7 +682,7 @@ namespace ESCOLA_API.Data
                     _ => $"{(index % 28) + 1:00}/{(index % 12) + 1:00}/{1980 + (index % 25)}"
                 },
                 ProfessorId = index + 1,
-                IdUsuario = index < 9 ? index + 12 : (int?)null
+                IdUsuario = index + 12
             });
         }
     }

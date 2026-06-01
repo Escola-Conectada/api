@@ -13,7 +13,7 @@ namespace ESCOLA_API.Models
         public string DataNasc { get; set; } = string.Empty;
         public int ProfessorId { get; set; }
         public Professor? Professor { get; set; }
-        public int? IdUsuario { get; set; }
+        public int IdUsuario { get; set; }
         public Usuario? Usuario { get; set; }
     }
 }

@@ -27,9 +27,7 @@ namespace ESCOLA_API.Validators
                 .GreaterThan(0).WithMessage("Informe um professor valido.");
 
             RuleFor(aluno => aluno.IdUsuario)
-                .GreaterThan(0)
-                .When(aluno => aluno.IdUsuario.HasValue)
-                .WithMessage("Informe um usuario valido.");
+                .GreaterThan(0).WithMessage("Informe um usuario de aluno valido.");
         }
 
         private static bool BeValidBirthDate(string value)

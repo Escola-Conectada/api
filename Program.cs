@@ -156,6 +156,7 @@ using (var scope = app.Services.CreateScope())
         if (db.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
         {
             db.Database.EnsureCreated();
+            await EnsureSqliteAlunoProfessorUsuariosAsync(db);
             await EnsureSqliteAlunoTurmaEnsinoAsync(db);
         }
         else
@@ -427,6 +428,107 @@ static async Task EnsureSqliteAlunoTurmaEnsinoAsync(DataContext db)
             GROUP BY caderneta."IdAlunoUsuario";
             """);
     }
+}
+
+static async Task EnsureSqliteAlunoProfessorUsuariosAsync(DataContext db)
+{
+    if (!await SqliteTableExistsAsync(db, "Alunos")
+        || !await SqliteTableExistsAsync(db, "Professores")
+        || !await SqliteTableExistsAsync(db, "Usuario"))
+    {
+        return;
+    }
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        DELETE FROM "Alunos"
+        WHERE "IdUsuario" IS NULL
+           OR NOT EXISTS (
+                SELECT 1
+                FROM "Usuario" AS usuario
+                WHERE usuario."IdUsuario" = "Alunos"."IdUsuario"
+                  AND usuario."IdPerfil" = 3
+           )
+           OR NOT EXISTS (
+                SELECT 1
+                FROM "Professores" AS professor
+                INNER JOIN "Usuario" AS usuarioProfessor
+                    ON usuarioProfessor."IdUsuario" = professor."IdUsuario"
+                   AND usuarioProfessor."IdPerfil" = 2
+                WHERE professor."Id" = "Alunos"."ProfessorId"
+           );
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        DELETE FROM "Alunos"
+        WHERE EXISTS (
+            SELECT 1
+            FROM "Alunos" AS alunoMantido
+            WHERE alunoMantido."IdUsuario" = "Alunos"."IdUsuario"
+              AND alunoMantido."Id" < "Alunos"."Id"
+        );
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        DELETE FROM "Alunos"
+        WHERE EXISTS (
+            SELECT 1
+            FROM "Professores" AS professorDuplicado
+            WHERE professorDuplicado."Id" = "Alunos"."ProfessorId"
+              AND EXISTS (
+                    SELECT 1
+                    FROM "Professores" AS professorMantido
+                    WHERE professorMantido."IdUsuario" = professorDuplicado."IdUsuario"
+                      AND professorMantido."Id" < professorDuplicado."Id"
+              )
+        );
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        DELETE FROM "Professores"
+        WHERE "IdUsuario" IS NULL
+           OR NOT EXISTS (
+                SELECT 1
+                FROM "Usuario" AS usuario
+                WHERE usuario."IdUsuario" = "Professores"."IdUsuario"
+                  AND usuario."IdPerfil" = 2
+           );
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        DELETE FROM "Professores"
+        WHERE EXISTS (
+            SELECT 1
+            FROM "Professores" AS professorMantido
+            WHERE professorMantido."IdUsuario" = "Professores"."IdUsuario"
+              AND professorMantido."Id" < "Professores"."Id"
+        );
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        DROP INDEX IF EXISTS "IX_Alunos_IdUsuario";
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_Alunos_IdUsuario"
+            ON "Alunos" ("IdUsuario");
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        DROP INDEX IF EXISTS "IX_Professores_IdUsuario";
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_Professores_IdUsuario"
+            ON "Professores" ("IdUsuario");
+        """);
 }
 
 static async Task<bool> SqliteTableExistsAsync(DataContext db, string tableName)

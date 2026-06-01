@@ -11,8 +11,8 @@ namespace ESCOLA_API.ViewModels
         public string Nome { get; set; } = string.Empty;
 
         /// <summary>
-        /// Usuario vinculado ao professor para login, quando existir.
+        /// Usuario vinculado ao professor para login.
         /// </summary>
-        public int? IdUsuario { get; set; }
+        public int IdUsuario { get; set; }
     }
 }

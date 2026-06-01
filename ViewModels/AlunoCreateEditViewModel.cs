@@ -26,8 +26,8 @@ namespace ESCOLA_API.ViewModels
         public int ProfessorId { get; set; }
 
         /// <summary>
-        /// Usuario vinculado ao aluno para login, quando existir.
+        /// Usuario vinculado ao aluno para login.
         /// </summary>
-        public int? IdUsuario { get; set; }
+        public int IdUsuario { get; set; }
     }
 }

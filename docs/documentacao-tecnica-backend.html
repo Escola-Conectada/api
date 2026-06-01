@@ -323,7 +323,7 @@
     <div class="card"><strong>Persistencia</strong>EF Core com SQL Server/Azure SQL e SQLite para desenvolvimento/testes.</div>
     <div class="card"><strong>Seguranca</strong>JWT Bearer, roles, hash de senha e troca obrigatoria da senha padrao.</div>
     <div class="card"><strong>Qualidade</strong>FluentValidation, testes unitarios e teste contra SQL bruto.</div>
-    <div class="card"><strong>Observabilidade</strong>Logs diarios, notificacoes persistidas e consumidor opcional do Azure Service Bus.</div>
+    <div class="card"><strong>Observabilidade</strong>Logs diarios, notificacoes persistidas e consumidor opcional do Azure Queue Storage.</div>
   </div>
 
   <h2>2. Tecnologias Usadas e Versoes</h2>
@@ -458,8 +458,8 @@
     <div class="class-box"><h4>UsuarioArquivo</h4><ul><li>IdArquivo</li><li>IdUsuario?</li><li>NomeBlob</li><li>TipoArquivo</li><li>NomeOriginal</li><li>Url</li><li>ContentType</li><li>TamanhoBytes</li></ul></div>
     <div class="class-box"><h4>Notificacao</h4><ul><li>IdNotificacao</li><li>IdUsuario</li><li>Tipo/Titulo/Mensagem</li><li>Link</li><li>MediaAritmetica</li><li>Situacao</li><li>Lida</li></ul></div>
     <div class="class-box"><h4>Holerite</h4><ul><li>IdHolerite</li><li>IdUsuario</li><li>CompetenciaMes</li><li>CompetenciaAno</li><li>NomeOriginal</li><li>NomeBlob</li><li>Url</li></ul></div>
-    <div class="class-box"><h4>Professor</h4><ul><li>Id</li><li>Nome</li><li>IdUsuario?</li><li>Usuario</li><li>Alunos</li></ul></div>
-    <div class="class-box"><h4>Aluno</h4><ul><li>Id</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId</li><li>IdUsuario?</li></ul></div>
+    <div class="class-box"><h4>Professor</h4><ul><li>Id</li><li>Nome</li><li>IdUsuario</li><li>Usuario</li><li>Alunos</li></ul></div>
+    <div class="class-box"><h4>Aluno</h4><ul><li>Id</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId</li><li>IdUsuario</li></ul></div>
     <div class="class-box"><h4>Diretoria</h4><ul><li>Id</li><li>Nome</li><li>IdUsuario?</li><li>Usuario</li></ul></div>
     <div class="class-box"><h4>DisciplinaEvento</h4><ul><li>IdEventoDisciplina</li><li>IdDisciplina</li><li>Tipo</li><li>Titulo</li><li>Descricao</li><li>Data</li></ul></div>
     <div class="class-box"><h4>Services</h4><ul><li>AuthService</li><li>UsuarioService</li><li>CadernetaDigitalService</li><li>DisciplinaEventoService</li><li>CalendarioEscolarService</li><li>AlunoQrCodeBancarioService</li><li>HoleriteService</li><li>NotificacaoService</li><li>UsuarioArquivoService</li></ul></div>
@@ -479,8 +479,8 @@
     <div class="entity"><h4>ARQUIVO</h4><ul><li>IdArquivo PK</li><li>IdUsuario FK opcional</li><li>NomeBlob</li><li>TipoArquivo</li><li>Url</li><li>ContentType</li></ul></div>
     <div class="entity"><h4>NOTIFICACAO</h4><ul><li>IdNotificacao PK</li><li>IdUsuario FK</li><li>Titulo</li><li>Mensagem</li><li>Link</li><li>Lida</li></ul></div>
     <div class="entity"><h4>HOLERITE</h4><ul><li>IdHolerite PK</li><li>IdUsuario FK</li><li>CompetenciaMes</li><li>CompetenciaAno</li><li>NomeOriginal</li><li>NomeBlob</li><li>Url</li><li>ContentType</li></ul></div>
-    <div class="entity"><h4>PROFESSOR</h4><ul><li>Id PK</li><li>Nome</li><li>IdUsuario FK opcional</li></ul></div>
-    <div class="entity"><h4>ALUNO</h4><ul><li>Id PK</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId FK obrigatoria</li><li>IdUsuario FK opcional</li></ul></div>
+    <div class="entity"><h4>PROFESSOR</h4><ul><li>Id PK</li><li>Nome</li><li>IdUsuario FK obrigatoria e unica</li></ul></div>
+    <div class="entity"><h4>ALUNO</h4><ul><li>Id PK</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId FK obrigatoria</li><li>IdUsuario FK obrigatoria e unica</li></ul></div>
     <div class="entity"><h4>DIRETORIA</h4><ul><li>Id PK</li><li>Nome</li><li>IdUsuario FK opcional</li></ul></div>
     <div class="entity"><h4>DISCIPLINAEVENTO</h4><ul><li>IdEventoDisciplina PK</li><li>IdDisciplina FK</li><li>Tipo</li><li>Titulo</li><li>Descricao</li><li>Data</li><li>CriadoEmUtc</li></ul></div>
   </div>
@@ -488,8 +488,8 @@
     <tr><th>Relacao</th><th>Cardinalidade</th><th>Delete behavior</th></tr>
     <tr><td>Perfil -> Usuario</td><td>1:N</td><td>Restrict</td></tr>
     <tr><td>Professor -> Aluno</td><td>1:N</td><td>Cascade</td></tr>
-    <tr><td>Usuario -> Aluno</td><td>1:N opcional</td><td>SetNull</td></tr>
-    <tr><td>Usuario -> Professor</td><td>1:N opcional</td><td>SetNull</td></tr>
+    <tr><td>Usuario -> Aluno</td><td>1:1 obrigatorio</td><td>Restrict</td></tr>
+    <tr><td>Usuario -> Professor</td><td>1:1 obrigatorio</td><td>Restrict</td></tr>
     <tr><td>Usuario -> Diretoria</td><td>1:N opcional</td><td>SetNull</td></tr>
     <tr><td>Usuario -> Disciplina</td><td>1:N obrigatoria</td><td>Restrict</td></tr>
     <tr><td>Disciplina -> CadernetaDigital</td><td>1:N obrigatoria</td><td>Cascade</td></tr>
@@ -528,7 +528,7 @@
     <tr><td><code>IAlunoService</code></td><td>Contrato de operacoes de aluno.</td><td>Permite injecao e testes da camada controller.</td></tr>
     <tr><td><code>AlunoService</code></td><td>Regra de aplicacao para aluno.</td><td>Usa repository, converte ViewModel para Model e retorna AlunoViewModel.</td></tr>
     <tr><td><code>IProfessorService</code></td><td>Contrato de professor.</td><td>Abstrai listagem, busca, criacao, edicao e exclusao.</td></tr>
-    <tr><td><code>ProfessorService</code></td><td>Regra de aplicacao para professor.</td><td>Orquestra repository e preserva vinculo opcional com usuario.</td></tr>
+    <tr><td><code>ProfessorService</code></td><td>Regra de aplicacao para professor.</td><td>Orquestra repository e exige usuario de perfil Professor vinculado de forma unica.</td></tr>
     <tr><td><code>IDiretoriaService</code></td><td>Contrato de diretoria.</td><td>Expõe CRUD da administracao escolar.</td></tr>
     <tr><td><code>DiretoriaService</code></td><td>Regra de aplicacao para diretoria.</td><td>Cria, atualiza e remove integrantes da diretoria.</td></tr>
     <tr><td><code>IUsuarioService</code></td><td>Contrato de usuario.</td><td>Define CRUD e listagem de perfis.</td></tr>
@@ -545,6 +545,10 @@
     <tr><td><code>HoleriteService</code></td><td>Regra de holerites.</td><td>Permite que professor/administrador consultem os proprios holerites, que administradores gerenciem PDFs de funcionarios e que todos os professores sejam notificados quando um holerite for lancado pelo administrador.</td></tr>
     <tr><td><code>INotificacaoService</code></td><td>Contrato de notificacoes.</td><td>Lista, conta e marca notificacoes como lidas.</td></tr>
     <tr><td><code>NotificacaoService</code></td><td>Regra de notificacoes.</td><td>Controla notificacoes por usuario e permite envio manual individual ou por perfis pelo administrador.</td></tr>
+    <tr><td><code>ICadernetaDigitalEventPublisher</code></td><td>Contrato de mensageria.</td><td>Abstrai a publicacao de eventos de notificacao gerados pela caderneta digital.</td></tr>
+    <tr><td><code>CadernetaDigitalNotificacaoBuilder</code></td><td>Montagem de payload.</td><td>Cria a mensagem enviada para fila e converte o payload consumido em entidade <code>Notificacao</code>.</td></tr>
+    <tr><td><code>AzureQueueCadernetaDigitalEventPublisher</code></td><td>Publisher de mensageria.</td><td>Publica notificacoes da caderneta na fila <code>notificacoes</code> do Azure Queue Storage e usa fallback para banco quando a fila nao esta configurada.</td></tr>
+    <tr><td><code>DatabaseCadernetaDigitalEventPublisher</code></td><td>Fallback local.</td><td>Grava notificacoes diretamente no banco quando a mensageria esta indisponivel ou desabilitada.</td></tr>
     <tr><td><code>AzureQueueNotificacaoWorker</code></td><td>Worker opcional.</td><td>Consome mensagens do Azure Queue Storage e grava notificacoes da caderneta digital no banco.</td></tr>
     <tr><td><code>IUsuarioArquivoService</code></td><td>Contrato de arquivos de usuario.</td><td>Define upload/download/listagem/remocao de foto e certificados.</td></tr>
     <tr><td><code>UsuarioArquivoService</code></td><td>Regra de arquivos de usuario.</td><td>Valida permissao, tipo/tamanho de arquivo e persiste metadados no banco.</td></tr>
@@ -615,8 +619,8 @@
   <h3>10.7 Validators</h3>
   <table>
     <tr><th>Classe</th><th>Funcao</th><th>Regras principais</th></tr>
-    <tr><td><code>AlunoCreateEditViewModelValidator</code></td><td>Valida aluno.</td><td>Nome, sobrenome, data <code>dd/MM/yyyy</code>, professor positivo e usuario positivo quando informado.</td></tr>
-    <tr><td><code>ProfessorCreateEditViewModelValidator</code></td><td>Valida professor.</td><td>Nome obrigatorio e usuario positivo quando informado.</td></tr>
+    <tr><td><code>AlunoCreateEditViewModelValidator</code></td><td>Valida aluno.</td><td>Nome, sobrenome, data <code>dd/MM/yyyy</code>, professor positivo e usuario de aluno positivo.</td></tr>
+    <tr><td><code>ProfessorCreateEditViewModelValidator</code></td><td>Valida professor.</td><td>Nome obrigatorio e usuario de professor positivo.</td></tr>
     <tr><td><code>DiretoriaCreateEditViewModelValidator</code></td><td>Valida diretoria.</td><td>Nome obrigatorio e usuario positivo quando informado.</td></tr>
     <tr><td><code>UsuarioCreateViewModelValidator</code></td><td>Valida usuario.</td><td>Nome, email valido, telefone, data de nascimento, responsaveis/endereco opcionais e perfil positivo.</td></tr>
     <tr><td><code>UsuarioUpdateViewModelValidator</code></td><td>Valida edicao de usuario.</td><td>Nome, email, telefone, data de nascimento, responsaveis/endereco opcionais e perfil conforme permissao do usuario logado.</td></tr>
@@ -668,12 +672,12 @@
     <li>Holerites aceitam apenas PDF, sao limitados a 10 MB, possuem competencia mes/ano e podem ser vinculados somente a professores e administradores; o lancamento por administrador gera notificacoes para todos os professores com competencia, arquivo, funcionario e responsavel pelo lancamento.</li>
     <li>A caderneta calcula media aritmetica das notas e retorna situacao/cor: reprovado, recuperacao, aprovado ou reprovado por faltas quando atingir 10 faltas.</li>
     <li>Fotos, certificados e holerites sao salvos em storage local ou Azure Blob; no banco ficam apenas URL e metadados do arquivo.</li>
-    <li>Notificacoes ficam persistidas na tabela <code>Notificacao</code>; o Service Bus e opcional para consumo de mensagens externas.</li>
+    <li>Notificacoes ficam persistidas na tabela <code>Notificacao</code>; notificacoes da caderneta digital podem passar pelo Azure Queue Storage, com fallback direto para banco quando a fila nao estiver configurada.</li>
     <li>Administrador pode enviar notificacao manual para um usuario especifico ou em lote para perfis como <code>Aluno</code>, <code>Professor</code> e <code>Administrador</code>.</li>
     <li>Aluno precisa apontar para professor valido.</li>
-    <li><code>IdUsuario</code> em aluno, professor e diretoria e opcional; quando informado deve ser positivo.</li>
+    <li><code>IdUsuario</code> em aluno e professor e obrigatorio, unico e precisa apontar para usuario do perfil correspondente; em diretoria permanece opcional.</li>
     <li>Data de nascimento de usuario e opcional, nao pode ser futura e deve trafegar no JSON como <code>yyyy-MM-dd</code>.</li>
-    <li>Ao excluir usuario, vinculos opcionais em aluno, professor e diretoria ficam nulos.</li>
+    <li>Ao excluir usuario vinculado a aluno ou professor, a exclusao e bloqueada pela integridade referencial; para diretoria, o vinculo opcional pode ficar nulo.</li>
     <li>Ao excluir professor, os alunos vinculados seguem cascade conforme configurado no relacionamento obrigatorio.</li>
   </ul>
 
@@ -779,5 +783,25 @@
     Em desenvolvimento, preencha o arquivo local <code>.env</code> a partir de <code>.env.example</code>.
     Em ambiente real, use variaveis de ambiente ou secrets do provedor de deploy.
   </div>
+
+  <h3>17.1 Azure Queue Storage no Render</h3>
+  <p>
+    A mensageria atual usa Azure Queue Storage dentro da conta de armazenamento <code>stgmtechsolution</code>.
+    O projeto nao depende mais de Azure Service Bus. A fila principal e <code>notificacoes</code>; a fila
+    <code>notificacoes-poison</code> armazena mensagens invalidas ou que excederam o limite de tentativas.
+  </p>
+  <table>
+    <tr><th>Variavel</th><th>Valor/uso</th></tr>
+    <tr><td><code>QueueStorage__ConnectionString</code></td><td>Cadeia de conexao da conta de armazenamento em <code>stgmtechsolution &gt; Chaves de acesso &gt; key1</code>.</td></tr>
+    <tr><td><code>QueueStorage__QueueName</code></td><td>Nome da fila principal. Padrao: <code>notificacoes</code>.</td></tr>
+    <tr><td><code>QueueStorage__ConsumerEnabled</code></td><td>Habilita o worker que consome a fila. Padrao: <code>true</code>.</td></tr>
+    <tr><td><code>QueueStorage__MaxDequeueCount</code></td><td>Numero maximo de tentativas antes de mover a mensagem para <code>notificacoes-poison</code>. Padrao: <code>5</code>.</td></tr>
+    <tr><td><code>QueueStorage__PollingIntervalSeconds</code></td><td>Intervalo de consulta quando a fila esta vazia. Padrao: <code>5</code>.</td></tr>
+  </table>
+  <p>
+    Fluxo: <code>CadernetaDigitalService</code> publica na fila <code>notificacoes</code>,
+    <code>AzureQueueNotificacaoWorker</code> consome a mensagem e grava a notificacao na tabela
+    <code>Notificacao</code>. Se a connection string nao existir ou a fila falhar, a API grava direto no banco.
+  </p>
 </body>
 </html>

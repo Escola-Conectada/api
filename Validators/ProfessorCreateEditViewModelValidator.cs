@@ -13,9 +13,7 @@ namespace ESCOLA_API.Validators
                 .MaximumLength(100).WithMessage("O nome do professor deve ter no maximo 100 caracteres.");
 
             RuleFor(professor => professor.IdUsuario)
-                .GreaterThan(0)
-                .When(professor => professor.IdUsuario.HasValue)
-                .WithMessage("Informe um usuario valido.");
+                .GreaterThan(0).WithMessage("Informe um usuario de professor valido.");
         }
     }
 }

@@ -22,6 +22,7 @@ namespace ESCOLA_API.Tests.Services
                     Sobrenome = "Solano",
                     DataNasc = "25/02/1982",
                     ProfessorId = 1,
+                    IdUsuario = 12,
                     Professor = new Professor { Id = 1, Nome = "Vinicius" }
                 }
             };
@@ -45,10 +46,14 @@ namespace ESCOLA_API.Tests.Services
                 Nome = "Joao",
                 Sobrenome = "Gomes",
                 DataNasc = "01/01/2000",
-                ProfessorId = 2
+                ProfessorId = 2,
+                IdUsuario = 13
             };
 
             var repository = new Mock<IRepository>();
+            repository.Setup(r => r.ProfessorExistsAsync(viewModel.ProfessorId)).ReturnsAsync(true);
+            repository.Setup(r => r.UsuarioExistsWithPerfilAsync(viewModel.IdUsuario, 3)).ReturnsAsync(true);
+            repository.Setup(r => r.AlunoUsuarioInUseAsync(viewModel.IdUsuario, null)).ReturnsAsync(false);
             repository.Setup(r => r.Add(It.IsAny<Aluno>()));
             repository.Setup(r => r.SaveChangesAsync()).ReturnsAsync(true);
             repository.Setup(r => r.GetAlunoAsyncById(It.IsAny<int>(), true))
@@ -59,6 +64,7 @@ namespace ESCOLA_API.Tests.Services
                     Sobrenome = viewModel.Sobrenome,
                     DataNasc = viewModel.DataNasc,
                     ProfessorId = viewModel.ProfessorId,
+                    IdUsuario = viewModel.IdUsuario,
                     Professor = new Professor { Id = viewModel.ProfessorId, Nome = "Paula" }
                 });
 

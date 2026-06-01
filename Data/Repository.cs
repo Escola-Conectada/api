@@ -91,6 +91,25 @@ namespace ESCOLA_API.Data
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<bool> ProfessorExistsAsync(int professorId)
+        {
+            return await _context.Professores.AnyAsync(professor => professor.Id == professorId);
+        }
+
+        public async Task<bool> UsuarioExistsWithPerfilAsync(int usuarioId, int perfilId)
+        {
+            return await _context.Usuarios.AnyAsync(usuario =>
+                usuario.IdUsuario == usuarioId
+                && usuario.IdPerfil == perfilId);
+        }
+
+        public async Task<bool> AlunoUsuarioInUseAsync(int usuarioId, int? ignoreAlunoId = null)
+        {
+            return await _context.Alunos.AnyAsync(aluno =>
+                aluno.IdUsuario == usuarioId
+                && (!ignoreAlunoId.HasValue || aluno.Id != ignoreAlunoId.Value));
+        }
+
         // Professor
         public async Task<Professor[]> GetAllProfessoresAsync(bool includeAluno = false)
         {
@@ -127,6 +146,13 @@ namespace ESCOLA_API.Data
             .Where(Professor => Professor.Id == ProfessorId);
 
             return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> ProfessorUsuarioInUseAsync(int usuarioId, int? ignoreProfessorId = null)
+        {
+            return await _context.Professores.AnyAsync(professor =>
+                professor.IdUsuario == usuarioId
+                && (!ignoreProfessorId.HasValue || professor.Id != ignoreProfessorId.Value));
         }
 
         // Diretoria

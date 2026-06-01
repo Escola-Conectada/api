@@ -9,7 +9,7 @@ namespace ESCOLA_API.Models
     {
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
-        public int? IdUsuario { get; set; }
+        public int IdUsuario { get; set; }
         public Usuario? Usuario { get; set; }
         public List<Aluno> Alunos { get; set; } = new();
     }

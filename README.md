@@ -58,6 +58,27 @@ O arquivo `render.yaml` deste repositorio tambem declara essas variaveis para de
 
 As notificacoes principais do cadastro de usuarios e da agenda de avaliacoes/trabalhos sao gravadas diretamente na tabela `Notificacao`. As notificacoes da caderneta digital usam Azure Queue Storage quando uma connection string de fila/storage estiver configurada; sem essa configuracao, a API usa fallback local e grava diretamente no banco.
 
+### Azure Queue Storage
+
+A mensageria nao usa mais Azure Service Bus. O recurso usado agora e o **Azure Queue Storage**, que fica dentro da conta de armazenamento `stgmtechsolution`.
+
+No Azure Portal, mantenha estas filas na conta de armazenamento:
+
+| Fila | Uso |
+| --- | --- |
+| `notificacoes` | Fila principal onde a API publica notificacoes da caderneta digital. |
+| `notificacoes-poison` | Fila de erro para mensagens invalidas ou que excederam o limite de tentativas. |
+
+No Render, a variavel `QueueStorage__ConnectionString` deve receber a **Cadeia de conexao** da conta de armazenamento, em **stgmtechsolution > Chaves de acesso > key1 > Cadeia de conexao**. Essa mesma conta pode continuar sendo usada pelo Azure Blob Storage para arquivos.
+
+Fluxo de notificacao da caderneta:
+
+```text
+CadernetaDigitalService -> Azure Queue Storage/notificacoes -> AzureQueueNotificacaoWorker -> tabela Notificacao
+```
+
+Se `QueueStorage__ConnectionString` nao estiver configurada ou se o envio para a fila falhar, a API grava a notificacao diretamente no banco para nao interromper o lancamento de notas.
+
 Quando `Uploads__Provider=AzureBlob`, a API grava fotos, certificados e holerites no Azure Blob Storage e salva no banco apenas a URL e os metadados do arquivo. Para que o front consiga exibir fotos e abrir PDFs diretamente, o container precisa permitir leitura publica dos blobs ou `AzureBlob__PublicBaseUrl` deve apontar para uma URL publica/CDN configurada para esse container.
 
 ## Docker Compose
@@ -174,6 +195,8 @@ O backend usa arquitetura em camadas:
 - `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas e eventos das disciplinas associadas; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas, frequencia, avaliacoes e trabalhos sao publicados.
 
 No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios. Os campos opcionais `dataNascimento`, `nomeMae`, `nomePai` e `endereco` ficam no contrato de criacao/edicao e retornam nas consultas. `dataNascimento` usa formato ISO `yyyy-MM-dd`, adequado para Datepicker que permita digitar ou selecionar a data.
+
+Nos cadastros legados de `Aluno` e `Professor`, o campo `idUsuario` e obrigatorio. Ele deve apontar para um usuario existente do perfil correspondente e nao pode ser reutilizado em outro aluno/professor.
 
 Exemplo de evento de disciplina:
 

@@ -21,10 +21,14 @@ namespace ESCOLA_API.Data
         Task<Aluno[]> GetAllAlunosAsync(bool includeProfessor);
         Task<Aluno[]> GetAlunoAsyncByProfessorId(int ProfessorId, bool includeProfessor);
         Task<Aluno?> GetAlunoAsyncById(int AlunoId, bool includeProfessor);
+        Task<bool> ProfessorExistsAsync(int professorId);
+        Task<bool> UsuarioExistsWithPerfilAsync(int usuarioId, int perfilId);
+        Task<bool> AlunoUsuarioInUseAsync(int usuarioId, int? ignoreAlunoId = null);
 
         // Professor
         Task<Professor[]> GetAllProfessoresAsync(bool includeAluno);
         Task<Professor?> GetProfessorAsyncById(int ProfessorId, bool includeAluno);
+        Task<bool> ProfessorUsuarioInUseAsync(int usuarioId, int? ignoreProfessorId = null);
 
         // Diretoria
         Task<Diretoria[]> GetAllDiretoriasAsync(bool includeUsuario);
