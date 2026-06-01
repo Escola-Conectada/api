@@ -486,6 +486,13 @@ namespace ESCOLA_API.Tests.Services
 
         private static async Task MatricularAlunoAsync(DataContext context, int idAlunoUsuario, int idTurmaEnsino)
         {
+            var matriculasExistentes = await context.AlunosTurmasEnsino
+                .Where(matricula => matricula.IdAlunoUsuario == idAlunoUsuario)
+                .ToArrayAsync();
+
+            context.AlunosTurmasEnsino.RemoveRange(matriculasExistentes);
+            await context.SaveChangesAsync();
+
             context.AlunosTurmasEnsino.Add(new AlunoTurmaEnsino
             {
                 IdAlunoUsuario = idAlunoUsuario,

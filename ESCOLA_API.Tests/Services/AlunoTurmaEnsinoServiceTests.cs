@@ -17,18 +17,19 @@ namespace ESCOLA_API.Tests.Services
             await connection.OpenAsync();
             await using var context = CreateContext(connection);
             await context.Database.EnsureCreatedAsync();
+            await CriarAlunoSemMatriculaAsync(context, 900);
 
             var service = new AlunoTurmaEnsinoService(context);
 
             var created = await service.AddAsync(new AlunoTurmaEnsinoCreateUpdateViewModel
             {
-                IdAlunoUsuario = 12,
+                IdAlunoUsuario = 900,
                 IdTurmaEnsino = 106
             }, CreatePrincipal(1, PerfilSistema.Administrador));
 
             Assert.True(created.IdAlunoTurmaEnsino > 0);
-            Assert.Equal(12, created.IdAlunoUsuario);
-            Assert.Equal("Aluno Maria", created.NomeAluno);
+            Assert.Equal(900, created.IdAlunoUsuario);
+            Assert.Equal("Aluno Teste Matricula", created.NomeAluno);
             Assert.Equal(1, created.IdTipoEnsino);
             Assert.Equal("Ensino Fundamental", created.NomeTipoEnsino);
             Assert.Equal(106, created.IdTurmaEnsino);
@@ -48,12 +49,6 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new AlunoTurmaEnsinoService(context);
             var principal = CreatePrincipal(1, PerfilSistema.Administrador);
-
-            await service.AddAsync(new AlunoTurmaEnsinoCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdTurmaEnsino = 106
-            }, principal);
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 service.AddAsync(new AlunoTurmaEnsinoCreateUpdateViewModel
@@ -75,13 +70,10 @@ namespace ESCOLA_API.Tests.Services
 
             var service = new AlunoTurmaEnsinoService(context);
             var principal = CreatePrincipal(1, PerfilSistema.Administrador);
-            var created = await service.AddAsync(new AlunoTurmaEnsinoCreateUpdateViewModel
-            {
-                IdAlunoUsuario = 12,
-                IdTurmaEnsino = 106
-            }, principal);
+            var matricula = await context.AlunosTurmasEnsino
+                .SingleAsync(item => item.IdAlunoUsuario == 12);
 
-            var updated = await service.UpdateAsync(created.IdAlunoTurmaEnsino, new AlunoTurmaEnsinoCreateUpdateViewModel
+            var updated = await service.UpdateAsync(matricula.IdAlunoTurmaEnsino, new AlunoTurmaEnsinoCreateUpdateViewModel
             {
                 IdAlunoUsuario = 12,
                 IdTurmaEnsino = 107
@@ -120,6 +112,31 @@ namespace ESCOLA_API.Tests.Services
             }, "Test");
 
             return new ClaimsPrincipal(identity);
+        }
+
+        private static async Task CriarAlunoSemMatriculaAsync(DataContext context, int idUsuario)
+        {
+            context.Usuarios.Add(new Usuario
+            {
+                IdUsuario = idUsuario,
+                Nome = "Aluno Teste Matricula",
+                Email = $"aluno.teste.{idUsuario}@escola.com",
+                Telefone = "11900000000",
+                Senha = "Senha@123",
+                IdPerfil = PerfilSistema.AlunoId
+            });
+
+            context.Alunos.Add(new Aluno
+            {
+                Id = idUsuario,
+                Nome = "Aluno",
+                Sobrenome = "Teste Matricula",
+                DataNasc = "01/01/2010",
+                ProfessorId = 1,
+                IdUsuario = idUsuario
+            });
+
+            await context.SaveChangesAsync();
         }
 
         private static DataContext CreateContext(SqliteConnection connection)

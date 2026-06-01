@@ -426,6 +426,7 @@ namespace ESCOLA_API.Data
             builder.Entity<Usuario>().HasData(CreateUsuarios());
             builder.Entity<Professor>().HasData(CreateProfessores());
             builder.Entity<Aluno>().HasData(CreateAlunos());
+            builder.Entity<AlunoTurmaEnsino>().HasData(CreateAlunosTurmasEnsino());
             builder.Entity<Diretoria>().HasData(CreateDiretoria());
             builder.Entity<TipoEnsino>().HasData(CreateTiposEnsino());
             builder.Entity<TurmaEnsino>().HasData(CreateTurmasEnsino());
@@ -445,6 +446,9 @@ namespace ESCOLA_API.Data
         private const int AreaMedioMatematicaId = 202;
         private const int AreaMedioCienciasNaturezaId = 203;
         private const int AreaMedioCienciasHumanasId = 204;
+        private const int PrimeiroAlunoUsuarioSeedId = 12;
+        private const int AlunosPorTurmaSeed = 5;
+        private static readonly int[] TurmasEnsinoSeedIds = [101, 102, 103, 104, 105, 106, 107, 108, 109, 201, 202, 203];
 
         private static IEnumerable<TipoEnsino> CreateTiposEnsino()
         {
@@ -643,19 +647,15 @@ namespace ESCOLA_API.Data
                 IdPerfil = PerfilSistema.ProfessorId
             }));
 
-            var alunos = new[]
-            {
-                "Maria", "Joao", "Alex", "Ana", "Bruno",
-                "Carla", "Daniel", "Elisa", "Fabio"
-            };
+            var alunos = CreateAlunoSeeds();
 
             usuarios.AddRange(alunos.Select((nome, index) => new Usuario
             {
-                IdUsuario = index + 12,
-                Nome = $"Aluno {nome}",
+                IdUsuario = PrimeiroAlunoUsuarioSeedId + index,
+                Nome = $"Aluno {nome.Nome}",
                 Email = $"aluno{index + 1:00}@escola.com",
                 Telefone = $"1197777{index + 1:0000}",
-                Senha = CreateSeedPassword(index + 12),
+                Senha = CreateSeedPassword(PrimeiroAlunoUsuarioSeedId + index),
                 IdPerfil = PerfilSistema.AlunoId
             }));
 
@@ -704,6 +704,33 @@ namespace ESCOLA_API.Data
 
         private static IEnumerable<Aluno> CreateAlunos()
         {
+            return CreateAlunoSeeds().Select((aluno, index) => new Aluno
+            {
+                Id = index + 1,
+                Nome = aluno.Nome,
+                Sobrenome = aluno.Sobrenome,
+                DataNasc = aluno.DataNasc,
+                ProfessorId = (index % 10) + 1,
+                IdUsuario = PrimeiroAlunoUsuarioSeedId + index
+            });
+        }
+
+        private static IEnumerable<AlunoTurmaEnsino> CreateAlunosTurmasEnsino()
+        {
+            var matriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            return CreateAlunoSeeds().Select((aluno, index) => new AlunoTurmaEnsino
+            {
+                IdAlunoTurmaEnsino = index + 1,
+                IdAlunoUsuario = PrimeiroAlunoUsuarioSeedId + index,
+                IdTurmaEnsino = aluno.IdTurmaEnsino,
+                IdUsuarioResponsavel = 1,
+                MatriculadoEmUtc = matriculadoEmUtc
+            });
+        }
+
+        private static AlunoSeed[] CreateAlunoSeeds()
+        {
             var nomes = new[]
             {
                 "Maria", "Joao", "Alex", "Ana", "Bruno", "Carla", "Daniel", "Elisa", "Fabio",
@@ -712,7 +739,8 @@ namespace ESCOLA_API.Data
                 "Yasmin", "Zoe", "Arthur", "Bianca", "Caio", "Debora", "Enzo", "Flavia",
                 "Guilherme", "Helena", "Igor", "Julia", "Kevin", "Laura", "Miguel", "Natalia",
                 "Otavio", "Pamela", "Rafael", "Sabrina", "Tales", "Vanessa", "William", "Xenia",
-                "Yuri"
+                "Yuri", "Alice", "Davi", "Livia", "Heitor", "Luiza", "Theo", "Melissa", "Benicio", "Clara",
+                "Isadora"
             };
 
             var sobrenomes = new[]
@@ -723,24 +751,27 @@ namespace ESCOLA_API.Data
                 "Correia", "Mendes", "Cardoso", "Ramos", "Castro", "Fernandes", "Moreira",
                 "Moura", "Batista", "Freitas", "Monteiro", "Campos", "Vieira", "Pinto",
                 "Cavalcanti", "Farias", "Cunha", "Duarte", "Lopes", "Reis", "Pires", "Tavares",
-                "Mello", "Assis", "Peixoto", "Nunes", "Macedo", "Brito"
+                "Mello", "Assis", "Peixoto", "Nunes", "Macedo", "Brito", "Medeiros", "Sales",
+                "Amaral", "Queiroz", "Rezende", "Aguiar", "Moraes", "Dantas", "Borges", "Neves"
             };
 
-            return nomes.Take(9).Select((nome, index) => new Aluno
-            {
-                Id = index + 1,
-                Nome = nome,
-                Sobrenome = sobrenomes[index],
-                DataNasc = index switch
-                {
-                    0 => "25/02/1982",
-                    1 => "25/01/2000",
-                    2 => "22/02/2002",
-                    _ => $"{(index % 28) + 1:00}/{(index % 12) + 1:00}/{1980 + (index % 25)}"
-                },
-                ProfessorId = index + 1,
-                IdUsuario = index + 12
-            });
+            var totalAlunos = TurmasEnsinoSeedIds.Length * AlunosPorTurmaSeed;
+
+            return Enumerable.Range(0, totalAlunos)
+                .Select(index => new AlunoSeed(
+                    nomes[index],
+                    sobrenomes[index],
+                    index switch
+                    {
+                        0 => "25/02/1982",
+                        1 => "25/01/2000",
+                        2 => "22/02/2002",
+                        _ => $"{(index % 28) + 1:00}/{(index % 12) + 1:00}/{2005 + (index % 12)}"
+                    },
+                    TurmasEnsinoSeedIds[index / AlunosPorTurmaSeed]))
+                .ToArray();
         }
+
+        private sealed record AlunoSeed(string Nome, string Sobrenome, string DataNasc, int IdTurmaEnsino);
     }
 }
