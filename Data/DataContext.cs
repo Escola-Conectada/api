@@ -447,6 +447,8 @@ namespace ESCOLA_API.Data
         private const int AreaMedioCienciasNaturezaId = 203;
         private const int AreaMedioCienciasHumanasId = 204;
         private const int PrimeiroAlunoUsuarioSeedId = 12;
+        private const int QuantidadeAlunosLegadosSeed = 9;
+        private const int PrimeiroAlunoReservadoSeedId = 10001;
         private const int AlunosPorTurmaSeed = 5;
         private static readonly int[] TurmasEnsinoSeedIds = [101, 102, 103, 104, 105, 106, 107, 108, 109, 201, 202, 203];
 
@@ -651,11 +653,11 @@ namespace ESCOLA_API.Data
 
             usuarios.AddRange(alunos.Select((nome, index) => new Usuario
             {
-                IdUsuario = PrimeiroAlunoUsuarioSeedId + index,
+                IdUsuario = ObterAlunoUsuarioSeedId(index),
                 Nome = $"Aluno {nome.Nome}",
                 Email = $"aluno{index + 1:00}@escola.com",
                 Telefone = $"1197777{index + 1:0000}",
-                Senha = CreateSeedPassword(PrimeiroAlunoUsuarioSeedId + index),
+                Senha = CreateSeedPassword(ObterAlunoUsuarioSeedId(index)),
                 IdPerfil = PerfilSistema.AlunoId
             }));
 
@@ -702,16 +704,35 @@ namespace ESCOLA_API.Data
             });
         }
 
+        private static int ObterAlunoUsuarioSeedId(int index)
+        {
+            return index < QuantidadeAlunosLegadosSeed
+                ? PrimeiroAlunoUsuarioSeedId + index
+                : PrimeiroAlunoReservadoSeedId + index - QuantidadeAlunosLegadosSeed;
+        }
+
+        private static int ObterAlunoSeedId(int index)
+        {
+            return index < QuantidadeAlunosLegadosSeed
+                ? index + 1
+                : PrimeiroAlunoReservadoSeedId + index - QuantidadeAlunosLegadosSeed;
+        }
+
+        private static int ObterAlunoTurmaSeedId(int index)
+        {
+            return PrimeiroAlunoReservadoSeedId + index;
+        }
+
         private static IEnumerable<Aluno> CreateAlunos()
         {
             return CreateAlunoSeeds().Select((aluno, index) => new Aluno
             {
-                Id = index + 1,
+                Id = ObterAlunoSeedId(index),
                 Nome = aluno.Nome,
                 Sobrenome = aluno.Sobrenome,
                 DataNasc = aluno.DataNasc,
                 ProfessorId = (index % 10) + 1,
-                IdUsuario = PrimeiroAlunoUsuarioSeedId + index
+                IdUsuario = ObterAlunoUsuarioSeedId(index)
             });
         }
 
@@ -721,8 +742,8 @@ namespace ESCOLA_API.Data
 
             return CreateAlunoSeeds().Select((aluno, index) => new AlunoTurmaEnsino
             {
-                IdAlunoTurmaEnsino = index + 1,
-                IdAlunoUsuario = PrimeiroAlunoUsuarioSeedId + index,
+                IdAlunoTurmaEnsino = ObterAlunoTurmaSeedId(index),
+                IdAlunoUsuario = ObterAlunoUsuarioSeedId(index),
                 IdTurmaEnsino = aluno.IdTurmaEnsino,
                 IdUsuarioResponsavel = 1,
                 MatriculadoEmUtc = matriculadoEmUtc

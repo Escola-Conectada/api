@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ESCOLA_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260601210821_SeedFiveAlunosPerTurma")]
+    [Migration("20260601214808_SeedFiveAlunosPerTurma")]
     partial class SeedFiveAlunosPerTurma
     {
         /// <inheritdoc />
@@ -144,459 +144,459 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            Id = 10,
+                            Id = 10001,
                             DataNasc = "10/10/2014",
-                            IdUsuario = 21,
+                            IdUsuario = 10001,
                             Nome = "Gabriela",
                             ProfessorId = 10,
                             Sobrenome = "Rodrigues"
                         },
                         new
                         {
-                            Id = 11,
+                            Id = 10002,
                             DataNasc = "11/11/2015",
-                            IdUsuario = 22,
+                            IdUsuario = 10002,
                             Nome = "Hugo",
                             ProfessorId = 1,
                             Sobrenome = "Almeida"
                         },
                         new
                         {
-                            Id = 12,
+                            Id = 10003,
                             DataNasc = "12/12/2016",
-                            IdUsuario = 23,
+                            IdUsuario = 10003,
                             Nome = "Isabela",
                             ProfessorId = 2,
                             Sobrenome = "Nascimento"
                         },
                         new
                         {
-                            Id = 13,
+                            Id = 10004,
                             DataNasc = "13/01/2005",
-                            IdUsuario = 24,
+                            IdUsuario = 10004,
                             Nome = "Jonas",
                             ProfessorId = 3,
                             Sobrenome = "Lima"
                         },
                         new
                         {
-                            Id = 14,
+                            Id = 10005,
                             DataNasc = "14/02/2006",
-                            IdUsuario = 25,
+                            IdUsuario = 10005,
                             Nome = "Karina",
                             ProfessorId = 4,
                             Sobrenome = "Araujo"
                         },
                         new
                         {
-                            Id = 15,
+                            Id = 10006,
                             DataNasc = "15/03/2007",
-                            IdUsuario = 26,
+                            IdUsuario = 10006,
                             Nome = "Luis",
                             ProfessorId = 5,
                             Sobrenome = "Ferreira"
                         },
                         new
                         {
-                            Id = 16,
+                            Id = 10007,
                             DataNasc = "16/04/2008",
-                            IdUsuario = 27,
+                            IdUsuario = 10007,
                             Nome = "Manuela",
                             ProfessorId = 6,
                             Sobrenome = "Carvalho"
                         },
                         new
                         {
-                            Id = 17,
+                            Id = 10008,
                             DataNasc = "17/05/2009",
-                            IdUsuario = 28,
+                            IdUsuario = 10008,
                             Nome = "Nicolas",
                             ProfessorId = 7,
                             Sobrenome = "Ribeiro"
                         },
                         new
                         {
-                            Id = 18,
+                            Id = 10009,
                             DataNasc = "18/06/2010",
-                            IdUsuario = 29,
+                            IdUsuario = 10009,
                             Nome = "Olivia",
                             ProfessorId = 8,
                             Sobrenome = "Martins"
                         },
                         new
                         {
-                            Id = 19,
+                            Id = 10010,
                             DataNasc = "19/07/2011",
-                            IdUsuario = 30,
+                            IdUsuario = 10010,
                             Nome = "Pedro",
                             ProfessorId = 9,
                             Sobrenome = "Rocha"
                         },
                         new
                         {
-                            Id = 20,
+                            Id = 10011,
                             DataNasc = "20/08/2012",
-                            IdUsuario = 31,
+                            IdUsuario = 10011,
                             Nome = "Rafaela",
                             ProfessorId = 10,
                             Sobrenome = "Barbosa"
                         },
                         new
                         {
-                            Id = 21,
+                            Id = 10012,
                             DataNasc = "21/09/2013",
-                            IdUsuario = 32,
+                            IdUsuario = 10012,
                             Nome = "Sofia",
                             ProfessorId = 1,
                             Sobrenome = "Dias"
                         },
                         new
                         {
-                            Id = 22,
+                            Id = 10013,
                             DataNasc = "22/10/2014",
-                            IdUsuario = 33,
+                            IdUsuario = 10013,
                             Nome = "Tiago",
                             ProfessorId = 2,
                             Sobrenome = "Teixeira"
                         },
                         new
                         {
-                            Id = 23,
+                            Id = 10014,
                             DataNasc = "23/11/2015",
-                            IdUsuario = 34,
+                            IdUsuario = 10014,
                             Nome = "Ursula",
                             ProfessorId = 3,
                             Sobrenome = "Correia"
                         },
                         new
                         {
-                            Id = 24,
+                            Id = 10015,
                             DataNasc = "24/12/2016",
-                            IdUsuario = 35,
+                            IdUsuario = 10015,
                             Nome = "Victor",
                             ProfessorId = 4,
                             Sobrenome = "Mendes"
                         },
                         new
                         {
-                            Id = 25,
+                            Id = 10016,
                             DataNasc = "25/01/2005",
-                            IdUsuario = 36,
+                            IdUsuario = 10016,
                             Nome = "Wesley",
                             ProfessorId = 5,
                             Sobrenome = "Cardoso"
                         },
                         new
                         {
-                            Id = 26,
+                            Id = 10017,
                             DataNasc = "26/02/2006",
-                            IdUsuario = 37,
+                            IdUsuario = 10017,
                             Nome = "Yasmin",
                             ProfessorId = 6,
                             Sobrenome = "Ramos"
                         },
                         new
                         {
-                            Id = 27,
+                            Id = 10018,
                             DataNasc = "27/03/2007",
-                            IdUsuario = 38,
+                            IdUsuario = 10018,
                             Nome = "Zoe",
                             ProfessorId = 7,
                             Sobrenome = "Castro"
                         },
                         new
                         {
-                            Id = 28,
+                            Id = 10019,
                             DataNasc = "28/04/2008",
-                            IdUsuario = 39,
+                            IdUsuario = 10019,
                             Nome = "Arthur",
                             ProfessorId = 8,
                             Sobrenome = "Fernandes"
                         },
                         new
                         {
-                            Id = 29,
+                            Id = 10020,
                             DataNasc = "01/05/2009",
-                            IdUsuario = 40,
+                            IdUsuario = 10020,
                             Nome = "Bianca",
                             ProfessorId = 9,
                             Sobrenome = "Moreira"
                         },
                         new
                         {
-                            Id = 30,
+                            Id = 10021,
                             DataNasc = "02/06/2010",
-                            IdUsuario = 41,
+                            IdUsuario = 10021,
                             Nome = "Caio",
                             ProfessorId = 10,
                             Sobrenome = "Moura"
                         },
                         new
                         {
-                            Id = 31,
+                            Id = 10022,
                             DataNasc = "03/07/2011",
-                            IdUsuario = 42,
+                            IdUsuario = 10022,
                             Nome = "Debora",
                             ProfessorId = 1,
                             Sobrenome = "Batista"
                         },
                         new
                         {
-                            Id = 32,
+                            Id = 10023,
                             DataNasc = "04/08/2012",
-                            IdUsuario = 43,
+                            IdUsuario = 10023,
                             Nome = "Enzo",
                             ProfessorId = 2,
                             Sobrenome = "Freitas"
                         },
                         new
                         {
-                            Id = 33,
+                            Id = 10024,
                             DataNasc = "05/09/2013",
-                            IdUsuario = 44,
+                            IdUsuario = 10024,
                             Nome = "Flavia",
                             ProfessorId = 3,
                             Sobrenome = "Monteiro"
                         },
                         new
                         {
-                            Id = 34,
+                            Id = 10025,
                             DataNasc = "06/10/2014",
-                            IdUsuario = 45,
+                            IdUsuario = 10025,
                             Nome = "Guilherme",
                             ProfessorId = 4,
                             Sobrenome = "Campos"
                         },
                         new
                         {
-                            Id = 35,
+                            Id = 10026,
                             DataNasc = "07/11/2015",
-                            IdUsuario = 46,
+                            IdUsuario = 10026,
                             Nome = "Helena",
                             ProfessorId = 5,
                             Sobrenome = "Vieira"
                         },
                         new
                         {
-                            Id = 36,
+                            Id = 10027,
                             DataNasc = "08/12/2016",
-                            IdUsuario = 47,
+                            IdUsuario = 10027,
                             Nome = "Igor",
                             ProfessorId = 6,
                             Sobrenome = "Pinto"
                         },
                         new
                         {
-                            Id = 37,
+                            Id = 10028,
                             DataNasc = "09/01/2005",
-                            IdUsuario = 48,
+                            IdUsuario = 10028,
                             Nome = "Julia",
                             ProfessorId = 7,
                             Sobrenome = "Cavalcanti"
                         },
                         new
                         {
-                            Id = 38,
+                            Id = 10029,
                             DataNasc = "10/02/2006",
-                            IdUsuario = 49,
+                            IdUsuario = 10029,
                             Nome = "Kevin",
                             ProfessorId = 8,
                             Sobrenome = "Farias"
                         },
                         new
                         {
-                            Id = 39,
+                            Id = 10030,
                             DataNasc = "11/03/2007",
-                            IdUsuario = 50,
+                            IdUsuario = 10030,
                             Nome = "Laura",
                             ProfessorId = 9,
                             Sobrenome = "Cunha"
                         },
                         new
                         {
-                            Id = 40,
+                            Id = 10031,
                             DataNasc = "12/04/2008",
-                            IdUsuario = 51,
+                            IdUsuario = 10031,
                             Nome = "Miguel",
                             ProfessorId = 10,
                             Sobrenome = "Duarte"
                         },
                         new
                         {
-                            Id = 41,
+                            Id = 10032,
                             DataNasc = "13/05/2009",
-                            IdUsuario = 52,
+                            IdUsuario = 10032,
                             Nome = "Natalia",
                             ProfessorId = 1,
                             Sobrenome = "Lopes"
                         },
                         new
                         {
-                            Id = 42,
+                            Id = 10033,
                             DataNasc = "14/06/2010",
-                            IdUsuario = 53,
+                            IdUsuario = 10033,
                             Nome = "Otavio",
                             ProfessorId = 2,
                             Sobrenome = "Reis"
                         },
                         new
                         {
-                            Id = 43,
+                            Id = 10034,
                             DataNasc = "15/07/2011",
-                            IdUsuario = 54,
+                            IdUsuario = 10034,
                             Nome = "Pamela",
                             ProfessorId = 3,
                             Sobrenome = "Pires"
                         },
                         new
                         {
-                            Id = 44,
+                            Id = 10035,
                             DataNasc = "16/08/2012",
-                            IdUsuario = 55,
+                            IdUsuario = 10035,
                             Nome = "Rafael",
                             ProfessorId = 4,
                             Sobrenome = "Tavares"
                         },
                         new
                         {
-                            Id = 45,
+                            Id = 10036,
                             DataNasc = "17/09/2013",
-                            IdUsuario = 56,
+                            IdUsuario = 10036,
                             Nome = "Sabrina",
                             ProfessorId = 5,
                             Sobrenome = "Mello"
                         },
                         new
                         {
-                            Id = 46,
+                            Id = 10037,
                             DataNasc = "18/10/2014",
-                            IdUsuario = 57,
+                            IdUsuario = 10037,
                             Nome = "Tales",
                             ProfessorId = 6,
                             Sobrenome = "Assis"
                         },
                         new
                         {
-                            Id = 47,
+                            Id = 10038,
                             DataNasc = "19/11/2015",
-                            IdUsuario = 58,
+                            IdUsuario = 10038,
                             Nome = "Vanessa",
                             ProfessorId = 7,
                             Sobrenome = "Peixoto"
                         },
                         new
                         {
-                            Id = 48,
+                            Id = 10039,
                             DataNasc = "20/12/2016",
-                            IdUsuario = 59,
+                            IdUsuario = 10039,
                             Nome = "William",
                             ProfessorId = 8,
                             Sobrenome = "Nunes"
                         },
                         new
                         {
-                            Id = 49,
+                            Id = 10040,
                             DataNasc = "21/01/2005",
-                            IdUsuario = 60,
+                            IdUsuario = 10040,
                             Nome = "Xenia",
                             ProfessorId = 9,
                             Sobrenome = "Macedo"
                         },
                         new
                         {
-                            Id = 50,
+                            Id = 10041,
                             DataNasc = "22/02/2006",
-                            IdUsuario = 61,
+                            IdUsuario = 10041,
                             Nome = "Yuri",
                             ProfessorId = 10,
                             Sobrenome = "Brito"
                         },
                         new
                         {
-                            Id = 51,
+                            Id = 10042,
                             DataNasc = "23/03/2007",
-                            IdUsuario = 62,
+                            IdUsuario = 10042,
                             Nome = "Alice",
                             ProfessorId = 1,
                             Sobrenome = "Medeiros"
                         },
                         new
                         {
-                            Id = 52,
+                            Id = 10043,
                             DataNasc = "24/04/2008",
-                            IdUsuario = 63,
+                            IdUsuario = 10043,
                             Nome = "Davi",
                             ProfessorId = 2,
                             Sobrenome = "Sales"
                         },
                         new
                         {
-                            Id = 53,
+                            Id = 10044,
                             DataNasc = "25/05/2009",
-                            IdUsuario = 64,
+                            IdUsuario = 10044,
                             Nome = "Livia",
                             ProfessorId = 3,
                             Sobrenome = "Amaral"
                         },
                         new
                         {
-                            Id = 54,
+                            Id = 10045,
                             DataNasc = "26/06/2010",
-                            IdUsuario = 65,
+                            IdUsuario = 10045,
                             Nome = "Heitor",
                             ProfessorId = 4,
                             Sobrenome = "Queiroz"
                         },
                         new
                         {
-                            Id = 55,
+                            Id = 10046,
                             DataNasc = "27/07/2011",
-                            IdUsuario = 66,
+                            IdUsuario = 10046,
                             Nome = "Luiza",
                             ProfessorId = 5,
                             Sobrenome = "Rezende"
                         },
                         new
                         {
-                            Id = 56,
+                            Id = 10047,
                             DataNasc = "28/08/2012",
-                            IdUsuario = 67,
+                            IdUsuario = 10047,
                             Nome = "Theo",
                             ProfessorId = 6,
                             Sobrenome = "Aguiar"
                         },
                         new
                         {
-                            Id = 57,
+                            Id = 10048,
                             DataNasc = "01/09/2013",
-                            IdUsuario = 68,
+                            IdUsuario = 10048,
                             Nome = "Melissa",
                             ProfessorId = 7,
                             Sobrenome = "Moraes"
                         },
                         new
                         {
-                            Id = 58,
+                            Id = 10049,
                             DataNasc = "02/10/2014",
-                            IdUsuario = 69,
+                            IdUsuario = 10049,
                             Nome = "Benicio",
                             ProfessorId = 8,
                             Sobrenome = "Dantas"
                         },
                         new
                         {
-                            Id = 59,
+                            Id = 10050,
                             DataNasc = "03/11/2015",
-                            IdUsuario = 70,
+                            IdUsuario = 10050,
                             Nome = "Clara",
                             ProfessorId = 9,
                             Sobrenome = "Borges"
                         },
                         new
                         {
-                            Id = 60,
+                            Id = 10051,
                             DataNasc = "04/12/2016",
-                            IdUsuario = 71,
+                            IdUsuario = 10051,
                             Nome = "Isadora",
                             ProfessorId = 10,
                             Sobrenome = "Neves"
@@ -637,7 +637,7 @@ namespace ESCOLA_API.Migrations
                     b.HasData(
                         new
                         {
-                            IdAlunoTurmaEnsino = 1,
+                            IdAlunoTurmaEnsino = 10001,
                             IdAlunoUsuario = 12,
                             IdTurmaEnsino = 101,
                             IdUsuarioResponsavel = 1,
@@ -645,7 +645,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 2,
+                            IdAlunoTurmaEnsino = 10002,
                             IdAlunoUsuario = 13,
                             IdTurmaEnsino = 101,
                             IdUsuarioResponsavel = 1,
@@ -653,7 +653,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 3,
+                            IdAlunoTurmaEnsino = 10003,
                             IdAlunoUsuario = 14,
                             IdTurmaEnsino = 101,
                             IdUsuarioResponsavel = 1,
@@ -661,7 +661,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 4,
+                            IdAlunoTurmaEnsino = 10004,
                             IdAlunoUsuario = 15,
                             IdTurmaEnsino = 101,
                             IdUsuarioResponsavel = 1,
@@ -669,7 +669,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 5,
+                            IdAlunoTurmaEnsino = 10005,
                             IdAlunoUsuario = 16,
                             IdTurmaEnsino = 101,
                             IdUsuarioResponsavel = 1,
@@ -677,7 +677,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 6,
+                            IdAlunoTurmaEnsino = 10006,
                             IdAlunoUsuario = 17,
                             IdTurmaEnsino = 102,
                             IdUsuarioResponsavel = 1,
@@ -685,7 +685,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 7,
+                            IdAlunoTurmaEnsino = 10007,
                             IdAlunoUsuario = 18,
                             IdTurmaEnsino = 102,
                             IdUsuarioResponsavel = 1,
@@ -693,7 +693,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 8,
+                            IdAlunoTurmaEnsino = 10008,
                             IdAlunoUsuario = 19,
                             IdTurmaEnsino = 102,
                             IdUsuarioResponsavel = 1,
@@ -701,7 +701,7 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 9,
+                            IdAlunoTurmaEnsino = 10009,
                             IdAlunoUsuario = 20,
                             IdTurmaEnsino = 102,
                             IdUsuarioResponsavel = 1,
@@ -709,408 +709,408 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 10,
-                            IdAlunoUsuario = 21,
+                            IdAlunoTurmaEnsino = 10010,
+                            IdAlunoUsuario = 10001,
                             IdTurmaEnsino = 102,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 11,
-                            IdAlunoUsuario = 22,
+                            IdAlunoTurmaEnsino = 10011,
+                            IdAlunoUsuario = 10002,
                             IdTurmaEnsino = 103,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 12,
-                            IdAlunoUsuario = 23,
+                            IdAlunoTurmaEnsino = 10012,
+                            IdAlunoUsuario = 10003,
                             IdTurmaEnsino = 103,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 13,
-                            IdAlunoUsuario = 24,
+                            IdAlunoTurmaEnsino = 10013,
+                            IdAlunoUsuario = 10004,
                             IdTurmaEnsino = 103,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 14,
-                            IdAlunoUsuario = 25,
+                            IdAlunoTurmaEnsino = 10014,
+                            IdAlunoUsuario = 10005,
                             IdTurmaEnsino = 103,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 15,
-                            IdAlunoUsuario = 26,
+                            IdAlunoTurmaEnsino = 10015,
+                            IdAlunoUsuario = 10006,
                             IdTurmaEnsino = 103,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 16,
-                            IdAlunoUsuario = 27,
+                            IdAlunoTurmaEnsino = 10016,
+                            IdAlunoUsuario = 10007,
                             IdTurmaEnsino = 104,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 17,
-                            IdAlunoUsuario = 28,
+                            IdAlunoTurmaEnsino = 10017,
+                            IdAlunoUsuario = 10008,
                             IdTurmaEnsino = 104,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 18,
-                            IdAlunoUsuario = 29,
+                            IdAlunoTurmaEnsino = 10018,
+                            IdAlunoUsuario = 10009,
                             IdTurmaEnsino = 104,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 19,
-                            IdAlunoUsuario = 30,
+                            IdAlunoTurmaEnsino = 10019,
+                            IdAlunoUsuario = 10010,
                             IdTurmaEnsino = 104,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 20,
-                            IdAlunoUsuario = 31,
+                            IdAlunoTurmaEnsino = 10020,
+                            IdAlunoUsuario = 10011,
                             IdTurmaEnsino = 104,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 21,
-                            IdAlunoUsuario = 32,
+                            IdAlunoTurmaEnsino = 10021,
+                            IdAlunoUsuario = 10012,
                             IdTurmaEnsino = 105,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 22,
-                            IdAlunoUsuario = 33,
+                            IdAlunoTurmaEnsino = 10022,
+                            IdAlunoUsuario = 10013,
                             IdTurmaEnsino = 105,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 23,
-                            IdAlunoUsuario = 34,
+                            IdAlunoTurmaEnsino = 10023,
+                            IdAlunoUsuario = 10014,
                             IdTurmaEnsino = 105,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 24,
-                            IdAlunoUsuario = 35,
+                            IdAlunoTurmaEnsino = 10024,
+                            IdAlunoUsuario = 10015,
                             IdTurmaEnsino = 105,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 25,
-                            IdAlunoUsuario = 36,
+                            IdAlunoTurmaEnsino = 10025,
+                            IdAlunoUsuario = 10016,
                             IdTurmaEnsino = 105,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 26,
-                            IdAlunoUsuario = 37,
+                            IdAlunoTurmaEnsino = 10026,
+                            IdAlunoUsuario = 10017,
                             IdTurmaEnsino = 106,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 27,
-                            IdAlunoUsuario = 38,
+                            IdAlunoTurmaEnsino = 10027,
+                            IdAlunoUsuario = 10018,
                             IdTurmaEnsino = 106,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 28,
-                            IdAlunoUsuario = 39,
+                            IdAlunoTurmaEnsino = 10028,
+                            IdAlunoUsuario = 10019,
                             IdTurmaEnsino = 106,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 29,
-                            IdAlunoUsuario = 40,
+                            IdAlunoTurmaEnsino = 10029,
+                            IdAlunoUsuario = 10020,
                             IdTurmaEnsino = 106,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 30,
-                            IdAlunoUsuario = 41,
+                            IdAlunoTurmaEnsino = 10030,
+                            IdAlunoUsuario = 10021,
                             IdTurmaEnsino = 106,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 31,
-                            IdAlunoUsuario = 42,
+                            IdAlunoTurmaEnsino = 10031,
+                            IdAlunoUsuario = 10022,
                             IdTurmaEnsino = 107,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 32,
-                            IdAlunoUsuario = 43,
+                            IdAlunoTurmaEnsino = 10032,
+                            IdAlunoUsuario = 10023,
                             IdTurmaEnsino = 107,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 33,
-                            IdAlunoUsuario = 44,
+                            IdAlunoTurmaEnsino = 10033,
+                            IdAlunoUsuario = 10024,
                             IdTurmaEnsino = 107,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 34,
-                            IdAlunoUsuario = 45,
+                            IdAlunoTurmaEnsino = 10034,
+                            IdAlunoUsuario = 10025,
                             IdTurmaEnsino = 107,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 35,
-                            IdAlunoUsuario = 46,
+                            IdAlunoTurmaEnsino = 10035,
+                            IdAlunoUsuario = 10026,
                             IdTurmaEnsino = 107,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 36,
-                            IdAlunoUsuario = 47,
+                            IdAlunoTurmaEnsino = 10036,
+                            IdAlunoUsuario = 10027,
                             IdTurmaEnsino = 108,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 37,
-                            IdAlunoUsuario = 48,
+                            IdAlunoTurmaEnsino = 10037,
+                            IdAlunoUsuario = 10028,
                             IdTurmaEnsino = 108,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 38,
-                            IdAlunoUsuario = 49,
+                            IdAlunoTurmaEnsino = 10038,
+                            IdAlunoUsuario = 10029,
                             IdTurmaEnsino = 108,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 39,
-                            IdAlunoUsuario = 50,
+                            IdAlunoTurmaEnsino = 10039,
+                            IdAlunoUsuario = 10030,
                             IdTurmaEnsino = 108,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 40,
-                            IdAlunoUsuario = 51,
+                            IdAlunoTurmaEnsino = 10040,
+                            IdAlunoUsuario = 10031,
                             IdTurmaEnsino = 108,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 41,
-                            IdAlunoUsuario = 52,
+                            IdAlunoTurmaEnsino = 10041,
+                            IdAlunoUsuario = 10032,
                             IdTurmaEnsino = 109,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 42,
-                            IdAlunoUsuario = 53,
+                            IdAlunoTurmaEnsino = 10042,
+                            IdAlunoUsuario = 10033,
                             IdTurmaEnsino = 109,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 43,
-                            IdAlunoUsuario = 54,
+                            IdAlunoTurmaEnsino = 10043,
+                            IdAlunoUsuario = 10034,
                             IdTurmaEnsino = 109,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 44,
-                            IdAlunoUsuario = 55,
+                            IdAlunoTurmaEnsino = 10044,
+                            IdAlunoUsuario = 10035,
                             IdTurmaEnsino = 109,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 45,
-                            IdAlunoUsuario = 56,
+                            IdAlunoTurmaEnsino = 10045,
+                            IdAlunoUsuario = 10036,
                             IdTurmaEnsino = 109,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 46,
-                            IdAlunoUsuario = 57,
+                            IdAlunoTurmaEnsino = 10046,
+                            IdAlunoUsuario = 10037,
                             IdTurmaEnsino = 201,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 47,
-                            IdAlunoUsuario = 58,
+                            IdAlunoTurmaEnsino = 10047,
+                            IdAlunoUsuario = 10038,
                             IdTurmaEnsino = 201,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 48,
-                            IdAlunoUsuario = 59,
+                            IdAlunoTurmaEnsino = 10048,
+                            IdAlunoUsuario = 10039,
                             IdTurmaEnsino = 201,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 49,
-                            IdAlunoUsuario = 60,
+                            IdAlunoTurmaEnsino = 10049,
+                            IdAlunoUsuario = 10040,
                             IdTurmaEnsino = 201,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 50,
-                            IdAlunoUsuario = 61,
+                            IdAlunoTurmaEnsino = 10050,
+                            IdAlunoUsuario = 10041,
                             IdTurmaEnsino = 201,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 51,
-                            IdAlunoUsuario = 62,
+                            IdAlunoTurmaEnsino = 10051,
+                            IdAlunoUsuario = 10042,
                             IdTurmaEnsino = 202,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 52,
-                            IdAlunoUsuario = 63,
+                            IdAlunoTurmaEnsino = 10052,
+                            IdAlunoUsuario = 10043,
                             IdTurmaEnsino = 202,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 53,
-                            IdAlunoUsuario = 64,
+                            IdAlunoTurmaEnsino = 10053,
+                            IdAlunoUsuario = 10044,
                             IdTurmaEnsino = 202,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 54,
-                            IdAlunoUsuario = 65,
+                            IdAlunoTurmaEnsino = 10054,
+                            IdAlunoUsuario = 10045,
                             IdTurmaEnsino = 202,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 55,
-                            IdAlunoUsuario = 66,
+                            IdAlunoTurmaEnsino = 10055,
+                            IdAlunoUsuario = 10046,
                             IdTurmaEnsino = 202,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 56,
-                            IdAlunoUsuario = 67,
+                            IdAlunoTurmaEnsino = 10056,
+                            IdAlunoUsuario = 10047,
                             IdTurmaEnsino = 203,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 57,
-                            IdAlunoUsuario = 68,
+                            IdAlunoTurmaEnsino = 10057,
+                            IdAlunoUsuario = 10048,
                             IdTurmaEnsino = 203,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 58,
-                            IdAlunoUsuario = 69,
+                            IdAlunoTurmaEnsino = 10058,
+                            IdAlunoUsuario = 10049,
                             IdTurmaEnsino = 203,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 59,
-                            IdAlunoUsuario = 70,
+                            IdAlunoTurmaEnsino = 10059,
+                            IdAlunoUsuario = 10050,
                             IdTurmaEnsino = 203,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            IdAlunoTurmaEnsino = 60,
-                            IdAlunoUsuario = 71,
+                            IdAlunoTurmaEnsino = 10060,
+                            IdAlunoUsuario = 10051,
                             IdTurmaEnsino = 203,
                             IdUsuarioResponsavel = 1,
                             MatriculadoEmUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -3369,461 +3369,461 @@ namespace ESCOLA_API.Migrations
                         },
                         new
                         {
-                            IdUsuario = 21,
+                            IdUsuario = 10001,
                             Email = "aluno10@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Gabriela",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTIx$8NKFAVl6gASN9sWH6lrGk3cGZdqoizTe+S2Y2dWi0G0=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDAx$9jsC1UppnavgKi4KwRJNMZcgv37y0BwlWxjkpBK3f8k=",
                             Telefone = "11977770010"
                         },
                         new
                         {
-                            IdUsuario = 22,
+                            IdUsuario = 10002,
                             Email = "aluno11@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Hugo",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTIy$TW92W9xDO/hEEQkLkqpRUrJBdsinS1+wHYKOaMQeyGA=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDAy$rLHEn6V2gBeHtxoxhEwmT5HdgOuYK4iMHL+rZhDPGbc=",
                             Telefone = "11977770011"
                         },
                         new
                         {
-                            IdUsuario = 23,
+                            IdUsuario = 10003,
                             Email = "aluno12@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Isabela",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTIz$2lR260cX+yPHzMnl8DE5D24lAaO9fckLV+zoWGCG72A=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDAz$qWmuSS6fXfAKlDMTOofWR7k5pmduVmCBrg/SWv/8m4A=",
                             Telefone = "11977770012"
                         },
                         new
                         {
-                            IdUsuario = 24,
+                            IdUsuario = 10004,
                             Email = "aluno13@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Jonas",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTI0$n3Q8nZv4Q68COaEefvUWVXV/GVR4xH6nEnVOPPl9tIQ=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDA0$y019sQfhg2EWIAO1YI4e8Q3PL/CayDr2WoAlz2Ms3TY=",
                             Telefone = "11977770013"
                         },
                         new
                         {
-                            IdUsuario = 25,
+                            IdUsuario = 10005,
                             Email = "aluno14@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Karina",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTI1$c6vJexJpcqvS2cU/7FSlt1prIMRGabz5gplXBp6aEsk=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDA1$Pko8svOQnpwU5HXBuMqFpTtYSzazhKJPVJ1RfXdmlG0=",
                             Telefone = "11977770014"
                         },
                         new
                         {
-                            IdUsuario = 26,
+                            IdUsuario = 10006,
                             Email = "aluno15@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Luis",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTI2$fPscQwcUSBElx6C9v6lJ3d1ElfPm8xD4VleVSDPy94o=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDA2$MWepUwDm8k0wHFYq95g1I4sPf/XtMfSKQF2fmhrI01g=",
                             Telefone = "11977770015"
                         },
                         new
                         {
-                            IdUsuario = 27,
+                            IdUsuario = 10007,
                             Email = "aluno16@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Manuela",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTI3$c1nykWAyZw++X/8+a4XRL4KvWsxDFfmlMRq3QPDhCMU=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDA3$HRsuFuhGK6V9QdWDY5dV1dLzYHaI5wAt46j15QcU4Yg=",
                             Telefone = "11977770016"
                         },
                         new
                         {
-                            IdUsuario = 28,
+                            IdUsuario = 10008,
                             Email = "aluno17@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Nicolas",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTI4$XxiU70lyQ0grSlQeD9xT0oQ6v5c+3me5UNm8fYzRcLA=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDA4$c2UdxmgCcTXIkapCJ/LqTiDXmGeTyVgwpgaaeyGmMsU=",
                             Telefone = "11977770017"
                         },
                         new
                         {
-                            IdUsuario = 29,
+                            IdUsuario = 10009,
                             Email = "aluno18@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Olivia",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTI5$f8rZU46MPoE2sKBttNNZJf2MuBtxVIUyj2R528CwUuQ=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDA5$IbSrmAWW3RfnzJbvCj5ZNFSmVt4X23Gx6sGkHWO94AQ=",
                             Telefone = "11977770018"
                         },
                         new
                         {
-                            IdUsuario = 30,
+                            IdUsuario = 10010,
                             Email = "aluno19@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Pedro",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTMw$Fr3kGcoVx2O53Isb36FWa55o0DioQXr+EHXh0cWcWxU=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDEw$ujB32G9A0++rHsogRlTmmccpug54QTqhpk35bsuIcCs=",
                             Telefone = "11977770019"
                         },
                         new
                         {
-                            IdUsuario = 31,
+                            IdUsuario = 10011,
                             Email = "aluno20@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Rafaela",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTMx$HppyvMlTCOciXCd8+JgdAZjM2FxTa4anOQyEuf640wc=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDEx$jPFAzTeE8sB4OBAhAqnGyuei1jkkkFegIVAhGh0U/rI=",
                             Telefone = "11977770020"
                         },
                         new
                         {
-                            IdUsuario = 32,
+                            IdUsuario = 10012,
                             Email = "aluno21@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Sofia",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTMy$P4NJRDNRCG9/C7j24Nzzn5wlNh5rW+Gkm2mwhQfuX68=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDEy$EglMQRDFWXK4inEv3SWiPbB0JwXyeuTOS5fRKKePxj0=",
                             Telefone = "11977770021"
                         },
                         new
                         {
-                            IdUsuario = 33,
+                            IdUsuario = 10013,
                             Email = "aluno22@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Tiago",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTMz$aqGvLcHVRW25hxkSGeIA9yOoM8GF4j0SWQuvOTHnG4Q=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDEz$WzKRbBVQCNZ7drl76gvp4oNWVJpw3MXeqRaX6QuxwM4=",
                             Telefone = "11977770022"
                         },
                         new
                         {
-                            IdUsuario = 34,
+                            IdUsuario = 10014,
                             Email = "aluno23@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Ursula",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTM0$i+KEOx3KVyhRvTZEb440uXtHfL5wi/wDyd32LsiGH2A=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDE0$0/ooRSkPp9yLUh+eItTX9dAzmUKocJUu5k8m+zJhXMk=",
                             Telefone = "11977770023"
                         },
                         new
                         {
-                            IdUsuario = 35,
+                            IdUsuario = 10015,
                             Email = "aluno24@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Victor",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTM1$n/eU5moyS/xani66/OJrUve9ehNhqz3e/8UP5Fe/h+Y=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDE1$TOiU/FciPzcvOlkK9zBclWDwS50dxDNEhxfBbGRJ5dw=",
                             Telefone = "11977770024"
                         },
                         new
                         {
-                            IdUsuario = 36,
+                            IdUsuario = 10016,
                             Email = "aluno25@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Wesley",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTM2$kkDXf9fWPKeUSw3lXc9CWULd193TNAuOShmAjXP59tE=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDE2$tpzIv1/WR7p9kVtpB+6JWH6YBCarx2QOsbv8E2YqaqQ=",
                             Telefone = "11977770025"
                         },
                         new
                         {
-                            IdUsuario = 37,
+                            IdUsuario = 10017,
                             Email = "aluno26@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Yasmin",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTM3$6SWayH+xL68X5N8dXWlCN4GY8hmFAUA2QOv+58XYzKU=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDE3$2Pkpw5z3wTKNO5FJ4tjIUxXeiTEsc6+wCCuNq0J8oTk=",
                             Telefone = "11977770026"
                         },
                         new
                         {
-                            IdUsuario = 38,
+                            IdUsuario = 10018,
                             Email = "aluno27@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Zoe",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTM4$ZR47XllCukrhsFg8DDEpGt3djIUZT0lhYPd6VzsQ+/Q=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDE4$l12MPAkIcEaOsOfP+qPwwKXuhh+NenAKksdLrKOYZJQ=",
                             Telefone = "11977770027"
                         },
                         new
                         {
-                            IdUsuario = 39,
+                            IdUsuario = 10019,
                             Email = "aluno28@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Arthur",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTM5$TWtxhtS9jSNUkmKjp2tRgk29i74w2lVi4Fgv4HuQMEY=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDE5$EHrSp6QsCVI/8wV6/SZ8qUIJmuGxsQeC3bNTdkQ1Q/w=",
                             Telefone = "11977770028"
                         },
                         new
                         {
-                            IdUsuario = 40,
+                            IdUsuario = 10020,
                             Email = "aluno29@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Bianca",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQw$9kyzLd67+M6oGjfbevghZ+fuyXoGhb29YCSCZi6BXyQ=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDIw$3RM1ADK3BORttVTHsNJMw/YEzSqUOBR/YA2D+qpNX9o=",
                             Telefone = "11977770029"
                         },
                         new
                         {
-                            IdUsuario = 41,
+                            IdUsuario = 10021,
                             Email = "aluno30@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Caio",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQx$f5X/6mMFGRtS2InKkCVFPUYP2wFozwqj0RONe6JzT9E=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDIx$r9ZmcZyoBe15GbkpazYc1Tl11IC9TezoayY7K51eerg=",
                             Telefone = "11977770030"
                         },
                         new
                         {
-                            IdUsuario = 42,
+                            IdUsuario = 10022,
                             Email = "aluno31@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Debora",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQy$oeCAYr5m4CRpgyvos/eWRA/uSj9dP6rw0NElasv/xmg=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDIy$a/KqlKjeQCiZ0ZwRImcXopQU/WIJZyZwMcZFMkvR95k=",
                             Telefone = "11977770031"
                         },
                         new
                         {
-                            IdUsuario = 43,
+                            IdUsuario = 10023,
                             Email = "aluno32@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Enzo",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQz$HS3w9dP96z+4u2pZltRMVWPpMoxoFVN7zQ7+1JAl2uU=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDIz$1R68SbmohbuKgijQ5MKNBR926XuTzKd1TeK8XctwPBQ=",
                             Telefone = "11977770032"
                         },
                         new
                         {
-                            IdUsuario = 44,
+                            IdUsuario = 10024,
                             Email = "aluno33@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Flavia",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQ0$IcH8MjIVdPL1wLk4/hLU5f8AT46jb0x3essAAlrnYis=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDI0$gn5Plj1ftW1PXsAqoXD1wVK0ZnawPwWtO5N1Utde8Mo=",
                             Telefone = "11977770033"
                         },
                         new
                         {
-                            IdUsuario = 45,
+                            IdUsuario = 10025,
                             Email = "aluno34@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Guilherme",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQ1$6BoHSz4mlca42WiwnnBiO8Kx4/Fzi50qWXUgiwWRYYQ=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDI1$VKlWyN4IyVXfrZft1t1TmRQ2ytzqdHW79WNxYD5z7Wo=",
                             Telefone = "11977770034"
                         },
                         new
                         {
-                            IdUsuario = 46,
+                            IdUsuario = 10026,
                             Email = "aluno35@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Helena",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQ2$KCkOBFuLcIRIuK7gqE9poyhR9y64Mp9tkeMhdGHSD9s=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDI2$8ggeUSSP3SpJF4JdwA6aa1ff9vbAwEcVYHXScOWGKII=",
                             Telefone = "11977770035"
                         },
                         new
                         {
-                            IdUsuario = 47,
+                            IdUsuario = 10027,
                             Email = "aluno36@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Igor",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQ3$523llIFnguTH/732JxaLkySTHvPrgj0qGknB5+b6aAQ=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDI3$ZcH2IlRaamy20G4sTgMGCPOji6THqLgTWexCBFbPNPE=",
                             Telefone = "11977770036"
                         },
                         new
                         {
-                            IdUsuario = 48,
+                            IdUsuario = 10028,
                             Email = "aluno37@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Julia",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQ4$H6x2RcWyBoRkUVvOR6fv45cFxtJyNy6OzhGZQh0H9nw=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDI4$6/3bep0tmdYaI3iFRa1RvKFS/4YCmplOzZNtTPyEpns=",
                             Telefone = "11977770037"
                         },
                         new
                         {
-                            IdUsuario = 49,
+                            IdUsuario = 10029,
                             Email = "aluno38@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Kevin",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTQ5$UZAwt0csoli0DDz99JGO0zcHbjotiyurjaeY5Bx+MhY=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDI5$4tLvg1J1aSRPXvViWUzoz7ujkHIncAbmaDoQnqrtYeY=",
                             Telefone = "11977770038"
                         },
                         new
                         {
-                            IdUsuario = 50,
+                            IdUsuario = 10030,
                             Email = "aluno39@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Laura",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTUw$OsU1k3bPx9CXjnoet+lWeWrL5cmfXyXvkKPmSkgbWDQ=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDMw$ylI6I31jWcWuXkkIFbXv9U/bn8yHtDY/W7EJRfzzvH0=",
                             Telefone = "11977770039"
                         },
                         new
                         {
-                            IdUsuario = 51,
+                            IdUsuario = 10031,
                             Email = "aluno40@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Miguel",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTUx$bLFRqBOpGpNJRBdE8M0dKrnbEJcHo199xzQK8ljibp4=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDMx$l1dZz3g6EJO5VshgWBg449LOSMsK0LVRiVe/i2j2e9Y=",
                             Telefone = "11977770040"
                         },
                         new
                         {
-                            IdUsuario = 52,
+                            IdUsuario = 10032,
                             Email = "aluno41@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Natalia",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTUy$bhlrrB1RoATCdYSwRREtV56lM1mFl5zGe6YDTACDq+U=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDMy$33ECp34vCMfHlKL0ySoQvnORUPNbOFo5m2r6wVjod4g=",
                             Telefone = "11977770041"
                         },
                         new
                         {
-                            IdUsuario = 53,
+                            IdUsuario = 10033,
                             Email = "aluno42@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Otavio",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTUz$v7QRbY/lWkKDOTy0QHl+LJo5L91EFL22JKh1hKv+/Iw=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDMz$VsI2KOkUUgiDAQfrzBiXznMh9ZSUA7ClN5m4f6O0B70=",
                             Telefone = "11977770042"
                         },
                         new
                         {
-                            IdUsuario = 54,
+                            IdUsuario = 10034,
                             Email = "aluno43@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Pamela",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTU0$R8DZITt7kG5nNoywILy4Po+8tMh9pOEl60McM8FzFpo=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDM0$ZMRlJWBsFO6TUxuhlbpmbrvHy8bLOzuszrWgE/gK6Mg=",
                             Telefone = "11977770043"
                         },
                         new
                         {
-                            IdUsuario = 55,
+                            IdUsuario = 10035,
                             Email = "aluno44@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Rafael",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTU1$ktiZpAClwksRDnR5dQpmBYW+hqlmwyTr5XI7UkpnFDg=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDM1$fMnfo2x89CPofCfHitrxhOXaBAJas2/NwGx6vj/d9Ug=",
                             Telefone = "11977770044"
                         },
                         new
                         {
-                            IdUsuario = 56,
+                            IdUsuario = 10036,
                             Email = "aluno45@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Sabrina",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTU2$yNCqtQ/9oZ3l/XK4PnWZG0grdF2K4I4L8PWma54qcP0=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDM2$BPoM2ZySGRLmaTCgLNBAITYtaw3xBDNAwvCK8lPka/w=",
                             Telefone = "11977770045"
                         },
                         new
                         {
-                            IdUsuario = 57,
+                            IdUsuario = 10037,
                             Email = "aluno46@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Tales",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTU3$nKVqaSTWwe5iETXB0Mu4mAZGcVVbQIP1ve16FMF7gw0=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDM3$YsyweSobpxUxiQkseDttedD83bwyk3uFsgE3pR7c4RU=",
                             Telefone = "11977770046"
                         },
                         new
                         {
-                            IdUsuario = 58,
+                            IdUsuario = 10038,
                             Email = "aluno47@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Vanessa",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTU4$vu48MLao+YpL97uk+qDM5xnGSyVNP2SGqcIadICONE8=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDM4$VxIKn6cPf4PgkrD3WOPV8yZotOC+uPp+naRWsQXOcys=",
                             Telefone = "11977770047"
                         },
                         new
                         {
-                            IdUsuario = 59,
+                            IdUsuario = 10039,
                             Email = "aluno48@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno William",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTU5$7yddVxAYXCXv8lhzeSm68lztWTI3KTtSO7Z366apl7E=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDM5$gZ1jLugOrKgN6AauLWSTA39ep5ZJVmf0wowCl94PsKo=",
                             Telefone = "11977770048"
                         },
                         new
                         {
-                            IdUsuario = 60,
+                            IdUsuario = 10040,
                             Email = "aluno49@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Xenia",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTYw$bo/lTXoUJILZrrYr36K52anSrEq61mGz+2YyOExN3kc=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQw$ChuSZVqmvWrgb8c8BcSkBTMnfS5E69Av4rWo5oFFON8=",
                             Telefone = "11977770049"
                         },
                         new
                         {
-                            IdUsuario = 61,
+                            IdUsuario = 10041,
                             Email = "aluno50@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Yuri",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTYx$tcj3yNyR2DBeNgwLh5bG39Tqhvto6rHfr9eKgigVMGY=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQx$RpCMQj/4YPys74cA1jQovllAlv4YVlSyItkg2t+92L8=",
                             Telefone = "11977770050"
                         },
                         new
                         {
-                            IdUsuario = 62,
+                            IdUsuario = 10042,
                             Email = "aluno51@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Alice",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTYy$xK1Vz4xqs3FnNRYO7BVT9ex2wWBsutldX/0j6mac3Lc=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQy$o0JWXIwoBlN0Yb+MkALBcjFz8OqLyRqL3hLefFABcCU=",
                             Telefone = "11977770051"
                         },
                         new
                         {
-                            IdUsuario = 63,
+                            IdUsuario = 10043,
                             Email = "aluno52@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Davi",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTYz$+T1sjjpCHh9oSzWIYiGB2aes4ccgx8T9Am04/7c5+Gk=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQz$N+fXtmUBQhXjUG96spUcVgJJBkku/EATCCVCLT7QlIE=",
                             Telefone = "11977770052"
                         },
                         new
                         {
-                            IdUsuario = 64,
+                            IdUsuario = 10044,
                             Email = "aluno53@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Livia",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTY0$V+8ywVhDGgHOHl00HJx3iyT5gZplmK36Gyj49XN6Wc4=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQ0$BxSJg8Ad5bEUaJnWTnm4/EHZ3YHJo01EVq02VoDehaY=",
                             Telefone = "11977770053"
                         },
                         new
                         {
-                            IdUsuario = 65,
+                            IdUsuario = 10045,
                             Email = "aluno54@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Heitor",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTY1$0jlkuSrUbulNbVsqs5fJX/1R4PGNSt2HnVE2RzKcGmo=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQ1$2li24v/XCESXjFK8eV2HACyFsP4SrXsqwJl/4kDjQl0=",
                             Telefone = "11977770054"
                         },
                         new
                         {
-                            IdUsuario = 66,
+                            IdUsuario = 10046,
                             Email = "aluno55@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Luiza",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTY2$/C7oZCoIdzKHJTt34+qQjkzETtWOralL5A9kGeYYrg4=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQ2$tYYzvmdHMaKKgqCUuVzsRmgt79X7NEi+MeV3MO3FomU=",
                             Telefone = "11977770055"
                         },
                         new
                         {
-                            IdUsuario = 67,
+                            IdUsuario = 10047,
                             Email = "aluno56@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Theo",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTY3$uPVkoo19x1Rd6OkpX4yNBKI5ykZjU7aekRhQ/xDkIO8=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQ3$qssKWiHU1IE/nEQ8nM1cr01LZluASFmMG6brYX35Bkw=",
                             Telefone = "11977770056"
                         },
                         new
                         {
-                            IdUsuario = 68,
+                            IdUsuario = 10048,
                             Email = "aluno57@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Melissa",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTY4$afPerjWHZKC7udWfM4YO1I1sXsYRQ3OCt8TkAb+cbuU=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQ4$nbPAHTQGIy0fRN6fZu06ygBPorYUoCjp5LIdARVT8A8=",
                             Telefone = "11977770057"
                         },
                         new
                         {
-                            IdUsuario = 69,
+                            IdUsuario = 10049,
                             Email = "aluno58@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Benicio",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTY5$ii4bHeJa33OdIVjSoNvj/YSmBpCOC2fGVNsIZBdkahU=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDQ5$k048pbARGqUYu7wU4+ffBMJyEz1J2XAzZlMf9U4hZQA=",
                             Telefone = "11977770058"
                         },
                         new
                         {
-                            IdUsuario = 70,
+                            IdUsuario = 10050,
                             Email = "aluno59@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Clara",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTcw$mQOg926berZXvmFFSUQiXNiH1zd5qny7985wOp+4Ey0=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDUw$H8rxswLdAV8aAqKUgBfDB05eOQYa6BIsg1oIkXFBbVQ=",
                             Telefone = "11977770059"
                         },
                         new
                         {
-                            IdUsuario = 71,
+                            IdUsuario = 10051,
                             Email = "aluno60@escola.com",
                             IdPerfil = 3,
                             Nome = "Aluno Isadora",
-                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTcx$Be87l5Bhboa2u/LC/jlLevjIcohYWRIqZQfeqc3CH/0=",
+                            Senha = "PBKDF2-SHA256$100000$dXN1YXJpby1zZWVkLTEwMDUx$gtVSMXPz/fYWCqxsRWRDUIivAnbejeNGmo12NFi9NU8=",
                             Telefone = "11977770060"
                         });
                 });
