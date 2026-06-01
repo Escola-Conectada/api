@@ -264,6 +264,11 @@ namespace ESCOLA_API.Tests.Services
             Assert.Contains(usuarios, usuario => usuario.IdPerfil == PerfilSistema.AlunoId);
             Assert.Contains(usuarios, usuario => usuario.IdPerfil == PerfilSistema.ProfessorId);
             Assert.DoesNotContain(usuarios, usuario => usuario.IdPerfil == PerfilSistema.AdministradorId);
+
+            var alunoMatriculado = Assert.Single(usuarios, usuario => usuario.IdUsuario == 12);
+            Assert.NotNull(alunoMatriculado.BoletimDigital);
+            Assert.Equal(101, alunoMatriculado.BoletimDigital!.IdTurmaEnsino);
+            Assert.Equal("1º ano", alunoMatriculado.BoletimDigital.NomeTurmaEnsino);
         }
 
         [Fact]

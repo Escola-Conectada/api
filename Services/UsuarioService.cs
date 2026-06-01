@@ -58,7 +58,7 @@ namespace ESCOLA_API.Services
                 })
                 .ToArrayAsync();
 
-            if (IsAdministrador(principal))
+            if (IsAdministrador(principal) || IsProfessor(principal))
             {
                 await PreencherBoletinsDigitaisAsync(usuarios);
             }

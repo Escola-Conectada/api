@@ -11,6 +11,25 @@ namespace ESCOLA_API.Tests.Services
     public class AlunoTurmaEnsinoServiceTests
     {
         [Fact]
+        public async Task GetAllAsync_WhenAdminConsultsSeed_ReturnsFiveAlunosPerTurma()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new AlunoTurmaEnsinoService(context);
+
+            var matriculas = await service.GetAllAsync(CreatePrincipal(1, PerfilSistema.Administrador));
+            var turmasSeed = new[] { 101, 102, 103, 104, 105, 106, 107, 108, 109, 201, 202, 203 };
+
+            foreach (var turmaId in turmasSeed)
+            {
+                Assert.Equal(5, matriculas.Count(matricula => matricula.IdTurmaEnsino == turmaId));
+            }
+        }
+
+        [Fact]
         public async Task AddAsync_WhenAdminMatriculatesAluno_CreatesMatricula()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");

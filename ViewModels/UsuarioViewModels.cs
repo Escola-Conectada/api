@@ -173,7 +173,7 @@ namespace ESCOLA_API.ViewModels
         public DateTime? ExclusaoContaSolicitadaEmUtc { get; set; }
 
         /// <summary>
-        /// Resumo do boletim digital quando o usuario e aluno e o solicitante tem permissao administrativa.
+        /// Resumo do boletim digital quando o usuario e aluno e o solicitante tem permissao de consulta.
         /// </summary>
         public BoletimDigitalResumoAlunoViewModel? BoletimDigital { get; set; }
     }
