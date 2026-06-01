@@ -29,6 +29,7 @@ namespace ESCOLA_API.Data
         public DbSet<CadernetaDigital> CadernetasDigitais { get; set; }
         public DbSet<UsuarioArquivo> UsuarioArquivos { get; set; }
         public DbSet<Holerite> Holerites { get; set; }
+        public DbSet<BoletimDigital> BoletinsDigitais { get; set; }
         public DbSet<Notificacao> Notificacoes { get; set; }
         public DbSet<ConfiguracaoAplicacao> ConfiguracoesAplicacao { get; set; }
 
@@ -335,6 +336,36 @@ namespace ESCOLA_API.Data
                     .WithMany(usuario => usuario.Holerites)
                     .HasForeignKey(holerite => holerite.IdUsuario)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<BoletimDigital>(entity =>
+            {
+                entity.ToTable("BoletimDigital");
+                entity.HasKey(boletim => boletim.IdBoletimDigital);
+                entity.Property(boletim => boletim.Status)
+                    .IsRequired()
+                    .HasMaxLength(30);
+                entity.Property(boletim => boletim.AtualizadoEmUtc)
+                    .IsRequired();
+                entity.HasIndex(boletim => new { boletim.IdAlunoUsuario, boletim.IdTurmaEnsino })
+                    .IsUnique();
+                entity.HasIndex(boletim => boletim.Status);
+                entity.HasOne(boletim => boletim.AlunoUsuario)
+                    .WithMany()
+                    .HasForeignKey(boletim => boletim.IdAlunoUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(boletim => boletim.TurmaEnsino)
+                    .WithMany()
+                    .HasForeignKey(boletim => boletim.IdTurmaEnsino)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(boletim => boletim.ProfessorSolicitanteUsuario)
+                    .WithMany()
+                    .HasForeignKey(boletim => boletim.IdProfessorSolicitanteUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(boletim => boletim.AdministradorLiberacaoUsuario)
+                    .WithMany()
+                    .HasForeignKey(boletim => boletim.IdAdministradorLiberacaoUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             builder.Entity<Notificacao>(entity =>

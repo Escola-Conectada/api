@@ -267,6 +267,42 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task GetAllAsync_WhenAdminConsultsAlunos_IncludesBoletimPendingSummary()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var disciplinas = await CriarCurriculoBoletimAsync(context);
+            await MatricularAlunoAsync(context, 12, 901);
+            context.CadernetasDigitais.AddRange(
+                CriarCaderneta(disciplinas[0].IdDisciplina, "8;9"),
+                CriarCaderneta(disciplinas[1].IdDisciplina, "7;8"));
+            context.BoletinsDigitais.Add(new BoletimDigital
+            {
+                IdAlunoUsuario = 12,
+                IdTurmaEnsino = 901,
+                Status = BoletimDigitalStatus.PendenteDiretoria,
+                IdProfessorSolicitanteUsuario = 2,
+                SolicitadoEmUtc = DateTime.UtcNow,
+                AtualizadoEmUtc = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var service = new UsuarioService(context);
+            var usuarios = await service.GetAllAsync(CreatePrincipal(1, PerfilSistema.Administrador));
+            var aluno = Assert.Single(usuarios, usuario => usuario.IdUsuario == 12);
+
+            Assert.NotNull(aluno.BoletimDigital);
+            Assert.True(aluno.BoletimDigital!.Completo);
+            Assert.True(aluno.BoletimDigital.PendenteLiberacao);
+            Assert.Equal(2, aluno.BoletimDigital.TotalDisciplinas);
+            Assert.Equal(2, aluno.BoletimDigital.DisciplinasLancadas);
+            Assert.Equal("Professor Vinicius", aluno.BoletimDigital.NomeProfessorSolicitante);
+        }
+
+        [Fact]
         public async Task SolicitarExclusaoContaAsync_WhenUsuarioAuthenticated_StoresRequestAndNotifiesAdmins()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
@@ -353,6 +389,83 @@ namespace ESCOLA_API.Tests.Services
             }, "Test");
 
             return new ClaimsPrincipal(identity);
+        }
+
+        private static async Task<Disciplina[]> CriarCurriculoBoletimAsync(DataContext context)
+        {
+            context.TiposEnsino.Add(new TipoEnsino
+            {
+                IdTipoEnsino = 901,
+                Nome = "Ensino Boletim",
+                Ordem = 1
+            });
+            context.TurmasEnsino.Add(new TurmaEnsino
+            {
+                IdTurmaEnsino = 901,
+                IdTipoEnsino = 901,
+                Nome = "Turma Boletim",
+                Codigo = "BLT",
+                Ordem = 1
+            });
+            context.AreasConhecimento.Add(new AreaConhecimento
+            {
+                IdAreaConhecimento = 901,
+                IdTipoEnsino = 901,
+                Nome = "Base Boletim",
+                Ordem = 1
+            });
+
+            var disciplinas = new[]
+            {
+                new Disciplina
+                {
+                    Nome = "Matematica",
+                    IdTurmaEnsino = 901,
+                    IdAreaConhecimento = 901,
+                    OfertaObrigatoria = true,
+                    Ordem = 1
+                },
+                new Disciplina
+                {
+                    Nome = "Portugues",
+                    IdTurmaEnsino = 901,
+                    IdAreaConhecimento = 901,
+                    OfertaObrigatoria = true,
+                    Ordem = 2
+                }
+            };
+
+            context.Disciplinas.AddRange(disciplinas);
+            await context.SaveChangesAsync();
+            return disciplinas;
+        }
+
+        private static async Task MatricularAlunoAsync(DataContext context, int idAlunoUsuario, int idTurmaEnsino)
+        {
+            context.AlunosTurmasEnsino.Add(new AlunoTurmaEnsino
+            {
+                IdAlunoUsuario = idAlunoUsuario,
+                IdTurmaEnsino = idTurmaEnsino,
+                IdUsuarioResponsavel = 1,
+                MatriculadoEmUtc = DateTime.UtcNow
+            });
+
+            await context.SaveChangesAsync();
+        }
+
+        private static CadernetaDigital CriarCaderneta(int idDisciplina, string notas)
+        {
+            return new CadernetaDigital
+            {
+                IdAlunoUsuario = 12,
+                IdProfessorUsuario = 2,
+                IdTipoEnsino = 901,
+                IdTurmaEnsino = 901,
+                IdDisciplina = idDisciplina,
+                Notas = notas,
+                Presencas = 20,
+                Faltas = 1
+            };
         }
 
         private static DataContext CreateContext(SqliteConnection connection)

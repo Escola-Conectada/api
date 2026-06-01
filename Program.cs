@@ -41,6 +41,7 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IConfiguracaoAplicacaoService, ConfiguracaoAplicacaoService>();
 builder.Services.AddScoped<IAlunoTurmaEnsinoService, AlunoTurmaEnsinoService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
+builder.Services.AddScoped<IBoletimDigitalService, BoletimDigitalService>();
 builder.Services.AddScoped<DatabaseCadernetaDigitalEventPublisher>();
 builder.Services.AddScoped<ICadernetaDigitalEventPublisher, AzureQueueCadernetaDigitalEventPublisher>();
 builder.Services.AddScoped<IDisciplinaEventoService, DisciplinaEventoService>();
@@ -91,7 +92,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "ESCOLA_API - Escola Conectada",
         Version = "v1",
-        Description = "API para gerenciamento escolar com usuarios, caderneta digital, disciplinas, agenda de avaliacoes e trabalhos com notificacoes aos alunos, calendario escolar, QR Code bancario ficticio para alunos, holerites de funcionarios, notificacoes, uploads de arquivos e autenticacao JWT."
+        Description = "API para gerenciamento escolar com usuarios, caderneta digital, boletim escolar digital, disciplinas, agenda de avaliacoes e trabalhos com notificacoes aos alunos, calendario escolar, QR Code bancario ficticio para alunos, holerites de funcionarios, notificacoes, uploads de arquivos e autenticacao JWT."
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -159,6 +160,7 @@ using (var scope = app.Services.CreateScope())
             db.Database.EnsureCreated();
             await EnsureSqliteAlunoProfessorUsuariosAsync(db);
             await EnsureSqliteAlunoTurmaEnsinoAsync(db);
+            await EnsureSqliteBoletimDigitalAsync(db);
             await EnsureSqliteConfiguracaoAplicacaoAsync(db, app.Configuration);
         }
         else
@@ -486,6 +488,64 @@ static async Task EnsureSqliteConfiguracaoAplicacaoAsync(DataContext db, IConfig
             await connection.CloseAsync();
         }
     }
+}
+
+static async Task EnsureSqliteBoletimDigitalAsync(DataContext db)
+{
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS "BoletimDigital" (
+            "IdBoletimDigital" INTEGER NOT NULL CONSTRAINT "PK_BoletimDigital" PRIMARY KEY AUTOINCREMENT,
+            "IdAlunoUsuario" INTEGER NOT NULL,
+            "IdTurmaEnsino" INTEGER NOT NULL,
+            "Status" TEXT NOT NULL,
+            "IdProfessorSolicitanteUsuario" INTEGER NULL,
+            "SolicitadoEmUtc" TEXT NULL,
+            "IdAdministradorLiberacaoUsuario" INTEGER NULL,
+            "LiberadoEmUtc" TEXT NULL,
+            "AtualizadoEmUtc" TEXT NOT NULL,
+            CONSTRAINT "FK_BoletimDigital_TurmaEnsino_IdTurmaEnsino" FOREIGN KEY ("IdTurmaEnsino") REFERENCES "TurmaEnsino" ("IdTurmaEnsino") ON DELETE RESTRICT,
+            CONSTRAINT "FK_BoletimDigital_Usuario_IdAdministradorLiberacaoUsuario" FOREIGN KEY ("IdAdministradorLiberacaoUsuario") REFERENCES "Usuario" ("IdUsuario") ON DELETE RESTRICT,
+            CONSTRAINT "FK_BoletimDigital_Usuario_IdAlunoUsuario" FOREIGN KEY ("IdAlunoUsuario") REFERENCES "Usuario" ("IdUsuario") ON DELETE RESTRICT,
+            CONSTRAINT "FK_BoletimDigital_Usuario_IdProfessorSolicitanteUsuario" FOREIGN KEY ("IdProfessorSolicitanteUsuario") REFERENCES "Usuario" ("IdUsuario") ON DELETE RESTRICT
+        );
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_BoletimDigital_IdAlunoUsuario_IdTurmaEnsino"
+            ON "BoletimDigital" ("IdAlunoUsuario", "IdTurmaEnsino");
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE INDEX IF NOT EXISTS "IX_BoletimDigital_IdAdministradorLiberacaoUsuario"
+            ON "BoletimDigital" ("IdAdministradorLiberacaoUsuario");
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE INDEX IF NOT EXISTS "IX_BoletimDigital_IdProfessorSolicitanteUsuario"
+            ON "BoletimDigital" ("IdProfessorSolicitanteUsuario");
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE INDEX IF NOT EXISTS "IX_BoletimDigital_IdTurmaEnsino"
+            ON "BoletimDigital" ("IdTurmaEnsino");
+        """);
+
+    await ExecuteSqliteSchemaCommandAsync(
+        db,
+        """
+        CREATE INDEX IF NOT EXISTS "IX_BoletimDigital_Status"
+            ON "BoletimDigital" ("Status");
+        """);
 }
 
 static async Task EnsureSqliteAlunoProfessorUsuariosAsync(DataContext db)

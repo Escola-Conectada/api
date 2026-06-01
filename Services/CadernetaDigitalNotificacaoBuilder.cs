@@ -61,7 +61,7 @@ namespace ESCOLA_API.Services
                 Tipo = payload.Tipo,
                 Titulo = titulo,
                 Mensagem = $"No {nomeEscola}, suas notas de {payload.NomeDisciplina}{contexto} foram {acao} pelo professor {payload.NomeProfessor}. Notas: {notas}. Media: {media}. Situacao: {payload.Situacao}. Presencas: {payload.Presencas}. Faltas: {payload.Faltas}.",
-                Link = $"/caderneta-digital?cadernetaId={payload.IdCadernetaDigital}",
+                Link = "/boletim-digital",
                 IdCadernetaDigital = payload.IdCadernetaDigital,
                 Notas = SerializeNotas(payload.Notas),
                 IdTipoEnsino = payload.IdTipoEnsino,

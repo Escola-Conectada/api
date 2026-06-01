@@ -171,6 +171,11 @@ namespace ESCOLA_API.ViewModels
         /// Data e hora UTC da solicitacao de exclusao da conta.
         /// </summary>
         public DateTime? ExclusaoContaSolicitadaEmUtc { get; set; }
+
+        /// <summary>
+        /// Resumo do boletim digital quando o usuario e aluno e o solicitante tem permissao administrativa.
+        /// </summary>
+        public BoletimDigitalResumoAlunoViewModel? BoletimDigital { get; set; }
     }
 
     /// <summary>

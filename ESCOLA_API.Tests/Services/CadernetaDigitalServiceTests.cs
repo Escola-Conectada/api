@@ -140,7 +140,7 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllAsync_WhenAlunoIsAssociated_ReturnsOnlyOwnCadernetas()
+        public async Task GetAllAsync_WhenAlunoTriesToConsultCaderneta_ThrowsUnauthorizedAccessException()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
             await connection.OpenAsync();
@@ -156,11 +156,10 @@ namespace ESCOLA_API.Tests.Services
                 CriarLancamentoPayload(12, disciplina.IdDisciplina, new[] { 7m }, 10, 1),
                 professor);
 
-            var cadernetasDoAluno = await service.GetAllAsync(CreatePrincipal(12, PerfilSistema.Aluno));
-            var cadernetasDeOutroAluno = await service.GetAllAsync(CreatePrincipal(13, PerfilSistema.Aluno));
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                service.GetAllAsync(CreatePrincipal(12, PerfilSistema.Aluno)));
 
-            Assert.Single(cadernetasDoAluno);
-            Assert.Empty(cadernetasDeOutroAluno);
+            Assert.Equal("Aluno deve consultar o boletim digital.", exception.Message);
         }
 
         [Fact]
@@ -371,7 +370,7 @@ namespace ESCOLA_API.Tests.Services
                 CriarLancamentoPayload(12, portugues.IdDisciplina, new[] { 9m }, 12, 0),
                 professor);
 
-            var cadernetasDoAluno = await service.GetAllAsync(CreatePrincipal(12, PerfilSistema.Aluno));
+            var cadernetasDoAluno = await service.GetAllAsync(professor);
 
             Assert.Equal(2, cadernetasDoAluno.Length);
             Assert.Contains(cadernetasDoAluno, caderneta => caderneta.NomeDisciplina == "Matematica");

@@ -1,6 +1,6 @@
 # ESCOLA_API - Escola Conectada
 
-API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis, CRUD centralizado de usuarios, caderneta digital, calendario escolar, agenda de avaliacoes/trabalhos com notificacoes aos alunos, QR Code bancario ficticio para alunos e holerites de funcionarios.
+API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis, CRUD centralizado de usuarios, caderneta digital, boletim escolar digital, calendario escolar, agenda de avaliacoes/trabalhos com notificacoes aos alunos, QR Code bancario ficticio para alunos e holerites de funcionarios.
 
 ## Tecnologias
 
@@ -48,6 +48,7 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `QueueStorage__ConsumerEnabled` | Opcional. Define se a API consome a fila e grava notificacoes no banco. Padrao: `true`. |
 | `QueueStorage__MaxDequeueCount` | Opcional. Quantidade maxima de tentativas antes de mover a mensagem para a fila `-poison`. Padrao: `5`. |
 | `QueueStorage__PollingIntervalSeconds` | Opcional. Intervalo de consulta da fila quando nao ha mensagens. Padrao: `5`. |
+| `Boletins__ShareSecret` | Opcional. Segredo HMAC para links publicos temporarios de boletins. Se vazio, usa `Jwt__Key`. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
 
 O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`. A API tambem aceita `AzureStorage__ConnectionString`, `AzureStorage__ContainerName` e `AzureStorage__PublicBaseUrl` como alias.
@@ -183,6 +184,7 @@ O backend usa arquitetura em camadas:
 | Holerites | `GET /api/holerites/me`, `GET /api/holerites/me/{holeriteId}/download`, `GET /api/holerites/usuarios/{usuarioId}`, `POST /api/holerites/usuarios/{usuarioId}`, `GET /api/holerites/usuarios/{usuarioId}/{holeriteId}/download`, `DELETE /api/holerites/usuarios/{usuarioId}/{holeriteId}` |
 | Calendario Escolar | `GET /api/calendario-escolar?ano=2026&mesSelecionado=5` |
 | Caderneta Digital | `GET /api/caderneta-digital`, `GET /api/caderneta-digital/{id}`, `POST /api/caderneta-digital`, `PUT /api/caderneta-digital/{id}`, `DELETE /api/caderneta-digital/{id}` |
+| Boletim Digital | `GET /api/boletins-digitais/me`, `GET /api/boletins-digitais/alunos/{alunoUsuarioId}`, `GET /api/boletins-digitais/pendentes-liberacao`, `POST /api/boletins-digitais/alunos/{alunoUsuarioId}/solicitar-liberacao`, `POST /api/boletins-digitais/alunos/{alunoUsuarioId}/liberar`, `GET /api/boletins-digitais/me/pdf`, `POST /api/boletins-digitais/me/whatsapp`, `POST /api/boletins-digitais/me/email` |
 | Disciplinas | `GET /api/caderneta-digital/disciplinas`, `GET /api/caderneta-digital/estrutura-ensino`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
 | Eventos de disciplinas | `GET /api/caderneta-digital/disciplinas/eventos`, `POST /api/caderneta-digital/disciplinas/{disciplinaId}/eventos`, `PUT /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}`, `DELETE /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}` |
 | Notificacoes | `GET /api/notificacoes`, `GET /api/notificacoes/nao-lidas/contador`, `POST /api/notificacoes`, `POST /api/notificacoes/perfis`, `PATCH /api/notificacoes/{id}/lida`, `PATCH /api/notificacoes/lidas` |
@@ -190,9 +192,9 @@ O backend usa arquitetura em camadas:
 
 ## Autorizacao
 
-- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; gerencia holerites de professores/administradores; ao lancar holerite, notifica todos os professores com competencia, arquivo, funcionario e responsavel pelo lancamento; visualiza caderneta, disciplinas, eventos e calendario escolar.
-- `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; consulta seus proprios holerites; cadastra disciplinas; faz lancamentos de notas, presencas e faltas; agenda avaliacoes e entregas de trabalhos nas suas disciplinas.
-- `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas e eventos das disciplinas associadas; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas, frequencia, avaliacoes e trabalhos sao publicados.
+- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; gerencia holerites de professores/administradores; ao lancar holerite, notifica todos os professores com competencia, arquivo, funcionario e responsavel pelo lancamento; visualiza caderneta, disciplinas, eventos e calendario escolar; libera boletins completos enviados para a Diretoria.
+- `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; consulta seus proprios holerites; cadastra disciplinas; faz lancamentos de notas, presencas e faltas; agenda avaliacoes e entregas de trabalhos nas suas disciplinas; solicita liberacao do boletim quando todos os lancamentos do aluno estiverem completos.
+- `Aluno`: visualiza e edita apenas o proprio perfil; consulta o boletim escolar digital mesmo com disciplinas pendentes; nao consulta mais a caderneta digital; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas, frequencia, avaliacoes, trabalhos e boletins forem publicados/liberados.
 
 No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios. Os campos opcionais `dataNascimento`, `nomeMae`, `nomePai` e `endereco` ficam no contrato de criacao/edicao e retornam nas consultas. `dataNascimento` usa formato ISO `yyyy-MM-dd`, adequado para Datepicker que permita digitar ou selecionar a data.
 
@@ -231,7 +233,13 @@ No lancamento de notas da caderneta, informe `idTipoEnsino`, `idTurmaEnsino` e `
 }
 ```
 
-Apos criar ou atualizar um lancamento de notas, o aluno recebe uma notificacao `NotasPublicadas` com disciplina, tipo de ensino, turma, notas, media aritmetica, situacao, presencas e faltas. Esses dados tambem ficam estruturados na resposta de `GET /api/notificacoes`, evitando que o app precise extrair informacoes do texto da mensagem.
+Apos criar ou atualizar um lancamento de notas, o aluno recebe uma notificacao `NotasPublicadas` com disciplina, tipo de ensino, turma, notas, media aritmetica, situacao, presencas e faltas. A notificacao aponta para `/boletim-digital`, e esses dados tambem ficam estruturados na resposta de `GET /api/notificacoes`, evitando que o app precise extrair informacoes do texto da mensagem.
+
+O boletim digital e montado a partir da matricula do aluno em `AlunoTurmaEnsino`, das disciplinas da turma e dos lancamentos da caderneta. `GET /api/boletins-digitais/me` retorna todas as disciplinas da turma, inclusive as que ainda nao receberam notas, para que o aluno acompanhe pendencias sem acessar a caderneta. Quando o professor terminar todos os lancamentos de um aluno, `POST /api/boletins-digitais/alunos/{alunoUsuarioId}/solicitar-liberacao` envia o boletim para a Diretoria. O administrador consulta pendencias em `GET /api/boletins-digitais/pendentes-liberacao` e libera com `POST /api/boletins-digitais/alunos/{alunoUsuarioId}/liberar`.
+
+Na listagem administrativa de usuarios (`GET /api/usuarios`), usuarios do perfil `Aluno` retornam o campo `boletimDigital` com status, total de disciplinas, disciplinas lancadas, pendencias e flag `pendenteLiberacao`.
+
+Download em PDF, links para WhatsApp e link `mailto:` de email so ficam disponiveis quando o boletim esta completo e liberado pela Diretoria. Os links publicos temporarios usam token assinado e expiram em 7 dias.
 
 O fluxo `POST /api/Auth/esqueci-senha` gera um token temporario de redefinicao em vez de trocar a senha para uma senha padrao. Em desenvolvimento, o token volta na resposta para facilitar testes locais. Em producao, integre esse token a um provedor de email/SMS antes de publicar o app.
 

@@ -31,8 +31,7 @@ namespace ESCOLA_API.Services
 
             if (IsAluno(principal))
             {
-                var usuarioId = GetUsuarioAtualId(principal);
-                query = query.Where(caderneta => caderneta.IdAlunoUsuario == usuarioId);
+                throw new UnauthorizedAccessException("Aluno deve consultar o boletim digital.");
             }
             else if (IsProfessor(principal))
             {
@@ -224,9 +223,7 @@ namespace ESCOLA_API.Services
             }
             else if (IsAluno(principal))
             {
-                var usuarioId = GetUsuarioAtualId(principal);
-                query = query.Where(disciplina =>
-                    disciplina.Cadernetas.Any(caderneta => caderneta.IdAlunoUsuario == usuarioId));
+                throw new UnauthorizedAccessException("Aluno deve consultar as disciplinas pelo boletim digital.");
             }
             else if (!IsAdministrador(principal))
             {
@@ -245,7 +242,12 @@ namespace ESCOLA_API.Services
 
         public async Task<TipoEnsinoCurricularViewModel[]> GetEstruturaEnsinoAsync(ClaimsPrincipal principal)
         {
-            if (!IsAdministrador(principal) && !IsProfessor(principal) && !IsAluno(principal))
+            if (IsAluno(principal))
+            {
+                throw new UnauthorizedAccessException("Aluno deve consultar a estrutura pelo boletim digital.");
+            }
+
+            if (!IsAdministrador(principal) && !IsProfessor(principal))
             {
                 throw new UnauthorizedAccessException("Usuario nao autorizado a consultar a estrutura de ensino.");
             }
@@ -579,8 +581,7 @@ namespace ESCOLA_API.Services
         private static bool PodeConsultar(ClaimsPrincipal principal, CadernetaDigital caderneta)
         {
             return IsAdministrador(principal)
-                || (IsProfessor(principal) && PodeAdministrarLancamento(caderneta, GetUsuarioAtualId(principal)))
-                || (IsAluno(principal) && caderneta.IdAlunoUsuario == GetUsuarioAtualId(principal));
+                || (IsProfessor(principal) && PodeAdministrarLancamento(caderneta, GetUsuarioAtualId(principal)));
         }
 
         private static bool PodeAdministrarLancamento(CadernetaDigital caderneta, int usuarioId)

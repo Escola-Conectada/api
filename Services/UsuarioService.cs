@@ -37,7 +37,7 @@ namespace ESCOLA_API.Services
                 query = query.Where(usuario => usuario.IdUsuario == usuarioAtualId);
             }
 
-            return await query
+            var usuarios = await query
                 .OrderBy(usuario => usuario.Nome)
                 .Select(usuario => new UsuarioSummaryViewModel
                 {
@@ -57,6 +57,13 @@ namespace ESCOLA_API.Services
                     ExclusaoContaSolicitadaEmUtc = usuario.ExclusaoContaSolicitadaEmUtc
                 })
                 .ToArrayAsync();
+
+            if (IsAdministrador(principal))
+            {
+                await PreencherBoletinsDigitaisAsync(usuarios);
+            }
+
+            return usuarios;
         }
 
         public async Task<UsuarioSummaryViewModel?> GetByIdAsync(int usuarioId, ClaimsPrincipal principal)
@@ -71,7 +78,13 @@ namespace ESCOLA_API.Services
                 throw new UnauthorizedAccessException("Usuario nao autorizado a consultar este cadastro.");
             }
 
-            return usuario.ToSummary();
+            var viewModel = usuario.ToSummary();
+            if (viewModel != null && IsAdministrador(principal))
+            {
+                await PreencherBoletinsDigitaisAsync([viewModel]);
+            }
+
+            return viewModel;
         }
 
         public async Task<UsuarioSummaryViewModel> AddAsync(UsuarioCreateViewModel viewModel, ClaimsPrincipal principal)
@@ -474,6 +487,80 @@ namespace ESCOLA_API.Services
         private static bool IsProfessor(ClaimsPrincipal principal)
         {
             return principal.IsInRole(PerfilSistema.Professor);
+        }
+
+        private async Task PreencherBoletinsDigitaisAsync(UsuarioSummaryViewModel[] usuarios)
+        {
+            var alunos = usuarios
+                .Where(usuario => usuario.IdPerfil == PerfilSistema.AlunoId)
+                .ToArray();
+
+            foreach (var aluno in alunos)
+            {
+                aluno.BoletimDigital = await CriarResumoBoletimDigitalAsync(aluno);
+            }
+        }
+
+        private async Task<BoletimDigitalResumoAlunoViewModel?> CriarResumoBoletimDigitalAsync(UsuarioSummaryViewModel aluno)
+        {
+            var matricula = await _context.AlunosTurmasEnsino
+                .Include(item => item.TurmaEnsino)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(item => item.IdAlunoUsuario == aluno.IdUsuario);
+
+            if (matricula?.TurmaEnsino == null)
+            {
+                return null;
+            }
+
+            var disciplinasIds = await _context.Disciplinas
+                .AsNoTracking()
+                .Where(disciplina => disciplina.IdTurmaEnsino == matricula.IdTurmaEnsino)
+                .Select(disciplina => disciplina.IdDisciplina)
+                .ToArrayAsync();
+
+            var lancadas = disciplinasIds.Length == 0
+                ? 0
+                : await _context.CadernetasDigitais
+                    .AsNoTracking()
+                    .Where(caderneta =>
+                        caderneta.IdAlunoUsuario == aluno.IdUsuario
+                        && caderneta.IdTurmaEnsino == matricula.IdTurmaEnsino
+                        && disciplinasIds.Contains(caderneta.IdDisciplina))
+                    .Select(caderneta => caderneta.IdDisciplina)
+                    .Distinct()
+                    .CountAsync();
+
+            var boletim = await _context.BoletinsDigitais
+                .Include(item => item.ProfessorSolicitanteUsuario)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(item =>
+                    item.IdAlunoUsuario == aluno.IdUsuario
+                    && item.IdTurmaEnsino == matricula.IdTurmaEnsino);
+
+            var status = boletim?.Status ?? BoletimDigitalStatus.EmAberto;
+            var completo = disciplinasIds.Length > 0 && lancadas == disciplinasIds.Length;
+            var liberado = completo && status == BoletimDigitalStatus.Liberado;
+            var pendenteLiberacao = completo && status == BoletimDigitalStatus.PendenteDiretoria;
+
+            return new BoletimDigitalResumoAlunoViewModel
+            {
+                IdBoletimDigital = boletim?.IdBoletimDigital,
+                IdAlunoUsuario = aluno.IdUsuario,
+                NomeAluno = aluno.Nome,
+                EmailAluno = aluno.Email,
+                IdTurmaEnsino = matricula.IdTurmaEnsino,
+                NomeTurmaEnsino = matricula.TurmaEnsino.Nome,
+                Status = status,
+                Completo = completo,
+                Liberado = liberado,
+                PendenteLiberacao = pendenteLiberacao,
+                TotalDisciplinas = disciplinasIds.Length,
+                DisciplinasLancadas = lancadas,
+                DisciplinasPendentes = disciplinasIds.Length - lancadas,
+                SolicitadoEmUtc = boletim?.SolicitadoEmUtc,
+                NomeProfessorSolicitante = boletim?.ProfessorSolicitanteUsuario?.Nome ?? string.Empty
+            };
         }
 
         private static int GetUsuarioAtualId(ClaimsPrincipal principal)
