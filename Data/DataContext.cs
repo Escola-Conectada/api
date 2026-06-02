@@ -199,6 +199,7 @@ namespace ESCOLA_API.Data
                     .HasMaxLength(500);
                 entity.Property(disciplina => disciplina.OfertaObrigatoria)
                     .HasDefaultValue(true);
+                entity.HasIndex(disciplina => disciplina.IdTurmaEnsino);
                 entity.HasIndex(disciplina => new { disciplina.IdProfessorUsuario, disciplina.IdTurmaEnsino, disciplina.Nome })
                     .IsUnique();
                 entity.HasOne(disciplina => disciplina.ProfessorUsuario)
@@ -271,6 +272,7 @@ namespace ESCOLA_API.Data
                     .IsRequired()
                     .HasMaxLength(120);
                 entity.HasIndex(caderneta => caderneta.IdProfessorUsuario);
+                entity.HasIndex(caderneta => new { caderneta.IdAlunoUsuario, caderneta.IdTurmaEnsino, caderneta.IdDisciplina });
                 entity.HasIndex(caderneta => new { caderneta.IdAlunoUsuario, caderneta.IdDisciplina })
                     .IsUnique();
                 entity.HasOne(caderneta => caderneta.AlunoUsuario)
@@ -400,6 +402,8 @@ namespace ESCOLA_API.Data
                 entity.Property(notificacao => notificacao.OrigemMensagemId)
                     .HasMaxLength(160);
                 entity.HasIndex(notificacao => notificacao.IdUsuario);
+                entity.HasIndex(notificacao => new { notificacao.IdUsuario, notificacao.CriadaEmUtc });
+                entity.HasIndex(notificacao => new { notificacao.IdUsuario, notificacao.Lida });
                 entity.HasIndex(notificacao => notificacao.OrigemMensagemId)
                     .IsUnique()
                     .HasFilter("[OrigemMensagemId] IS NOT NULL");

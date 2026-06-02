@@ -28,7 +28,7 @@ namespace ESCOLA_API.Services
             var usuario = await _context.Usuarios
                 .Include(u => u.Perfil)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+                .FirstOrDefaultAsync(u => u.Email == email);
 
             if (usuario == null || !PasswordHasher.VerifyPassword(viewModel.Senha, usuario.Senha))
             {
@@ -98,7 +98,7 @@ namespace ESCOLA_API.Services
         {
             var email = viewModel.Email.Trim().ToLowerInvariant();
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+                .FirstOrDefaultAsync(u => u.Email == email);
 
             if (usuario == null)
             {
@@ -132,7 +132,7 @@ namespace ESCOLA_API.Services
             var now = DateTime.UtcNow;
 
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+                .FirstOrDefaultAsync(u => u.Email == email);
 
             if (usuario == null
                 || string.IsNullOrWhiteSpace(usuario.ResetSenhaTokenHash)

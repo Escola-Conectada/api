@@ -98,6 +98,35 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task GetMinhasAsync_WhenPaging_ReturnsOnlyRequestedPage()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            for (var i = 1; i <= 5; i++)
+            {
+                context.Notificacoes.Add(new Notificacao
+                {
+                    IdUsuario = 12,
+                    Tipo = "Geral",
+                    Titulo = $"Aviso {i}",
+                    Mensagem = $"Mensagem {i}",
+                    CriadaEmUtc = new DateTime(2026, 6, i, 12, 0, 0, DateTimeKind.Utc)
+                });
+            }
+
+            await context.SaveChangesAsync();
+
+            var service = new NotificacaoService(context);
+            var notificacoes = await service.GetMinhasAsync(CreatePrincipal(12, PerfilSistema.Aluno), pagina: 2, tamanhoPagina: 2);
+
+            Assert.Equal(2, notificacoes.Length);
+            Assert.Equal(new[] { "Aviso 3", "Aviso 2" }, notificacoes.Select(notificacao => notificacao.Titulo).ToArray());
+        }
+
+        [Fact]
         public async Task AddParaPerfisAsync_WhenAdminDoesNotChooseProfiles_CreatesNotificationForAllProfiles()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");

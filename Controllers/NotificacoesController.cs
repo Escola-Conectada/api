@@ -25,11 +25,13 @@ namespace ESCOLA_API.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(NotificacaoViewModel[]), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetMinhas()
+        public async Task<IActionResult> GetMinhas(
+            [FromQuery] int pagina = 1,
+            [FromQuery] int tamanhoPagina = 20)
         {
             try
             {
-                return Ok(await _notificacaoService.GetMinhasAsync(User));
+                return Ok(await _notificacaoService.GetMinhasAsync(User, pagina, tamanhoPagina));
             }
             catch (Exception ex)
             {

@@ -91,7 +91,7 @@ namespace ESCOLA_API.Services
         {
             var email = NormalizeEmail(viewModel.Email);
             var emailJaCadastrado = await _context.Usuarios
-                .AnyAsync(usuario => usuario.Email.ToLower() == email);
+                .AnyAsync(usuario => usuario.Email == email);
 
             if (emailJaCadastrado)
             {
@@ -151,7 +151,7 @@ namespace ESCOLA_API.Services
 
             var email = NormalizeEmail(viewModel.Email);
             var emailJaCadastrado = await _context.Usuarios
-                .AnyAsync(u => u.IdUsuario != usuarioId && u.Email.ToLower() == email);
+                .AnyAsync(u => u.IdUsuario != usuarioId && u.Email == email);
 
             if (emailJaCadastrado)
             {
@@ -284,7 +284,7 @@ namespace ESCOLA_API.Services
             var email = NormalizeEmail(viewModel.Email);
             var usuario = await _context.Usuarios
                 .Include(u => u.Perfil)
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+                .FirstOrDefaultAsync(u => u.Email == email);
 
             if (usuario == null)
             {
@@ -495,72 +495,129 @@ namespace ESCOLA_API.Services
                 .Where(usuario => usuario.IdPerfil == PerfilSistema.AlunoId)
                 .ToArray();
 
-            foreach (var aluno in alunos)
+            if (alunos.Length == 0)
             {
-                aluno.BoletimDigital = await CriarResumoBoletimDigitalAsync(aluno);
-            }
-        }
-
-        private async Task<BoletimDigitalResumoAlunoViewModel?> CriarResumoBoletimDigitalAsync(UsuarioSummaryViewModel aluno)
-        {
-            var matricula = await _context.AlunosTurmasEnsino
-                .Include(item => item.TurmaEnsino)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(item => item.IdAlunoUsuario == aluno.IdUsuario);
-
-            if (matricula?.TurmaEnsino == null)
-            {
-                return null;
+                return;
             }
 
-            var disciplinasIds = await _context.Disciplinas
+            var alunosIds = alunos.Select(aluno => aluno.IdUsuario).ToArray();
+
+            var matriculas = await _context.AlunosTurmasEnsino
                 .AsNoTracking()
-                .Where(disciplina => disciplina.IdTurmaEnsino == matricula.IdTurmaEnsino)
-                .Select(disciplina => disciplina.IdDisciplina)
+                .Where(item => alunosIds.Contains(item.IdAlunoUsuario))
+                .Select(item => new
+                {
+                    item.IdAlunoUsuario,
+                    item.IdTurmaEnsino,
+                    NomeTurmaEnsino = item.TurmaEnsino == null ? string.Empty : item.TurmaEnsino.Nome
+                })
                 .ToArrayAsync();
 
-            var lancadas = disciplinasIds.Length == 0
-                ? 0
-                : await _context.CadernetasDigitais
-                    .AsNoTracking()
-                    .Where(caderneta =>
-                        caderneta.IdAlunoUsuario == aluno.IdUsuario
-                        && caderneta.IdTurmaEnsino == matricula.IdTurmaEnsino
-                        && disciplinasIds.Contains(caderneta.IdDisciplina))
-                    .Select(caderneta => caderneta.IdDisciplina)
-                    .Distinct()
-                    .CountAsync();
-
-            var boletim = await _context.BoletinsDigitais
-                .Include(item => item.ProfessorSolicitanteUsuario)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(item =>
-                    item.IdAlunoUsuario == aluno.IdUsuario
-                    && item.IdTurmaEnsino == matricula.IdTurmaEnsino);
-
-            var status = boletim?.Status ?? BoletimDigitalStatus.EmAberto;
-            var completo = disciplinasIds.Length > 0 && lancadas == disciplinasIds.Length;
-            var liberado = completo && status == BoletimDigitalStatus.Liberado;
-            var pendenteLiberacao = completo && status == BoletimDigitalStatus.PendenteDiretoria;
-
-            return new BoletimDigitalResumoAlunoViewModel
+            if (matriculas.Length == 0)
             {
-                IdBoletimDigital = boletim?.IdBoletimDigital,
-                IdAlunoUsuario = aluno.IdUsuario,
-                NomeAluno = aluno.Nome,
-                EmailAluno = aluno.Email,
-                IdTurmaEnsino = matricula.IdTurmaEnsino,
-                NomeTurmaEnsino = matricula.TurmaEnsino.Nome,
-                Status = status,
-                Completo = completo,
-                Liberado = liberado,
-                PendenteLiberacao = pendenteLiberacao,
-                TotalDisciplinas = disciplinasIds.Length,
-                DisciplinasLancadas = lancadas,
-                DisciplinasPendentes = disciplinasIds.Length - lancadas,
-                SolicitadoEmUtc = boletim?.SolicitadoEmUtc,
-                NomeProfessorSolicitante = boletim?.ProfessorSolicitanteUsuario?.Nome ?? string.Empty
-            };
+                return;
+            }
+
+            var matriculasPorAluno = matriculas
+                .GroupBy(matricula => matricula.IdAlunoUsuario)
+                .ToDictionary(group => group.Key, group => group.First());
+            var turmasIds = matriculas
+                .Select(matricula => matricula.IdTurmaEnsino)
+                .Distinct()
+                .ToArray();
+
+            var disciplinas = await _context.Disciplinas
+                .AsNoTracking()
+                .Where(disciplina =>
+                    disciplina.IdTurmaEnsino.HasValue
+                    && turmasIds.Contains(disciplina.IdTurmaEnsino.Value))
+                .Select(disciplina => new
+                {
+                    IdTurmaEnsino = disciplina.IdTurmaEnsino!.Value,
+                    disciplina.IdDisciplina
+                })
+                .ToArrayAsync();
+
+            var totalDisciplinasPorTurma = disciplinas
+                .GroupBy(disciplina => disciplina.IdTurmaEnsino)
+                .ToDictionary(group => group.Key, group => group.Select(disciplina => disciplina.IdDisciplina).Distinct().Count());
+
+            var cadernetasLancadas = await _context.CadernetasDigitais
+                .AsNoTracking()
+                .Where(caderneta =>
+                    caderneta.IdTurmaEnsino.HasValue
+                    && alunosIds.Contains(caderneta.IdAlunoUsuario)
+                    && turmasIds.Contains(caderneta.IdTurmaEnsino.Value))
+                .Select(caderneta => new
+                {
+                    caderneta.IdAlunoUsuario,
+                    IdTurmaEnsino = caderneta.IdTurmaEnsino!.Value,
+                    caderneta.IdDisciplina
+                })
+                .Distinct()
+                .ToArrayAsync();
+
+            var disciplinasLancadasPorAlunoTurma = cadernetasLancadas
+                .GroupBy(caderneta => (caderneta.IdAlunoUsuario, caderneta.IdTurmaEnsino))
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(caderneta => caderneta.IdDisciplina).Distinct().Count());
+
+            var boletins = await _context.BoletinsDigitais
+                .AsNoTracking()
+                .Where(item =>
+                    alunosIds.Contains(item.IdAlunoUsuario)
+                    && turmasIds.Contains(item.IdTurmaEnsino))
+                .Select(item => new
+                {
+                    item.IdBoletimDigital,
+                    item.IdAlunoUsuario,
+                    item.IdTurmaEnsino,
+                    item.Status,
+                    item.SolicitadoEmUtc,
+                    NomeProfessorSolicitante = item.ProfessorSolicitanteUsuario == null
+                        ? string.Empty
+                        : item.ProfessorSolicitanteUsuario.Nome
+                })
+                .ToArrayAsync();
+
+            var boletinsPorAlunoTurma = boletins
+                .GroupBy(boletim => (boletim.IdAlunoUsuario, boletim.IdTurmaEnsino))
+                .ToDictionary(group => group.Key, group => group.First());
+
+            foreach (var aluno in alunos)
+            {
+                if (!matriculasPorAluno.TryGetValue(aluno.IdUsuario, out var matricula))
+                {
+                    continue;
+                }
+
+                var key = (aluno.IdUsuario, matricula.IdTurmaEnsino);
+                var totalDisciplinas = totalDisciplinasPorTurma.GetValueOrDefault(matricula.IdTurmaEnsino);
+                var disciplinasLancadas = disciplinasLancadasPorAlunoTurma.GetValueOrDefault(key);
+                var boletim = boletinsPorAlunoTurma.GetValueOrDefault(key);
+                var status = boletim?.Status ?? BoletimDigitalStatus.EmAberto;
+                var completo = totalDisciplinas > 0 && disciplinasLancadas == totalDisciplinas;
+
+                aluno.BoletimDigital = new BoletimDigitalResumoAlunoViewModel
+                {
+                    IdBoletimDigital = boletim?.IdBoletimDigital,
+                    IdAlunoUsuario = aluno.IdUsuario,
+                    NomeAluno = aluno.Nome,
+                    EmailAluno = aluno.Email,
+                    IdTurmaEnsino = matricula.IdTurmaEnsino,
+                    NomeTurmaEnsino = matricula.NomeTurmaEnsino,
+                    Status = status,
+                    Completo = completo,
+                    Liberado = completo && status == BoletimDigitalStatus.Liberado,
+                    PendenteLiberacao = completo && status == BoletimDigitalStatus.PendenteDiretoria,
+                    TotalDisciplinas = totalDisciplinas,
+                    DisciplinasLancadas = disciplinasLancadas,
+                    DisciplinasPendentes = totalDisciplinas - disciplinasLancadas,
+                    SolicitadoEmUtc = boletim?.SolicitadoEmUtc,
+                    NomeProfessorSolicitante = boletim?.NomeProfessorSolicitante ?? string.Empty
+                };
+            }
         }
 
         private static int GetUsuarioAtualId(ClaimsPrincipal principal)

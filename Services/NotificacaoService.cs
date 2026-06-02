@@ -15,14 +15,21 @@ namespace ESCOLA_API.Services
             _context = context;
         }
 
-        public async Task<NotificacaoViewModel[]> GetMinhasAsync(ClaimsPrincipal principal)
+        public async Task<NotificacaoViewModel[]> GetMinhasAsync(
+            ClaimsPrincipal principal,
+            int pagina = 1,
+            int tamanhoPagina = 20)
         {
             var usuarioId = GetUsuarioAtualId(principal);
+            var paginaNormalizada = Math.Max(1, pagina);
+            var tamanhoNormalizado = Math.Clamp(tamanhoPagina, 1, 50);
 
             var notificacoes = await _context.Notificacoes
                 .AsNoTracking()
                 .Where(notificacao => notificacao.IdUsuario == usuarioId)
                 .OrderByDescending(notificacao => notificacao.CriadaEmUtc)
+                .Skip((paginaNormalizada - 1) * tamanhoNormalizado)
+                .Take(tamanhoNormalizado)
                 .ToArrayAsync();
 
             return notificacoes
