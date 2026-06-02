@@ -34,7 +34,7 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 
 | Variavel | Exemplo/observacao |
 | --- | --- |
-| `Jwt__Key` | Chave secreta com ao menos 32 bytes. Gere uma no PowerShell com `[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))`. |
+| `Jwt__Key` | Chave secreta com ao menos 32 bytes. Gere uma no PowerShell com `[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))`. A API tambem aceita `JWT_KEY` como fallback. |
 | `ConnectionStrings__DefaultConnection` | Obrigatoria em producao. Para SQL Server, use algo como `Server=tcp:SEU_HOST,1433;Database=ESCOLA_API;User Id=SEU_USUARIO;Password=SUA_SENHA;Encrypt=True;TrustServerCertificate=True;`. |
 | `Uploads__Provider` | Use `AzureBlob` em producao para salvar fotos, certificados e holerites no Azure Blob Storage. Use `Local` em desenvolvimento. |
 | `AzureBlob__ConnectionString` | Obrigatoria quando `Uploads__Provider=AzureBlob`. Use a connection string do Storage Account. |

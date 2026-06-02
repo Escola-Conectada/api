@@ -255,7 +255,7 @@ app.Run();
 
 static string ResolveJwtKey(IHostEnvironment environment, IConfiguration configuration)
 {
-    var jwtKey = configuration["Jwt:Key"];
+    var jwtKey = GetFirstConfiguredValue(configuration, "Jwt:Key", "Jwt__Key", "JWT_KEY");
     if (!string.IsNullOrWhiteSpace(jwtKey))
     {
         return ValidateJwtKey(jwtKey);
@@ -264,7 +264,7 @@ static string ResolveJwtKey(IHostEnvironment environment, IConfiguration configu
     if (!environment.IsDevelopment())
     {
         throw new InvalidOperationException(
-            "Jwt:Key nao configurado. Defina a variavel de ambiente Jwt__Key ou configure um secret no provedor de deploy.");
+            "Jwt:Key nao configurado. Defina a variavel de ambiente Jwt__Key, JWT_KEY, ou configure um secret no provedor de deploy.");
     }
 
     var localDirectory = Path.Combine(environment.ContentRootPath, ".local");
@@ -279,6 +279,26 @@ static string ResolveJwtKey(IHostEnvironment environment, IConfiguration configu
     var generatedKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
     File.WriteAllText(localKeyPath, generatedKey);
     return generatedKey;
+}
+
+static string? GetFirstConfiguredValue(IConfiguration configuration, params string[] keys)
+{
+    foreach (var key in keys)
+    {
+        var configuredValue = configuration[key];
+        if (!string.IsNullOrWhiteSpace(configuredValue))
+        {
+            return configuredValue;
+        }
+
+        var environmentValue = Environment.GetEnvironmentVariable(key);
+        if (!string.IsNullOrWhiteSpace(environmentValue))
+        {
+            return environmentValue;
+        }
+    }
+
+    return null;
 }
 
 static void ConfigureHttpPort(WebApplicationBuilder builder)
