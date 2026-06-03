@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace ESCOLA_API.ViewModels
 {
     /// <summary>
@@ -262,6 +264,17 @@ namespace ESCOLA_API.ViewModels
         public string? ContentType { get; set; }
         public long? TamanhoBytes { get; set; }
         public DateTime? CriadoEmUtc { get; set; }
+    }
+
+    /// <summary>
+    /// Dados do formulario para envio de arquivo vinculado ao usuario.
+    /// </summary>
+    public class UsuarioArquivoUploadViewModel
+    {
+        /// <summary>
+        /// Arquivo enviado pelo formulario.
+        /// </summary>
+        public IFormFile? Arquivo { get; set; }
     }
 
     /// <summary>

@@ -153,22 +153,20 @@ namespace ESCOLA_API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UploadHolerite(
             int usuarioId,
-            [FromForm] IFormFile? arquivo,
-            [FromForm] int competenciaMes,
-            [FromForm] int competenciaAno)
+            [FromForm] HoleriteUploadViewModel model)
         {
             try
             {
-                if (arquivo == null)
+                if (model.Arquivo == null)
                 {
                     return BadRequest("Informe o arquivo do holerite.");
                 }
 
                 var created = await _holeriteService.UploadHoleriteAsync(
                     usuarioId,
-                    competenciaMes,
-                    competenciaAno,
-                    arquivo,
+                    model.CompetenciaMes,
+                    model.CompetenciaAno,
+                    model.Arquivo,
                     User);
 
                 return CreatedAtAction(nameof(GetHoleritesUsuario), new { usuarioId }, created);

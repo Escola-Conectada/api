@@ -332,16 +332,16 @@ namespace ESCOLA_API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UploadFoto(int usuarioId, [FromForm] IFormFile? arquivo)
+        public async Task<IActionResult> UploadFoto(int usuarioId, [FromForm] UsuarioArquivoUploadViewModel model)
         {
             try
             {
-                if (arquivo == null)
+                if (model.Arquivo == null)
                 {
                     return BadRequest("Informe o arquivo da foto.");
                 }
 
-                var updated = await _arquivoService.UploadFotoAsync(usuarioId, arquivo, User);
+                var updated = await _arquivoService.UploadFotoAsync(usuarioId, model.Arquivo, User);
                 if (updated == null) return NotFound();
                 return Ok(updated);
             }
@@ -369,16 +369,16 @@ namespace ESCOLA_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UploadCertificado(int usuarioId, [FromForm] IFormFile? arquivo)
+        public async Task<IActionResult> UploadCertificado(int usuarioId, [FromForm] UsuarioArquivoUploadViewModel model)
         {
             try
             {
-                if (arquivo == null)
+                if (model.Arquivo == null)
                 {
                     return BadRequest("Informe o arquivo do certificado.");
                 }
 
-                var created = await _arquivoService.UploadCertificadoAsync(usuarioId, arquivo, User);
+                var created = await _arquivoService.UploadCertificadoAsync(usuarioId, model.Arquivo, User);
                 return CreatedAtAction(nameof(GetArquivos), new { usuarioId }, created);
             }
             catch (UnauthorizedAccessException)

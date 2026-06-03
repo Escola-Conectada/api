@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace ESCOLA_API.ViewModels
 {
     /// <summary>
@@ -64,6 +66,27 @@ namespace ESCOLA_API.ViewModels
         /// Data e hora UTC de envio do holerite.
         /// </summary>
         public DateTime CriadoEmUtc { get; set; }
+    }
+
+    /// <summary>
+    /// Dados do formulario para envio de holerite em PDF.
+    /// </summary>
+    public class HoleriteUploadViewModel
+    {
+        /// <summary>
+        /// Arquivo PDF do holerite.
+        /// </summary>
+        public IFormFile? Arquivo { get; set; }
+
+        /// <summary>
+        /// Mes de competencia do holerite, de 1 a 12.
+        /// </summary>
+        public int CompetenciaMes { get; set; }
+
+        /// <summary>
+        /// Ano de competencia do holerite.
+        /// </summary>
+        public int CompetenciaAno { get; set; }
     }
 
     /// <summary>
