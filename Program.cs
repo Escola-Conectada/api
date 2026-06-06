@@ -37,6 +37,7 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<UsuarioCreateViewModelValidator>();
 builder.Services.AddCors();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IConfiguracaoAplicacaoService, ConfiguracaoAplicacaoService>();
 builder.Services.AddScoped<IAlunoTurmaEnsinoService, AlunoTurmaEnsinoService>();

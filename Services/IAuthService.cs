@@ -6,6 +6,7 @@ namespace ESCOLA_API.Services
     public interface IAuthService
     {
         Task<AuthResponseViewModel?> LoginAsync(LoginRequestViewModel viewModel);
+        Task<AuthResponseViewModel?> LoginGoogleAsync(GoogleLoginRequestViewModel viewModel);
         Task<UsuarioSummaryViewModel?> GetUsuarioAtualAsync(ClaimsPrincipal principal);
         Task<UsuarioSummaryViewModel?> AlterarSenhaAsync(ClaimsPrincipal principal, AlterarSenhaViewModel viewModel);
         Task<RedefinicaoSenhaSolicitadaViewModel> SolicitarRedefinicaoSenhaAsync(EsqueciSenhaViewModel viewModel);

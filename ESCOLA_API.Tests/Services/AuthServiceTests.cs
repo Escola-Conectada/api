@@ -20,7 +20,7 @@ namespace ESCOLA_API.Tests.Services
             await context.Database.EnsureCreatedAsync();
 
             var usuario = await CreateDefaultPasswordUserAsync(context);
-            var service = new AuthService(context, CreateConfiguration());
+            var service = CreateService(context);
 
             var response = await service.LoginAsync(new LoginRequestViewModel
             {
@@ -43,7 +43,7 @@ namespace ESCOLA_API.Tests.Services
 
             var usuario = await CreateDefaultPasswordUserAsync(context);
             var principal = CreatePrincipal(usuario.IdUsuario);
-            var service = new AuthService(context, CreateConfiguration());
+            var service = CreateService(context);
 
             var updated = await service.AlterarSenhaAsync(principal, new AlterarSenhaViewModel
             {
@@ -68,7 +68,7 @@ namespace ESCOLA_API.Tests.Services
             await context.Database.EnsureCreatedAsync();
 
             var usuario = await CreateCustomPasswordUserAsync(context);
-            var service = new AuthService(context, CreateConfiguration());
+            var service = CreateService(context);
 
             var result = await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
             {
@@ -93,7 +93,7 @@ namespace ESCOLA_API.Tests.Services
             await using var context = CreateContext(connection);
             await context.Database.EnsureCreatedAsync();
 
-            var service = new AuthService(context, CreateConfiguration());
+            var service = CreateService(context);
 
             var result = await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
             {
@@ -114,7 +114,7 @@ namespace ESCOLA_API.Tests.Services
             await context.Database.EnsureCreatedAsync();
 
             var usuario = await CreateCustomPasswordUserAsync(context);
-            var service = new AuthService(context, CreateConfiguration());
+            var service = CreateService(context);
             var tokenResult = await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
             {
                 Email = usuario.Email
@@ -146,7 +146,7 @@ namespace ESCOLA_API.Tests.Services
             await context.Database.EnsureCreatedAsync();
 
             var usuario = await CreateCustomPasswordUserAsync(context);
-            var service = new AuthService(context, CreateConfiguration());
+            var service = CreateService(context);
             await service.SolicitarRedefinicaoSenhaAsync(new EsqueciSenhaViewModel
             {
                 Email = usuario.Email
@@ -163,12 +163,129 @@ namespace ESCOLA_API.Tests.Services
             Assert.False(result);
         }
 
-        private static async Task<ESCOLA_API.Models.Usuario> CreateDefaultPasswordUserAsync(DataContext context)
+        [Fact]
+        public async Task LoginGoogleAsync_WhenVerifiedEmailExists_ReturnsJwtSession()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var usuario = await CreateGoogleUserAsync(context);
+            var validator = new FakeGoogleTokenValidator
+            {
+                Payload = new GoogleTokenPayload("GOOGLE@ESCOLA.COM", true, "Usuario Google", "google-subject")
+            };
+            var service = CreateService(context, CreateConfiguration(googleClientId: "client-id.apps.googleusercontent.com"), validator);
+
+            var response = await service.LoginGoogleAsync(new GoogleLoginRequestViewModel
+            {
+                IdToken = " google-id-token "
+            });
+
+            Assert.NotNull(response);
+            Assert.Equal(usuario.IdUsuario, response!.Usuario.IdUsuario);
+            Assert.False(string.IsNullOrWhiteSpace(response.Token));
+            Assert.Equal("google-id-token", validator.LastIdToken);
+            Assert.Equal("client-id.apps.googleusercontent.com", validator.LastClientId);
+        }
+
+        [Fact]
+        public async Task LoginGoogleAsync_WhenEmailIsNotRegistered_ReturnsNull()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var validator = new FakeGoogleTokenValidator
+            {
+                Payload = new GoogleTokenPayload("inexistente@escola.com", true, "Usuario Google", "google-subject")
+            };
+            var service = CreateService(context, CreateConfiguration(googleClientId: "client-id.apps.googleusercontent.com"), validator);
+
+            var response = await service.LoginGoogleAsync(new GoogleLoginRequestViewModel
+            {
+                IdToken = "google-id-token"
+            });
+
+            Assert.Null(response);
+        }
+
+        [Fact]
+        public async Task LoginGoogleAsync_WhenEmailIsNotVerified_ReturnsNull()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            await CreateGoogleUserAsync(context);
+            var validator = new FakeGoogleTokenValidator
+            {
+                Payload = new GoogleTokenPayload("google@escola.com", false, "Usuario Google", "google-subject")
+            };
+            var service = CreateService(context, CreateConfiguration(googleClientId: "client-id.apps.googleusercontent.com"), validator);
+
+            var response = await service.LoginGoogleAsync(new GoogleLoginRequestViewModel
+            {
+                IdToken = "google-id-token"
+            });
+
+            Assert.Null(response);
+        }
+
+        [Fact]
+        public async Task LoginGoogleAsync_WhenUsuarioUsesDefaultPassword_RetiresDefaultPassword()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var usuario = await CreateDefaultPasswordUserAsync(context, email: "google@escola.com");
+            var validator = new FakeGoogleTokenValidator
+            {
+                Payload = new GoogleTokenPayload("google@escola.com", true, "Usuario Google", "google-subject")
+            };
+            var service = CreateService(context, CreateConfiguration(googleClientId: "client-id.apps.googleusercontent.com"), validator);
+
+            var response = await service.LoginGoogleAsync(new GoogleLoginRequestViewModel
+            {
+                IdToken = "google-id-token"
+            });
+            var stored = await context.Usuarios.FirstAsync(u => u.IdUsuario == usuario.IdUsuario);
+
+            Assert.NotNull(response);
+            Assert.False(response!.DeveAlterarSenhaPadrao);
+            Assert.False(DefaultPasswordPolicy.UsesDefaultPassword(stored.Senha));
+        }
+
+        [Fact]
+        public async Task LoginGoogleAsync_WhenClientIdIsMissing_Throws()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = CreateService(context);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.LoginGoogleAsync(new GoogleLoginRequestViewModel
+                {
+                    IdToken = "google-id-token"
+                }));
+        }
+
+        private static async Task<ESCOLA_API.Models.Usuario> CreateDefaultPasswordUserAsync(
+            DataContext context,
+            string email = "padrao@escola.com")
         {
             var usuario = new ESCOLA_API.Models.Usuario
             {
                 Nome = "Usuario Padrao",
-                Email = "padrao@escola.com",
+                Email = email,
                 Telefone = "11999990000",
                 Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
                 IdPerfil = 2
@@ -195,6 +312,22 @@ namespace ESCOLA_API.Tests.Services
             return usuario;
         }
 
+        private static async Task<ESCOLA_API.Models.Usuario> CreateGoogleUserAsync(DataContext context)
+        {
+            var usuario = new ESCOLA_API.Models.Usuario
+            {
+                Nome = "Usuario Google",
+                Email = "google@escola.com",
+                Telefone = "11999990002",
+                Senha = PasswordHasher.HashPassword("Senha@252526"),
+                IdPerfil = 2
+            };
+
+            context.Usuarios.Add(usuario);
+            await context.SaveChangesAsync();
+            return usuario;
+        }
+
         private static ClaimsPrincipal CreatePrincipal(int usuarioId)
         {
             var identity = new ClaimsIdentity(new[]
@@ -205,16 +338,34 @@ namespace ESCOLA_API.Tests.Services
             return new ClaimsPrincipal(identity);
         }
 
-        private static IConfiguration CreateConfiguration()
+        private static AuthService CreateService(
+            DataContext context,
+            IConfiguration? configuration = null,
+            IGoogleTokenValidator? googleTokenValidator = null)
         {
+            return new AuthService(
+                context,
+                configuration ?? CreateConfiguration(),
+                googleTokenValidator ?? new FakeGoogleTokenValidator());
+        }
+
+        private static IConfiguration CreateConfiguration(string? googleClientId = null)
+        {
+            var values = new Dictionary<string, string?>
+            {
+                ["Jwt:Key"] = "TestJwtKeyForUnitTestsOnly_1234567890_Secret",
+                ["Jwt:Issuer"] = "escola-api",
+                ["Jwt:Audience"] = "escola-client",
+                ["Jwt:ExpirationMinutes"] = "120"
+            };
+
+            if (!string.IsNullOrWhiteSpace(googleClientId))
+            {
+                values["GoogleAuth:ClientId"] = googleClientId;
+            }
+
             return new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Jwt:Key"] = "TestJwtKeyForUnitTestsOnly_1234567890_Secret",
-                    ["Jwt:Issuer"] = "escola-api",
-                    ["Jwt:Audience"] = "escola-client",
-                    ["Jwt:ExpirationMinutes"] = "120"
-                })
+                .AddInMemoryCollection(values)
                 .Build();
         }
 
@@ -225,6 +376,20 @@ namespace ESCOLA_API.Tests.Services
                 .Options;
 
             return new DataContext(options);
+        }
+
+        private sealed class FakeGoogleTokenValidator : IGoogleTokenValidator
+        {
+            public GoogleTokenPayload? Payload { get; init; }
+            public string? LastIdToken { get; private set; }
+            public string? LastClientId { get; private set; }
+
+            public Task<GoogleTokenPayload?> ValidateAsync(string idToken, string clientId)
+            {
+                LastIdToken = idToken;
+                LastClientId = clientId;
+                return Task.FromResult(Payload);
+            }
         }
     }
 }

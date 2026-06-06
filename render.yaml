@@ -19,6 +19,8 @@ services:
         generateValue: true
       - key: PasswordReset__ExpirationMinutes
         value: "30"
+      - key: GoogleAuth__ClientId
+        sync: false
       - key: Legal__AppName
         value: Escola Conectada
       - key: Legal__SupportEmail

@@ -17,6 +17,17 @@ namespace ESCOLA_API.ViewModels
     }
 
     /// <summary>
+    /// Dados enviados para autenticar um usuario com Google Identity Services.
+    /// </summary>
+    public class GoogleLoginRequestViewModel
+    {
+        /// <summary>
+        /// ID token JWT retornado pelo login do Google.
+        /// </summary>
+        public string IdToken { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// Resposta de autenticacao com token JWT e dados resumidos do usuario.
     /// </summary>
     public class AuthResponseViewModel

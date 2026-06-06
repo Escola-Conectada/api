@@ -8,6 +8,7 @@ API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, aut
 - Entity Framework Core
 - SQL Server e SQLite em desenvolvimento/testes
 - JWT Bearer
+- Google.Apis.Auth para validar ID tokens do Google
 - FluentValidation
 - Swagger/OpenAPI e Scalar
 - QRCoder para geracao de QR Code PNG
@@ -36,6 +37,7 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | --- | --- |
 | `Jwt__Key` | Chave secreta com ao menos 32 bytes. Gere uma no PowerShell com `[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))`. A API tambem aceita `JWT_KEY` como fallback. |
 | `ConnectionStrings__DefaultConnection` | Obrigatoria em producao. Para SQL Server, use algo como `Server=tcp:SEU_HOST,1433;Database=ESCOLA_API;User Id=SEU_USUARIO;Password=SUA_SENHA;Encrypt=True;TrustServerCertificate=True;`. |
+| `GoogleAuth__ClientId` | OAuth Client ID web do Google. Use o mesmo valor configurado no front em `NUXT_PUBLIC_GOOGLE_CLIENT_ID`. |
 | `Uploads__Provider` | Use `AzureBlob` em producao para salvar fotos, certificados e holerites no Azure Blob Storage. Use `Local` em desenvolvimento. |
 | `AzureBlob__ConnectionString` | Obrigatoria quando `Uploads__Provider=AzureBlob`. Use a connection string do Storage Account. |
 | `AzureBlob__ContainerName` | Container dos arquivos. Padrao usado no deploy: `arquivos`. |
@@ -51,7 +53,7 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `Boletins__ShareSecret` | Opcional. Segredo HMAC para links publicos temporarios de boletins. Se vazio, usa `Jwt__Key`. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
 
-O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`. A API tambem aceita `AzureStorage__ConnectionString`, `AzureStorage__ContainerName` e `AzureStorage__PublicBaseUrl` como alias.
+O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, `GoogleAuth:ClientId` como `GoogleAuth__ClientId` e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`. A API tambem aceita `AzureStorage__ConnectionString`, `AzureStorage__ContainerName` e `AzureStorage__PublicBaseUrl` como alias.
 
 Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStrings__DefaultConnection=Data Source=escola.db`, mas os dados podem ser perdidos em redeploy/restart do container. Para uso real, prefira SQL Server persistente.
 
@@ -177,7 +179,7 @@ O backend usa arquitetura em camadas:
 
 | Entidade | Rotas |
 | --- | --- |
-| Auth | `POST /api/Auth/login`, `GET /api/Auth/me`, `GET /api/Auth/autorizar`, `GET /api/Auth/autorizar/admin`, `POST /api/Auth/alterar-senha`, `POST /api/Auth/esqueci-senha`, `POST /api/Auth/redefinir-senha` |
+| Auth | `POST /api/Auth/login`, `POST /api/Auth/google`, `GET /api/Auth/me`, `GET /api/Auth/autorizar`, `GET /api/Auth/autorizar/admin`, `POST /api/Auth/alterar-senha`, `POST /api/Auth/esqueci-senha`, `POST /api/Auth/redefinir-senha` |
 | Usuarios | `GET /api/usuarios`, `GET /api/usuarios/{id}`, `GET /api/usuarios/perfis`, `POST /api/usuarios`, `PUT /api/usuarios/{id}`, `DELETE /api/usuarios/{id}`, `POST /api/usuarios/me/exclusao-conta`, `GET /api/usuarios/exclusoes-conta` |
 | Arquivos de usuario | `GET /api/usuarios/{id}/foto`, `POST /api/usuarios/{id}/foto`, `GET /api/usuarios/{id}/arquivos`, `GET /api/usuarios/{id}/arquivos/{arquivoId}/download`, `POST /api/usuarios/{id}/certificados`, `DELETE /api/usuarios/{id}/arquivos/{arquivoId}` |
 | QR Code bancario ficticio | `GET /api/alunos/me/qr-code-bancario` |

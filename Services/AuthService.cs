@@ -15,11 +15,16 @@ namespace ESCOLA_API.Services
     {
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IGoogleTokenValidator _googleTokenValidator;
 
-        public AuthService(DataContext context, IConfiguration configuration)
+        public AuthService(
+            DataContext context,
+            IConfiguration configuration,
+            IGoogleTokenValidator googleTokenValidator)
         {
             _context = context;
             _configuration = configuration;
+            _googleTokenValidator = googleTokenValidator;
         }
 
         public async Task<AuthResponseViewModel?> LoginAsync(LoginRequestViewModel viewModel)
@@ -35,14 +40,42 @@ namespace ESCOLA_API.Services
                 return null;
             }
 
-            var expires = DateTime.UtcNow.AddMinutes(GetExpirationMinutes());
-            return new AuthResponseViewModel
+            return CreateAuthResponse(usuario);
+        }
+
+        public async Task<AuthResponseViewModel?> LoginGoogleAsync(GoogleLoginRequestViewModel viewModel)
+        {
+            var clientId = GetGoogleClientId();
+            if (string.IsNullOrWhiteSpace(clientId))
             {
-                Token = GenerateToken(usuario, expires),
-                ExpiraEm = expires,
-                Usuario = usuario.ToSummary()!,
-                DeveAlterarSenhaPadrao = DefaultPasswordPolicy.UsesDefaultPassword(usuario.Senha)
-            };
+                throw new InvalidOperationException("GoogleAuth:ClientId nao configurado.");
+            }
+
+            var googlePayload = await _googleTokenValidator.ValidateAsync(viewModel.IdToken.Trim(), clientId);
+            if (googlePayload == null
+                || !googlePayload.EmailVerified
+                || string.IsNullOrWhiteSpace(googlePayload.Email))
+            {
+                return null;
+            }
+
+            var email = googlePayload.Email.Trim().ToLowerInvariant();
+            var usuario = await _context.Usuarios
+                .Include(u => u.Perfil)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (usuario == null)
+            {
+                return null;
+            }
+
+            if (DefaultPasswordPolicy.UsesDefaultPassword(usuario.Senha))
+            {
+                usuario.Senha = PasswordHasher.HashPassword(GenerateExternalLoginPassword());
+                await _context.SaveChangesAsync();
+            }
+
+            return CreateAuthResponse(usuario, deveAlterarSenhaPadrao: false);
         }
 
         public async Task<UsuarioSummaryViewModel?> GetUsuarioAtualAsync(ClaimsPrincipal principal)
@@ -157,6 +190,18 @@ namespace ESCOLA_API.Services
             return true;
         }
 
+        private AuthResponseViewModel CreateAuthResponse(Usuario usuario, bool? deveAlterarSenhaPadrao = null)
+        {
+            var expires = DateTime.UtcNow.AddMinutes(GetExpirationMinutes());
+            return new AuthResponseViewModel
+            {
+                Token = GenerateToken(usuario, expires),
+                ExpiraEm = expires,
+                Usuario = usuario.ToSummary()!,
+                DeveAlterarSenhaPadrao = deveAlterarSenhaPadrao ?? DefaultPasswordPolicy.UsesDefaultPassword(usuario.Senha)
+            };
+        }
+
         private string GenerateToken(Usuario usuario, DateTime expires)
         {
             var key = _configuration["Jwt:Key"];
@@ -207,7 +252,41 @@ namespace ESCOLA_API.Services
                 : 30;
         }
 
+        private string? GetGoogleClientId()
+        {
+            return GetFirstConfiguredValue(
+                "GoogleAuth:ClientId",
+                "GoogleAuth__ClientId",
+                "GOOGLE_CLIENT_ID",
+                "NUXT_PUBLIC_GOOGLE_CLIENT_ID");
+        }
+
+        private string? GetFirstConfiguredValue(params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                var configuredValue = _configuration[key];
+                if (!string.IsNullOrWhiteSpace(configuredValue))
+                {
+                    return configuredValue.Trim();
+                }
+
+                var environmentValue = Environment.GetEnvironmentVariable(key);
+                if (!string.IsNullOrWhiteSpace(environmentValue))
+                {
+                    return environmentValue.Trim();
+                }
+            }
+
+            return null;
+        }
+
         private static string GeneratePasswordResetToken()
+        {
+            return Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(32));
+        }
+
+        private static string GenerateExternalLoginPassword()
         {
             return Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(32));
         }

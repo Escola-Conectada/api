@@ -48,6 +48,40 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
+        /// Autentica um usuario com o ID token do Google e retorna um token JWT da aplicacao.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("google")]
+        [ProducesResponseType(typeof(AuthResponseViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> LoginGoogle(GoogleLoginRequestViewModel model)
+        {
+            try
+            {
+                var result = await _authService.LoginGoogleAsync(model);
+                if (result == null)
+                {
+                    _logger.LogWarning("Tentativa de login com Google recusada.");
+                    return Unauthorized("Conta Google nao autorizada.");
+                }
+
+                _logger.LogInformation(
+                    "Login com Google realizado para usuario {UsuarioId} com perfil {Perfil}",
+                    result.Usuario.IdUsuario,
+                    result.Usuario.DescricaoPerfil);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Login com Google indisponivel por configuracao ausente.");
+                return StatusCode(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "Login com Google nao configurado.");
+            }
+        }
+
+        /// <summary>
         /// Retorna os dados do usuario autenticado.
         /// </summary>
         [Authorize]

@@ -34,6 +34,7 @@ services:
       Jwt__Audience: ${JWT_AUDIENCE:-escola-client}
       Jwt__ExpirationMinutes: ${JWT_EXPIRATION_MINUTES:-120}
       PasswordReset__ExpirationMinutes: ${PASSWORD_RESET_EXPIRATION_MINUTES:-30}
+      GoogleAuth__ClientId: ${GOOGLE_CLIENT_ID:-}
       Legal__AppName: ${LEGAL_APP_NAME:-Escola Conectada}
       Legal__SupportEmail: ${LEGAL_SUPPORT_EMAIL:-suporte@escola.com}
       QueueStorage__ConnectionString: ${QUEUESTORAGE_CONNECTION_STRING:-}
